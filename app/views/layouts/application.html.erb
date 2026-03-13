@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
-    <title><%= content_for(:title) || "May Store" %></title>
+    <title><%= content_for(:title) || t("app_name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -10,19 +10,34 @@
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <% if Current.user %>
+      <nav class="navbar">
+        <span class="navbar-brand"><%= t("app_name") %></span>
+        <div class="navbar-right">
+          <span><%= t("welcome", name: Current.user.name) %></span>
+          <%= button_to t("exit"), logout_path, method: :delete, class: "btn btn-sm btn-outline", style: "color: white; border-color: rgba(255,255,255,0.5);" %>
+        </div>
+      </nav>
+    <% end %>
+
+    <div class="container">
+      <% if flash[:notice] %>
+        <div class="flash flash-notice"><%= flash[:notice] %></div>
+      <% end %>
+      <% if flash[:alert] %>
+        <div class="flash flash-alert"><%= flash[:alert] %></div>
+      <% end %>
+
+      <%= yield %>
+    </div>
   </body>
 </html>

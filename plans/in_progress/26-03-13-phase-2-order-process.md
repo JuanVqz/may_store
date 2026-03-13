@@ -12,49 +12,48 @@ Build all waiter-facing screens: login view, table selection, product browsing, 
 ## Steps
 
 ### 1. Login View (Screen 1)
-- [ ] Login form view (`sessions/new.html.erb`)
-- [ ] Application layout with store branding
-- [ ] Flash message display (alert/notice)
-- [ ] Responsive mobile-first layout
+- [x] Login form view (`sessions/new.html.erb`)
+- [x] Application layout with store branding, navbar, flash messages
+- [x] Separate login layout (no navbar)
+- [x] Responsive mobile-first CSS
 
 ### 2. Table Selection (Screen 2)
-- [ ] `TablesController#index` — grid of tables for current store
-- [ ] Show table status (available, has active order with status color)
-- [ ] Click table -> new order or view active order
-- [ ] Navbar with user info, role, logout
+- [x] `TablesController#index` — grid of tables for current store
+- [x] Show table status (available, has active order with status color)
+- [x] Click table -> new order or view active order
+- [x] Navbar with user info, role, logout
+- [x] Status legend
 
 ### 3. Product Browser (Screen 3)
-- [ ] `ProductsController` or `OrdersController` flow
-- [ ] Category tabs/sidebar
-- [ ] Product cards with name, price, image placeholder
-- [ ] Filter by category
-- [ ] "Add to Order" button per product
-- [ ] Show current order item count
+- [x] `OrderProductsController#index`
+- [x] Category tabs with active state
+- [x] Product cards with name, description, price, image placeholder
+- [x] Filter by category
+- [x] "Customize" or "Add to Order" per product
 
 ### 4. Product Customization (Screen 4)
-- [ ] Ingredient portion buttons: `(Sin) (1/4) (1/2) (3/4) [Normal]`
-- [ ] Required ingredients omit "Sin" button
-- [ ] Extras add/remove counter `[-] N [+]`
-- [ ] Special notes text field
-- [ ] Live price calculation (base + extras)
-- [ ] "Add to Order" confirmation
-- [ ] Stimulus controller for interactive UI
+- [x] Ingredient portion radio buttons: `(Sin) (1/4) (1/2) (3/4) [Normal]`
+- [x] Required ingredients omit "Sin" button
+- [x] Extras number input for quantity
+- [x] Special notes text field
+- [x] "Add to Order" submit
+- [ ] Stimulus controller for interactive UI (live price calc, radio styling)
 
-### 5. Order Summary (Screen 5)
-- [ ] Show all line items with customizations
-- [ ] Per-item price breakdown
-- [ ] Order total
-- [ ] Order notes field
-- [ ] "Confirm Order" button (sends to kitchen)
-- [ ] "Add More Items" button
-- [ ] Remove item before confirmation
+### 5. Order Summary / Show (Screen 5)
+- [x] Show all line items with customizations (ingredients, extras, notes)
+- [x] Per-item price and status badges
+- [x] Order total
+- [x] "Confirm Order" button (sends to kitchen)
+- [x] "Add More Items" button
+- [x] Remove item before confirmation
 
 ### 6. Active Order View (Screen 6)
-- [ ] Show order after confirmation (COOKING state)
-- [ ] Per-item status badges with colors
-- [ ] "Add More Items" button (adds items as COOKING)
-- [ ] "Cancel Order" with confirmation dialog
-- [ ] "Request Bill" button (when DELIVERED)
+- [x] Show order after confirmation (COOKING state)
+- [x] Per-item status badges with colors
+- [x] "Add More Items" button (adds items as COOKING)
+- [x] "Cancel Order" with turbo_confirm dialog
+- [x] "Request Bill" placeholder (when DELIVERED)
+- [x] Mark ready / Mark delivered buttons per item
 - [ ] Real-time updates via Turbo Streams
 
 ### 7. Mixed Item Statuses (Screen 8)

@@ -12,7 +12,7 @@ class User < ApplicationRecord
     admin: "admin"
   }
 
-  normalizes :email, with: -> { _1.strip.downcase }
+  normalizes :email, with: -> { it.strip.downcase }
 
   validates :name, presence: true
   validates :role, presence: true

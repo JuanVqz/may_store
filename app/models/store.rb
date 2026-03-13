@@ -9,8 +9,8 @@ class Store < ApplicationRecord
   has_many :cash_closings
   has_many :order_counters
 
-  normalizes :subdomain, with: -> { _1.strip.downcase }
-  normalizes :order_prefix, with: -> { _1.strip.upcase }
+  normalizes :subdomain, with: -> { it.strip.downcase }
+  normalizes :order_prefix, with: -> { it.strip.upcase }
 
   validates :name, presence: true
   validates :subdomain, presence: true, uniqueness: true

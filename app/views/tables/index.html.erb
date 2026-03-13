@@ -1,0 +1,41 @@
+<div class="section-header">
+  <h1 class="section-title"><%= t("tables.title") %></h1>
+</div>
+
+<div class="tables-grid">
+  <% @tables.each do |table| %>
+    <% order = @active_orders[table.id] %>
+    <% if order %>
+      <%= link_to order_path(order), class: "table-card", data: { status: order.status } do %>
+        <span class="table-card-name"><%= table.name %></span>
+        <span class="table-card-status" style="color: <%= order.status_color %>">
+          <%= order.status_label %>
+        </span>
+      <% end %>
+    <% else %>
+      <%= link_to new_table_order_path(table), class: "table-card" do %>
+        <span class="table-card-name"><%= table.name %></span>
+        <span class="table-card-status text-muted"><%= t("tables.available") %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="legend mt-2">
+  <div class="legend-item">
+    <span class="legend-dot" style="background: var(--color-border)"></span>
+    <%= t("tables.available") %>
+  </div>
+  <div class="legend-item">
+    <span class="legend-dot" style="background: var(--color-warning)"></span>
+    <%= t("order_statuses.cooking") %>
+  </div>
+  <div class="legend-item">
+    <span class="legend-dot" style="background: var(--color-success)"></span>
+    <%= t("order_statuses.ready") %>
+  </div>
+  <div class="legend-item">
+    <span class="legend-dot" style="background: var(--color-purple)"></span>
+    <%= t("order_statuses.delivered") %>
+  </div>
+</div>

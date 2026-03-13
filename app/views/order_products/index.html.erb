@@ -1,0 +1,47 @@
+<nav class="navbar navbar-back">
+  <div>
+    <%= link_to "← #{@order.table.name}", order_path(@order) %>
+  </div>
+  <div>
+    <strong><%= @order.code %></strong>
+    <span class="text-muted"><%= @order.formatted_total %></span>
+  </div>
+</nav>
+
+<div class="category-tabs mt-1 mb-2">
+  <% @categories.each do |cat| %>
+    <%= link_to cat.name,
+          order_products_path(@order, category_id: cat.id),
+          class: "category-tab #{cat == @category ? 'active' : ''}" %>
+  <% end %>
+</div>
+
+<% if @products.any? %>
+  <div class="card">
+    <% @products.each do |product| %>
+      <div class="product-card">
+        <div class="product-image">
+          &#9749;
+        </div>
+        <div class="product-info">
+          <div class="product-name"><%= product.name %></div>
+          <div class="product-desc"><%= product.description %></div>
+          <div class="product-footer">
+            <span class="product-price"><%= product.formatted_base_price %></span>
+            <% if product.allows_customization && product.product_components.any? %>
+              <%= link_to t("products.customize"),
+                    new_order_line_item_path(@order, product_id: product.id),
+                    class: "btn btn-sm btn-outline" %>
+            <% else %>
+              <%= button_to t("products.add_to_order"),
+                    order_line_items_path(@order, line_item: { product_id: product.id }),
+                    class: "btn btn-sm btn-primary" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-center text-muted mt-2"><%= t("no_results") %></p>
+<% end %>

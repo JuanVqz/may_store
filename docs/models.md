@@ -588,8 +588,8 @@ class Store < ApplicationRecord
   has_many :payment_methods
   has_many :cash_closings
 
-  normalizes :subdomain, with: -> { _1.strip.downcase }
-  normalizes :order_prefix, with: -> { _1.strip.upcase }
+  normalizes :subdomain, with: -> { it.strip.downcase }
+  normalizes :order_prefix, with: -> { it.strip.upcase }
 
   validates :name, presence: true
   validates :subdomain, presence: true, uniqueness: true
@@ -613,7 +613,7 @@ class Account < ApplicationRecord
   belongs_to :user
   has_secure_password
 
-  normalizes :employee_number, with: -> { _1.strip.upcase }
+  normalizes :employee_number, with: -> { it.strip.upcase }
 
   validates :employee_number, presence: true
   validates :user_id, uniqueness: true
@@ -687,7 +687,7 @@ class User < ApplicationRecord
     admin: "admin"
   }
 
-  normalizes :email, with: -> { _1.strip.downcase }
+  normalizes :email, with: -> { it.strip.downcase }
 
   validates :name, presence: true
   validates :role, presence: true

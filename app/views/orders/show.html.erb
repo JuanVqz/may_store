@@ -1,0 +1,92 @@
+<nav class="navbar navbar-back">
+  <div>
+    <%= link_to "← #{t('tables.return')}", tables_path %>
+  </div>
+  <div>
+    <strong><%= @order.table.name %></strong>
+    <span class="status-badge" style="background: <%= @order.status_color %>"><%= @order.status_label %></span>
+  </div>
+</nav>
+
+<div class="section-header mt-2">
+  <h1 class="section-title"><%= @order.code %></h1>
+  <span class="product-price"><%= @order.formatted_total %></span>
+</div>
+
+<% if @line_items.any? %>
+  <div class="card mb-2">
+    <% @line_items.each do |item| %>
+      <div class="product-card">
+        <div class="product-info">
+          <div class="product-name">
+            <%= item.product.name %>
+            <span class="status-badge" style="background: <%= item.status_color %>"><%= item.status_label %></span>
+          </div>
+          <% ingredients = item.line_item_components.select(&:ingredient?) %>
+          <% extras = item.line_item_components.select(&:extra?) %>
+          <% if ingredients.any? %>
+            <div class="product-desc">
+              <%= ingredients.map { |c| "#{c.component.name}: #{c.portion_label}" }.join(", ") %>
+            </div>
+          <% end %>
+          <% if extras.any? %>
+            <div class="product-desc">
+              <% extras.group_by(&:component_id).each do |_, group| %>
+                + <%= group.first.component.name %> x<%= group.size %>
+              <% end %>
+            </div>
+          <% end %>
+          <% if item.special_notes.present? %>
+            <div class="product-desc"><em><%= item.special_notes %></em></div>
+          <% end %>
+          <div class="product-footer">
+            <span class="product-price"><%= item.formatted_total_price %></span>
+            <% if item.ordering? %>
+              <%= button_to t("delete"),
+                    order_line_item_path(@order, item),
+                    method: :delete,
+                    class: "btn btn-sm btn-danger" %>
+            <% end %>
+            <% if item.cooking? %>
+              <%= button_to t("kitchen.ready"),
+                    ready_order_line_item_path(@order, item),
+                    method: :patch,
+                    class: "btn btn-sm btn-primary" %>
+            <% end %>
+            <% if item.ready? %>
+              <%= button_to t("line_item.mark_delivered"),
+                    deliver_order_line_item_path(@order, item),
+                    method: :patch,
+                    class: "btn btn-sm btn-primary" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-center text-muted mt-2"><%= t("order.no_items") %></p>
+<% end %>
+
+<div class="mt-2">
+  <% if @order.open? %>
+    <% if @line_items.any? %>
+      <%= button_to t("order.confirm"), confirm_order_path(@order), method: :patch, class: "btn btn-primary btn-block btn-lg mb-1" %>
+    <% end %>
+    <%= link_to t("order.add_more"), order_products_path(@order), class: "btn btn-outline btn-block" %>
+  <% elsif @order.cooking? || @order.ready? %>
+    <%= link_to t("order.add_more"), order_products_path(@order), class: "btn btn-outline btn-block mb-1" %>
+  <% end %>
+
+  <% if @order.delivered? %>
+    <%= link_to t("order.request_bill"), "#", class: "btn btn-primary btn-block btn-lg mb-1" %>
+  <% end %>
+
+  <% unless @order.closed? || @order.cancelled? %>
+    <%= button_to t("order.cancel_order"),
+          cancel_order_path(@order),
+          method: :patch,
+          class: "btn btn-danger btn-block mt-1",
+          data: { turbo_confirm: t("order.cancel_confirm") } %>
+  <% end %>
+</div>

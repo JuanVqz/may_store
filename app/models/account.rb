@@ -2,7 +2,7 @@ class Account < ApplicationRecord
   belongs_to :user
   has_secure_password
 
-  normalizes :employee_number, with: -> { _1.strip.upcase }
+  normalizes :employee_number, with: -> { it.strip.upcase }
 
   validates :employee_number, presence: true
   validates :user_id, uniqueness: true

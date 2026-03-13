@@ -1,5 +1,6 @@
 class SessionsController < ApplicationController
   skip_before_action :require_authentication, only: [:new, :create]
+  layout "login", only: [:new, :create]
 
   def new
   end
