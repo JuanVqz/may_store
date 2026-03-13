@@ -1,0 +1,9 @@
+efectivo:
+  store: cafe_delicias
+  name: Efectivo
+  active: true
+
+tarjeta:
+  store: cafe_delicias
+  name: Tarjeta
+  active: true

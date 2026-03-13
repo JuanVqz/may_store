@@ -1,0 +1,27 @@
+americano_espresso:
+  product: americano
+  component: espresso_shot
+  component_type: ingredient
+  required: true
+  position: 1
+
+cappuccino_espresso:
+  product: cappuccino
+  component: espresso_shot
+  component_type: ingredient
+  required: true
+  position: 1
+
+cappuccino_milk:
+  product: cappuccino
+  component: steamed_milk
+  component_type: ingredient
+  required: false
+  position: 2
+
+cappuccino_extra_chocolate:
+  product: cappuccino
+  component: extra_chocolate
+  component_type: extra
+  required: false
+  position: 3

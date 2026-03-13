@@ -1,0 +1,23 @@
+espresso_shot:
+  store: cafe_delicias
+  name: Espresso Shot
+  price_cents: 0
+  available: true
+
+steamed_milk:
+  store: cafe_delicias
+  name: Steamed Milk
+  price_cents: 0
+  available: true
+
+extra_chocolate:
+  store: cafe_delicias
+  name: Extra Chocolate
+  price_cents: 1000
+  available: true
+
+extra_strawberries:
+  store: cafe_delicias
+  name: Extra Strawberries
+  price_cents: 2000
+  available: true

@@ -1,0 +1,11 @@
+cafe_delicias:
+  name: Cafe Delicias
+  subdomain: cafe-delicias
+  order_prefix: CFE
+  active: true
+
+mi_cafe:
+  name: Mi Cafe
+  subdomain: mi-cafe
+  order_prefix: MIA
+  active: true

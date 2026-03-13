@@ -1,0 +1,15 @@
+americano:
+  store: cafe_delicias
+  category: bebidas_calientes
+  name: Americano
+  base_price_cents: 3500
+  available: true
+  allows_customization: true
+
+cappuccino:
+  store: cafe_delicias
+  category: bebidas_calientes
+  name: Cappuccino Caramel
+  base_price_cents: 4500
+  available: true
+  allows_customization: true

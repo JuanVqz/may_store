@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.7"
 gem "bootsnap", require: false
 # gem "image_processing", "~> 1.2"
 gem "importmap-rails"

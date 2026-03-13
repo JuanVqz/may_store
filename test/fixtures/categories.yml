@@ -1,0 +1,11 @@
+bebidas_calientes:
+  store: cafe_delicias
+  name: Bebidas Calientes
+  position: 1
+  active: true
+
+crepas:
+  store: cafe_delicias
+  name: Crepas Dulces
+  position: 2
+  active: true

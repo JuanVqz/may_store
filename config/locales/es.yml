@@ -1,0 +1,383 @@
+# config/locales/es.yml
+# MayStore - Spanish locale (default)
+# Version: 5.0
+#
+# Usage in views:  t("login.submit")
+# Usage in models: I18n.t("order_statuses.cooking")
+
+es:
+  # ============================================
+  # App-wide
+  # ============================================
+  app_name: "MayStore"
+  welcome: "Bienvenido, %{name}"
+  cancel: "Cancelar"
+  save: "Guardar"
+  delete: "Eliminar"
+  edit: "Editar"
+  remove: "Eliminar"
+  back: "Volver"
+  close: "Cerrar"
+  confirm: "Confirmar"
+  loading: "Cargando..."
+  no_results: "Sin resultados"
+  actions: "Acciones"
+  reset: "Restablecer"
+  print: "Imprimir"
+  notes: "Notas"
+  exit: "Salir"
+  total: "Total"
+  date: "Fecha"
+
+  # ============================================
+  # Login / Auth
+  # ============================================
+  login:
+    title: "Sistema de Gestion de Ordenes"
+    employee_number: "Numero de empleado"
+    password: "Contrasena"
+    submit: "Iniciar sesion"
+    error: "Numero de empleado o contrasena incorrectos"
+    logout: "Cerrar sesion"
+    logged_out: "Sesion cerrada exitosamente"
+
+  # ============================================
+  # Roles
+  # ============================================
+  roles:
+    waiter: "Mesero"
+    kitchen: "Cocina"
+    admin: "Administrador"
+
+  # ============================================
+  # Tables
+  # ============================================
+  tables:
+    title: "Mesas"
+    table: "Mesa"
+    table_name: "Mesa %{name}"
+    select: "Seleccionar mesa"
+    return: "Volver a Mesas"
+    available: "Disponible"
+    legend: "Leyenda de estados"
+    no_active_order: "Sin orden activa"
+
+  # ============================================
+  # Order Statuses
+  # ============================================
+  order_statuses:
+    open: "Abierto"
+    cooking: "Preparando"
+    ready: "Listo"
+    delivered: "Entregado"
+    closed: "Cerrado"
+    cancelled: "Cancelado"
+
+  # ============================================
+  # Item Statuses
+  # ============================================
+  item_statuses:
+    ordering: "Ordenando"
+    cooking: "Preparando"
+    ready: "Listo"
+    delivered: "Entregado"
+    cancelled: "Cancelado"
+
+  # ============================================
+  # Orders
+  # ============================================
+  order:
+    title: "Orden"
+    code: "Codigo de orden"
+    items: "Productos de la orden"
+    status: "Estado"
+    total: "Total (%{count} productos)"
+    notes: "Notas de la orden"
+    confirm: "Confirmar Orden"
+    confirm_hint: "(Enviar a Cocina)"
+    cancel_order: "Cancelar Orden"
+    cancel_confirm: "¿Estas seguro de cancelar esta orden? Los productos no entregados seran cancelados."
+    add_more: "Agregar Productos"
+    request_bill: "Pedir Cuenta"
+    closed_title: "Orden Cerrada"
+    cancelled_title: "Orden Cancelada"
+    table_available: "%{name} ahora esta disponible"
+    new_order: "Nueva Orden"
+    active_order: "Orden Activa"
+    no_items: "No hay productos en esta orden"
+    created: "Orden creada exitosamente"
+    confirmed: "Orden enviada a cocina"
+    item_added: "Producto agregado a la orden"
+
+  # ============================================
+  # Line Items
+  # ============================================
+  line_item:
+    special_notes: "Notas especiales"
+    standard_preparation: "Preparacion estandar"
+    all_standard: "Todos los ingredientes estandar"
+    mark_delivered: "Marcar Entregado"
+    marked_delivered: "Producto marcado como entregado"
+    cancelled: "Cancelado"
+
+  # ============================================
+  # Products / Catalog
+  # ============================================
+  products:
+    title: "Productos"
+    browse: "Explorar Productos"
+    customize: "Personalizar"
+    add_to_order: "Agregar a Orden"
+    price: "Precio"
+    unavailable: "No disponible"
+
+  # ============================================
+  # Customization
+  # ============================================
+  customization:
+    title: "Personalizar Producto"
+    ingredients: "Ingredientes (ajustar porciones)"
+    extras: "Extras (agregar mas)"
+    special_notes: "Notas especiales"
+    reset: "Restablecer"
+    extra_count: "%{count}x"
+
+  # ============================================
+  # Portions
+  # ============================================
+  portions:
+    none: "Sin"
+    quarter: "1/4"
+    half: "1/2"
+    three_quarters: "3/4"
+    full: "Normal"
+
+  # ============================================
+  # Categories
+  # ============================================
+  categories:
+    title: "Categorias"
+
+  # ============================================
+  # Kitchen
+  # ============================================
+  kitchen:
+    title: "Cocina"
+    queue: "Cola de Preparacion"
+    ordered_by: "Ordenado por"
+    oldest_first: "Mas antiguo primero"
+    queue_count: "Cola: %{count} productos"
+    waiting: "Esperando %{minutes} min"
+    oldest: "Mas antiguo"
+    ready: "Listo"
+    cancel: "Cancelar"
+    ready_pickup: "Listo - Esperando %{minutes} min para recoger"
+    waiting_for_waiter: "Listo, esperando mesero"
+    marked_ready: "Producto marcado como listo"
+    item_cancelled: "Producto cancelado"
+    modified: "Modificado"
+    no_items: "No hay productos en cola"
+
+  # ============================================
+  # Bill / Payment
+  # ============================================
+  bill:
+    title: "Cuenta"
+    table: "Mesa"
+    order: "Orden"
+    date: "Fecha"
+    server: "Mesero"
+    payment_method: "Metodo de pago"
+    confirm_payment: "Confirmar Pago"
+    payment_confirmed: "Pago confirmado, orden cerrada"
+    not_charged: "No cobrado"
+
+  # ============================================
+  # Split Payment
+  # ============================================
+  split:
+    title: "Pago Dividido"
+    order_total: "Total de la orden"
+    payments_added: "Pagos agregados"
+    paid: "Pagado"
+    remaining: "Restante"
+    add_payment: "Agregar Pago"
+    method: "Metodo de pago"
+    amount: "Monto"
+    max: "MAX"
+    add: "Agregar Pago"
+    remove: "Eliminar"
+    confirm_all: "Confirmar Todos los Pagos (%{total})"
+    confirm_hint: "Habilitado solo cuando el restante es $0.00"
+
+  # ============================================
+  # Payment Methods (display names from DB, these are fallbacks)
+  # ============================================
+  payment_methods:
+    efectivo: "Efectivo"
+    tarjeta: "Tarjeta"
+    mercado_pago: "Mercado Pago"
+    transferencia: "Transferencia"
+
+  # ============================================
+  # Admin
+  # ============================================
+  admin:
+    dashboard: "Panel de Administracion"
+    today_summary: "Resumen del Dia"
+    orders_closed: "Ordenes cerradas"
+    orders_cancelled: "Ordenes canceladas"
+    daily_total: "Total del dia"
+    by_payment_method: "Por Metodo de Pago"
+    new_cash_closing: "Realizar Corte de Caja"
+    recent_closings: "Cortes Recientes"
+
+  # ============================================
+  # Cash Closing (Corte de Caja)
+  # ============================================
+  cash_closing:
+    title: "Corte de Caja"
+    period: "Periodo"
+    performed_by: "Realizado por"
+    method: "Metodo de pago"
+    expected: "Esperado"
+    actual: "Real"
+    difference: "Diferencia"
+    notes: "Notas"
+    close: "Cerrar Corte de Caja"
+    closed: "Corte de caja cerrado exitosamente"
+    status_open: "Abierto"
+    status_closed: "Cerrado"
+
+  cash_closing_statuses:
+    open: "Abierto"
+    closed: "Cerrado"
+
+  # ============================================
+  # Flash messages
+  # ============================================
+  flash:
+    not_authorized: "No tienes permiso para acceder a esta seccion"
+    store_not_found: "Tienda no encontrada"
+    record_not_found: "Registro no encontrado"
+    order_not_found: "Orden no encontrada"
+    session_expired: "Tu sesion ha expirado, inicia sesion de nuevo"
+
+  # ============================================
+  # ActiveRecord model names and attributes
+  # ============================================
+  activerecord:
+    models:
+      store: "Tienda"
+      user: "Usuario"
+      account: "Cuenta"
+      table: "Mesa"
+      category: "Categoria"
+      product: "Producto"
+      component: "Componente"
+      product_component: "Componente de Producto"
+      order: "Orden"
+      line_item: "Producto"
+      line_item_component: "Componente de Producto"
+      payment_method: "Metodo de Pago"
+      payment: "Pago"
+      cash_closing: "Corte de Caja"
+      cash_closing_line: "Linea de Corte"
+    attributes:
+      store:
+        name: "Nombre"
+        subdomain: "Subdominio"
+        order_prefix: "Prefijo de orden"
+        active: "Activo"
+      user:
+        name: "Nombre"
+        role: "Rol"
+        email: "Correo electronico"
+        phone: "Telefono"
+        active: "Activo"
+      account:
+        employee_number: "Numero de empleado"
+        password: "Contrasena"
+        password_confirmation: "Confirmar contrasena"
+      table:
+        name: "Nombre"
+        position: "Posicion"
+        active: "Activo"
+      category:
+        name: "Nombre"
+        description: "Descripcion"
+        position: "Posicion"
+        active: "Activo"
+      product:
+        name: "Nombre"
+        description: "Descripcion"
+        base_price_cents: "Precio base"
+        available: "Disponible"
+        allows_customization: "Permite personalizacion"
+      component:
+        name: "Nombre"
+        description: "Descripcion"
+        price_cents: "Precio"
+        available: "Disponible"
+      order:
+        code: "Codigo"
+        status: "Estado"
+        total_cents: "Total"
+        notes: "Notas"
+      line_item:
+        status: "Estado"
+        special_notes: "Notas especiales"
+        base_price_cents: "Precio base"
+        total_price_cents: "Precio total"
+      payment:
+        amount_cents: "Monto"
+        notes: "Notas"
+      cash_closing:
+        status: "Estado"
+        period_start: "Inicio del periodo"
+        period_end: "Fin del periodo"
+        notes: "Notas"
+    errors:
+      models:
+        account:
+          attributes:
+            employee_number:
+              taken: "ya esta en uso en esta tienda"
+            password:
+              blank: "no puede estar en blanco"
+
+  # ============================================
+  # Date/Time formats
+  # ============================================
+  date:
+    formats:
+      default: "%d de %B de %Y"
+      short: "%d %b %Y"
+    day_names:
+      - domingo
+      - lunes
+      - martes
+      - miercoles
+      - jueves
+      - viernes
+      - sabado
+    month_names:
+      - ~
+      - enero
+      - febrero
+      - marzo
+      - abril
+      - mayo
+      - junio
+      - julio
+      - agosto
+      - septiembre
+      - octubre
+      - noviembre
+      - diciembre
+
+  time:
+    formats:
+      default: "%d de %B de %Y %H:%M"
+      short: "%d %b %H:%M"
+      time_only: "%H:%M"

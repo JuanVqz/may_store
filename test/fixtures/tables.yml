@@ -1,0 +1,11 @@
+mesa_1:
+  store: cafe_delicias
+  name: Mesa 1
+  position: 1
+  active: true
+
+mesa_5:
+  store: cafe_delicias
+  name: Mesa 5
+  position: 5
+  active: true

@@ -1,0 +1,28 @@
+waiter_juan:
+  store: cafe_delicias
+  name: Juan Perez
+  role: waiter
+  email: juan@cafe.com
+  phone: "555-0101"
+  active: true
+
+kitchen_carlos:
+  store: cafe_delicias
+  name: Carlos Lopez
+  role: kitchen
+  email: carlos@cafe.com
+  active: true
+
+admin_principal:
+  store: cafe_delicias
+  name: Admin Principal
+  role: admin
+  email: admin@cafe.com
+  active: true
+
+other_store_waiter:
+  store: mi_cafe
+  name: Pedro Ramirez
+  role: waiter
+  email: pedro@micafe.com
+  active: true

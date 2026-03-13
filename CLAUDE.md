@@ -1,0 +1,57 @@
+# MayStore
+
+## Project
+
+Multitenant order management system for food/beverage businesses (cafes, restaurants). Spanish-first UI.
+
+## Documentation
+
+All specs live in `docs/`. Read these before making architectural decisions:
+
+- `README.md` — Overview, tech stack, key design decisions
+- `models.md` — ER diagram, all models, status flows, code examples
+- `wireframes.md` — All 14 screens with ASCII wireframes
+- Seed data: `db/seeds.rb`
+- Spanish locale: `config/locales/es.yml`
+
+## Tech Stack
+
+- Ruby 3.4 / Rails 8.1
+- PostgreSQL
+- Hotwire (Turbo + Stimulus)
+- Minitest (default)
+- No external gems for: money (PriceCents concern), soft delete (SoftDeletable concern), auth (has_secure_password)
+
+## Conventions
+
+- **37signals Rails conventions**: `Current` for request state, `normalizes`, explicit scopes (no `default_scope`)
+- **I18n**: All user-facing text from locale files. Default locale: `:es`
+- **Multitenancy**: Subdomain-based, scoped by `Current.store`
+- **Money**: Integer cents columns, `PriceCents` concern for helpers
+- **Enums**: String-backed Rails enums, no lookup tables
+- **Tests**: Minitest + fixtures. Test models, critical flows, and edge cases.
+
+## Plans
+
+Implementation plans live in `plans/` with a kanban-style structure:
+
+- `plans/backlog/` — Planned work, not yet started
+- `plans/in_progress/` — Currently being worked on
+- `plans/done/` — Completed plans (kept for reference)
+
+Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md`). Before starting a task, check `plans/in_progress/` for active plans. Move plans between folders as work progresses.
+
+- `plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
+
+## Migrations
+
+Not in production yet — when a migration needs changes, rollback (`rails db:rollback`), edit the existing migration file, and re-run (`rails db:migrate`). Do NOT create a new migration to alter a table that hasn't shipped.
+
+## Key Rules
+
+- Never add co-author lines to commits
+- Role = default screen, not permissions. All roles can perform all item actions.
+- No unique index on `line_item_components(line_item_id, component_id)` — duplicates allowed for multiple extras
+- Order codes use `OrderCounter` table for atomic sequence generation
+- `LineItem` auto-recalculates order total via callbacks
+- Soft delete uses explicit scopes (`Product.active`), never `default_scope`

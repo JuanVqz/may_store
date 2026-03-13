@@ -1,0 +1,18 @@
+open_order:
+  store: cafe_delicias
+  table: mesa_5
+  user: waiter_juan
+  status: open
+  code: CFE2603-TEST1
+  total_cents: 0
+  opened_at: <%= Time.current %>
+
+cooking_order:
+  store: cafe_delicias
+  table: mesa_1
+  user: waiter_juan
+  status: cooking
+  code: CFE2603-TEST2
+  total_cents: 8000
+  opened_at: <%= 30.minutes.ago %>
+  cooking_at: <%= 25.minutes.ago %>

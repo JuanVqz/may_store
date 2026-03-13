@@ -1,0 +1,19 @@
+waiter_juan_account:
+  user: waiter_juan
+  employee_number: EMP-001
+  password_digest: <%= BCrypt::Password.create("password123") %>
+
+kitchen_carlos_account:
+  user: kitchen_carlos
+  employee_number: KIT-001
+  password_digest: <%= BCrypt::Password.create("password123") %>
+
+admin_account:
+  user: admin_principal
+  employee_number: ADM-001
+  password_digest: <%= BCrypt::Password.create("password123") %>
+
+other_store_account:
+  user: other_store_waiter
+  employee_number: EMP-001
+  password_digest: <%= BCrypt::Password.create("password123") %>
