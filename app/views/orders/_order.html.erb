@@ -1,0 +1,50 @@
+<div id="order_<%= order.id %>">
+  <nav class="navbar navbar-back">
+    <div>
+      <%= link_to "← #{t('tables.return')}", tables_path %>
+    </div>
+    <div>
+      <strong><%= order.table.name %></strong>
+      <span class="status-badge" style="background: <%= order.status_color %>"><%= order.status_label %></span>
+    </div>
+  </nav>
+
+  <div class="section-header mt-2">
+    <h1 class="section-title"><%= order.code %></h1>
+    <span class="product-price"><%= order.formatted_total %></span>
+  </div>
+
+  <% line_items = order.line_items.includes(:product, line_item_components: :component) %>
+  <% if line_items.any? %>
+    <div class="card mb-2">
+      <% line_items.each do |item| %>
+        <%= render "line_items/line_item", item: item, order: order %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-center text-muted mt-2"><%= t("order.no_items") %></p>
+  <% end %>
+
+  <div class="mt-2">
+    <% if order.open? %>
+      <% if line_items.any? %>
+        <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "btn btn-primary btn-block btn-lg mb-1" %>
+      <% end %>
+      <%= link_to t("order.add_more"), order_products_path(order), class: "btn btn-outline btn-block" %>
+    <% elsif order.cooking? || order.ready? %>
+      <%= link_to t("order.add_more"), order_products_path(order), class: "btn btn-outline btn-block mb-1" %>
+    <% end %>
+
+    <% if order.delivered? %>
+      <%= link_to t("order.request_bill"), "#", class: "btn btn-primary btn-block btn-lg mb-1" %>
+    <% end %>
+
+    <% unless order.closed? || order.cancelled? %>
+      <%= button_to t("order.cancel_order"),
+            cancel_order_path(order),
+            method: :patch,
+            class: "btn btn-danger btn-block mt-1",
+            data: { turbo_confirm: t("order.cancel_confirm") } %>
+    <% end %>
+  </div>
+</div>

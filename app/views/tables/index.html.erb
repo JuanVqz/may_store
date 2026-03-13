@@ -1,3 +1,5 @@
+<%= turbo_stream_from "store_#{Current.store.id}_tables" %>
+
 <div class="section-header">
   <h1 class="section-title"><%= t("tables.title") %></h1>
 </div>
@@ -5,19 +7,7 @@
 <div class="tables-grid">
   <% @tables.each do |table| %>
     <% order = @active_orders[table.id] %>
-    <% if order %>
-      <%= link_to order_path(order), class: "table-card", data: { status: order.status } do %>
-        <span class="table-card-name"><%= table.name %></span>
-        <span class="table-card-status" style="color: <%= order.status_color %>">
-          <%= order.status_label %>
-        </span>
-      <% end %>
-    <% else %>
-      <%= link_to new_table_order_path(table), class: "table-card" do %>
-        <span class="table-card-name"><%= table.name %></span>
-        <span class="table-card-status text-muted"><%= t("tables.available") %></span>
-      <% end %>
-    <% end %>
+    <%= render "tables/table", table: table, order: order %>
   <% end %>
 </div>
 

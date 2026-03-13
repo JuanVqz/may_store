@@ -37,7 +37,7 @@ Build all waiter-facing screens: login view, table selection, product browsing, 
 - [x] Extras number input for quantity
 - [x] Special notes text field
 - [x] "Add to Order" submit
-- [ ] Stimulus controller for interactive UI (live price calc, radio styling)
+- [x] Stimulus controller for interactive UI (live price calc, radio styling)
 
 ### 5. Order Summary / Show (Screen 5)
 - [x] Show all line items with customizations (ingredients, extras, notes)
@@ -54,27 +54,28 @@ Build all waiter-facing screens: login view, table selection, product browsing, 
 - [x] "Cancel Order" with turbo_confirm dialog
 - [x] "Request Bill" placeholder (when DELIVERED)
 - [x] Mark ready / Mark delivered buttons per item
-- [ ] Real-time updates via Turbo Streams
+- [x] Real-time updates via Turbo Streams
 
 ### 7. Mixed Item Statuses (Screen 8)
-- [ ] Handle orders where items are in different states
-- [ ] Mark individual items as delivered
-- [ ] Show which items are ready for pickup
+- [x] Handle orders where items are in different states
+- [x] Mark individual items as delivered
+- [x] Show which items are ready for pickup
+<!-- Already implemented in order show view — per-item status badges and action buttons -->
 
 ### 8. Stimulus Controllers
-- [ ] Product customization (portions, extras, price calc)
-- [ ] Order confirmation dialog
-- [ ] Flash message auto-dismiss
+- [x] Product customization (portions, extras, price calc)
+- [x] Order confirmation dialog (using turbo_confirm)
+- [x] Flash message auto-dismiss
 
 ### 9. Turbo Integration
-- [ ] Turbo Frames for product browsing within order flow
-- [ ] Turbo Streams for real-time order/item status updates
-- [ ] Broadcast status changes to relevant screens
+- [x] Turbo Frames for product browsing within order flow
+- [x] Turbo Streams for real-time order/item status updates
+- [x] Broadcast status changes to relevant screens (order + tables)
 
 ### 10. Tests
-- [ ] Controller tests for TablesController, OrdersController
-- [ ] Integration tests for order creation flow
-- [ ] System tests for customization UI (if feasible)
+- [x] Controller tests for TablesController, OrdersController, LineItemsController
+- [x] Integration tests for order creation flow (line item create with customizations)
+- [ ] System tests for customization UI (deferred — requires browser driver setup)
 
 ---
 

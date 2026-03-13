@@ -1,0 +1,12 @@
+development:
+  adapter: async
+
+test:
+  adapter: test
+
+production:
+  adapter: solid_cable
+  silence_polling: true
+  connects_to:
+    database:
+      writing: cable

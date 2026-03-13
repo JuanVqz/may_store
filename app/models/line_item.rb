@@ -24,6 +24,7 @@ class LineItem < ApplicationRecord
   after_update :check_order_status, if: :saved_change_to_status?
   after_save :recalculate_order_total, if: :saved_change_to_total_price_cents?
   after_destroy :recalculate_order_total
+  after_update_commit :broadcast_item_update, if: :saved_change_to_status?
 
   price_in_cents :base_price, :total_price
 
@@ -56,6 +57,13 @@ class LineItem < ApplicationRecord
   end
 
   private
+
+  def broadcast_item_update
+    broadcast_replace_to "order_#{order_id}",
+      target: "line_item_#{id}",
+      partial: "line_items/line_item",
+      locals: { item: self, order: order }
+  end
 
   def check_order_status
     order.check_ready!

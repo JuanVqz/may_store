@@ -26,6 +26,7 @@ class Order < ApplicationRecord
   }.freeze
 
   before_create :generate_code
+  after_update_commit :broadcast_order_update, if: :saved_change_to_status?
 
   price_in_cents :total
 
@@ -98,6 +99,18 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def broadcast_order_update
+    broadcast_replace_to "order_#{id}",
+      target: "order_#{id}",
+      partial: "orders/order",
+      locals: { order: self }
+
+    broadcast_replace_to "store_#{store_id}_tables",
+      target: "table_#{table_id}",
+      partial: "tables/table",
+      locals: { table: table, order: self }
+  end
 
   def generate_code
     return if code.present?

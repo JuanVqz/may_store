@@ -31,10 +31,10 @@
 
     <div class="container">
       <% if flash[:notice] %>
-        <div class="flash flash-notice"><%= flash[:notice] %></div>
+        <div class="flash flash-notice" data-controller="flash"><%= flash[:notice] %></div>
       <% end %>
       <% if flash[:alert] %>
-        <div class="flash flash-alert"><%= flash[:alert] %></div>
+        <div class="flash flash-alert" data-controller="flash" data-flash-delay-value="6000"><%= flash[:alert] %></div>
       <% end %>
 
       <%= yield %>
