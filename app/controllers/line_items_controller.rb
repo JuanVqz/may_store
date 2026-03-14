@@ -12,15 +12,17 @@ class LineItemsController < ApplicationController
 
   def create
     product = Current.store.products.find(line_item_params[:product_id])
+    notes = params[:special_notes].presence
 
     if @order.open?
       @line_item = @order.line_items.create!(
         product: product,
         status: :ordering,
-        base_price_cents: product.base_price_cents
+        base_price_cents: product.base_price_cents,
+        special_notes: notes
       )
     else
-      @line_item = @order.add_item!(product: product)
+      @line_item = @order.add_item!(product: product, special_notes: notes)
     end
 
     build_components(@line_item, product)

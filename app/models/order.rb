@@ -79,7 +79,7 @@ class Order < ApplicationRecord
     end
   end
 
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready? || delivered?
 
     item = line_items.create!(
@@ -137,14 +137,21 @@ class Order < ApplicationRecord
     prefix = store.order_prefix
     year_month = Time.current.strftime("%y%m")
 
-    counter = OrderCounter.find_or_create_by!(store_id: store_id, year_month: year_month) do |c|
-      c.current_sequence = 0
+    begin
+      OrderCounter.find_or_create_by!(store_id: store_id, year_month: year_month) do |c|
+        c.current_sequence = 0
+      end
+    rescue ActiveRecord::RecordNotUnique
+      retry
     end
 
-    OrderCounter.where(id: counter.id)
-                .update_all("current_sequence = current_sequence + 1")
-    counter.reload
+    sql = OrderCounter.sanitize_sql_array([
+      "UPDATE order_counters SET current_sequence = current_sequence + 1, updated_at = NOW() " \
+      "WHERE store_id = ? AND year_month = ? RETURNING current_sequence",
+      store_id, year_month
+    ])
+    seq = OrderCounter.connection.select_value(sql)
 
-    self.code = "#{prefix}#{year_month}-#{counter.current_sequence.to_s.rjust(3, '0')}"
+    self.code = "#{prefix}#{year_month}-#{seq.to_s.rjust(3, '0')}"
   end
 end

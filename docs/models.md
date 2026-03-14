@@ -336,7 +336,7 @@ See full model code in sections 10.4 (Order) and 10.5 (LineItem). Key methods:
 
 ```ruby
 class Order < ApplicationRecord
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready?
 
     item = line_items.create!(
@@ -794,7 +794,7 @@ class Order < ApplicationRecord
     end
   end
 
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready?
 
     item = line_items.create!(

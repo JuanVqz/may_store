@@ -107,6 +107,28 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "delivered", item.reload.status
   end
 
+  test "create saves special_notes from customization form" do
+    product = products(:americano)
+    post order_line_items_url(@order, subdomain: @store.subdomain), params: {
+      line_item: { product_id: product.id },
+      special_notes: "Sin hielo"
+    }
+    item = @order.line_items.last
+    assert_equal "Sin hielo", item.special_notes
+  end
+
+  test "create saves special_notes via add_item path for non-open orders" do
+    order = orders(:ready_order)
+    product = products(:americano)
+    post order_line_items_url(order, subdomain: @store.subdomain), params: {
+      line_item: { product_id: product.id },
+      special_notes: "Extra caliente"
+    }
+    item = order.line_items.order(created_at: :desc).first
+    assert_equal "Extra caliente", item.special_notes
+    assert_equal "cooking", order.reload.status
+  end
+
   test "cancel marks item as cancelled" do
     item = line_items(:cooking_cappuccino)
     patch cancel_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
