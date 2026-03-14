@@ -1,0 +1,5 @@
+<%= turbo_stream.remove "line_item_#{@line_item.id}" %>
+
+<%= turbo_stream.replace "order_summary" do %>
+  <%= render "orders/order_summary", order: @order %>
+<% end %>

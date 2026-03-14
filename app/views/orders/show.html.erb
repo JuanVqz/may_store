@@ -1,2 +1,29 @@
 <%= turbo_stream_from "order_#{@order.id}" %>
-<%= render "orders/order", order: @order %>
+
+<div id="order_<%= @order.id %>">
+  <div class="order-layout" data-controller="order-page">
+    <%# Left: Product browser %>
+    <div class="order-products">
+      <% if @categories.present? %>
+        <%= render "orders/product_browser", order: @order, categories: @categories, category: @category, products: @products %>
+      <% end %>
+    </div>
+
+    <%# Right: Order summary %>
+    <div class="order-sidebar">
+      <%= render "orders/order_header", order: @order %>
+
+      <div id="order_items" class="order-items-list">
+        <% @line_items.each do |item| %>
+          <%= render "line_items/line_item", item: item, order: @order %>
+        <% end %>
+      </div>
+
+      <% if @line_items.empty? %>
+        <p class="text-center text-muted mt-2" id="no_items_message"><%= t("order.no_items") %></p>
+      <% end %>
+
+      <%= render "orders/order_summary", order: @order %>
+    </div>
+  </div>
+</div>

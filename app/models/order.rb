@@ -39,10 +39,12 @@ class Order < ApplicationRecord
   end
 
   def recalculate_total!
-    update_columns(total_cents: line_items.where.not(status: :cancelled).sum(:total_price_cents))
+    update_columns(total_cents: line_items.reload.where.not(status: :cancelled).sum(:total_price_cents))
   end
 
   def confirm!
+    raise ActiveRecord::RecordInvalid, self if line_items.empty?
+
     transaction do
       update!(status: :cooking, cooking_at: Time.current)
       line_items.where(status: :ordering).update_all(status: :cooking)
@@ -51,12 +53,16 @@ class Order < ApplicationRecord
 
   def check_ready!
     return unless cooking?
+    return cancel! if line_items.where.not(status: :cancelled).none?
+
     unfinished = line_items.where.not(status: [:ready, :delivered, :cancelled]).exists?
     update!(status: :ready, ready_at: Time.current) unless unfinished
   end
 
   def check_delivered!
     return unless ready?
+    return cancel! if line_items.where.not(status: :cancelled).none?
+
     unfinished = line_items.where.not(status: [:delivered, :cancelled]).exists?
     update!(status: :delivered, delivered_at: Time.current) unless unfinished
   end
@@ -74,7 +80,7 @@ class Order < ApplicationRecord
   end
 
   def add_item!(product:, components_params: [], special_notes: nil)
-    update!(status: :cooking) if ready?
+    update!(status: :cooking) if ready? || delivered?
 
     item = line_items.create!(
       product: product,
@@ -102,9 +108,22 @@ class Order < ApplicationRecord
 
   def broadcast_order_update
     broadcast_replace_to "order_#{id}",
-      target: "order_#{id}",
-      partial: "orders/order",
+      target: "order_header",
+      partial: "orders/order_header",
       locals: { order: self }
+
+    broadcast_replace_to "order_#{id}",
+      target: "order_summary",
+      partial: "orders/order_summary",
+      locals: { order: self }
+
+    # Broadcast each line item to update action buttons (e.g., after confirm, items switch to cooking)
+    line_items.includes(:product, line_item_components: :component).each do |item|
+      broadcast_replace_to "order_#{id}",
+        target: "line_item_#{item.id}",
+        partial: "line_items/line_item",
+        locals: { item: item, order: self }
+    end
 
     broadcast_replace_to "store_#{store_id}_tables",
       target: "table_#{table_id}",

@@ -29,7 +29,7 @@ ORDERING -> COOKING -> READY -> DELIVERED
 2. Kitchen sees items **already cooking** (no "Start Cooking" button)
 3. Kitchen queue shows **oldest orders first**
 4. **All roles** (waiter, kitchen, admin) can: MARK READY, CANCEL, and MARK DELIVERED on items
-5. **Adding items** to a cooking order: new items go directly to COOKING
+5. **Adding items** to a cooking/ready/delivered order: new items go directly to COOKING, order transitions (back) to COOKING
 6. **All users authenticate** via Account (employee_number + password)
 7. **All text from I18n** — no hardcoded strings in views
 8. **Role determines default screen**, not permissions (waiter -> tables, kitchen -> queue, admin -> dashboard)
@@ -42,18 +42,20 @@ ORDERING -> COOKING -> READY -> DELIVERED
 |---|--------|----------|------|
 | 1 | Login | P0 | All |
 | 2 | Table Selection | P0 | Waiter |
-| 3 | Product Browser | P0 | Waiter |
-| 4 | Product Customization | P0 | Waiter |
-| 5 | Order Summary | P0 | Waiter |
-| 6 | Active Order | P0 | Waiter |
+| 3 | Order Page (Single-Page) | P0 | Waiter |
+| 4 | Inline Product Customization | P0 | Waiter |
+| 5 | (Merged into Screen 3) | — | — |
+| 6 | (Merged into Screen 3) | — | — |
 | 7 | Kitchen Queue | P0 | Kitchen |
-| 8 | Mixed Item Statuses | P0 | Waiter |
+| 8 | (Merged into Screen 3) | — | — |
 | 9 | Bill & Payment | P0 | Waiter |
 | 10 | Split Payment | P0 | Waiter |
 | 11 | Order Closed | P0 | Waiter |
 | 12 | Order Cancelled | P0 | Waiter |
 | 13 | Admin Dashboard | P0 | Admin |
 | 14 | Cash Closing (Corte de Caja) | P0 | Admin |
+
+**Note:** Screens 3, 5, 6, and 8 are now a single unified order page with two panels: a product browser (left/top) and an order sidebar (right/bottom). Desktop shows side-by-side; mobile stacks products then order.
 
 ---
 
@@ -118,59 +120,123 @@ ORDERING -> COOKING -> READY -> DELIVERED
 
 ---
 
-## Screen 3: Product Browser
+## Screen 3: Order Page (Single-Page, Two Panels)
+
+The order page is a unified single-page layout with two panels:
+- **Product browser** (left on desktop, top on mobile): category tabs + product cards
+- **Order sidebar** (right on desktop, bottom on mobile): order header, line items, actions
+
+The product browser is **always visible** for all order statuses (open, cooking, ready, delivered). There is no "Agregar Productos" toggle button.
+
+### Desktop Layout (side-by-side)
 
 ```
-+--------------------------------------------------------------------+
-| < MESA 5                              Orden: CFE2601-001     $0.00 |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  +----------+ +----------+ +----------+ +----------+ +-----------+|
-|  | BEBIDAS  | | TIZANAS  | | POSTRES  | | CREPAS   | | ESPECIAL  ||
-|  | CALIENTES| |          | |          | |          | |           ||
-|  | [ACTIVO] | |          | |          | |          | |           ||
-|  +----------+ +----------+ +----------+ +----------+ +-----------+|
-|                                                                    |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  +-----------------------------------------------------------+    |
-|  |  +-----+                                                  |    |
-|  |  | IMG |  ESPRESSO                           .... $25.00 |    |
-|  |  |     |  Rico y fuerte shot de espresso                  |    |
-|  |  +-----+                                                  |    |
-|  +-----------------------------------------------------------+    |
-|                                                                    |
-|  +-----------------------------------------------------------+    |
-|  |  +-----+                                                  |    |
-|  |  | IMG |  CREPA DE NUTELLA                   .... $45.00 |    |
-|  |  |     |  Crepa con Nutella         [Personalizar]        |    |
-|  |  +-----+                                                  |    |
-|  +-----------------------------------------------------------+    |
-|                                                                    |
-|  +-----------------------------------------------------------+    |
-|  |  +-----+                                                  |    |
-|  |  | IMG |  CAPPUCCINO CARAMEL                .... $45.00  |    |
-|  |  |     |  Espresso, leche, caramelo [Personalizar]        |    |
-|  |  +-----+                                                  |    |
-|  +-----------------------------------------------------------+    |
-|                                                                    |
-+--------------------------------------------------------------------+
++-------------------------------+-----------------------------------+
+|  PRODUCT BROWSER              |  ORDER SIDEBAR                    |
+|                               |                                   |
+|  +--------+ +--------+ +---+ |  <- Mesas   Mesa 5                |
+|  |BEBIDAS | |TIZANAS | |...| |  CFE2601-001        [Preparando]  |
+|  |CALIENTE| |        | |   | |                                   |
+|  |[ACTIVO]| |        | |   | |  Productos de la orden             |
+|  +--------+ +--------+ +---+ |                                   |
+|  (category tabs, Turbo Frame) |  +-------------------------------+|
+|                               |  | #1 CREPA DE NUTELLA    $75.00 ||
+|  +---------------------------+|  |    Crema: 1/2                  ||
+|  | +-----+                   ||  |    + Rell. Extra Cajeta x1     ||
+|  | | IMG | ESPRESSO    $25.00||  |    Estado: Preparando          ||
+|  | |     | Rico y fuerte     ||  |    [Listo] [Cancelar]          ||
+|  | +-----+                   ||  +-------------------------------+|
+|  | [Agregar a Orden]         ||                                   |
+|  +---------------------------+|  +-------------------------------+|
+|                               |  | #2 ESPRESSO            $25.00 ||
+|  +---------------------------+|  |    Estado: Listo               ||
+|  | +-----+                   ||  |    [Marcar Entregado]          ||
+|  | | IMG | CREPA DE    $45.00||  +-------------------------------+|
+|  | |     | NUTELLA           ||                                   |
+|  | +-----+ Crepa con Nutella ||  +-------------------------------+|
+|  | [Agregar a Orden]         ||  | #3 CUCURUMBE           $99.00 ||
+|  | [Personalizar]            ||  |    Estado: Entregado           ||
+|  +---------------------------+|  +-------------------------------+|
+|                               |                                   |
+|  +---------------------------+|  +-------------------------------+|
+|  | +-----+                   ||  | #4 CAPPUCCINO          $45.00 ||
+|  | | IMG | CAPPUCCINO  $45.00||  |    Estado: Ordenando           ||
+|  | |     | CARAMEL           ||  |    [Eliminar]                  ||
+|  | +-----+ Espresso, leche  ||  +-------------------------------+|
+|  | [Agregar a Orden]         ||                                   |
+|  | [Personalizar]            ||  Total (4 productos)     $244.00 |
+|  +---------------------------+|                                   |
+|                               |  [Confirmar Orden]                |
+|                               |  (or [Cancelar Orden]             |
+|                               |   [Pedir Cuenta] if cooking+)    |
++-------------------------------+-----------------------------------+
 ```
+
+### Mobile Layout (stacked)
+
+On mobile, products stack on top, order sidebar below. Same content, vertical flow.
+
+### Product Card Actions
+
+Each product card has:
+- **"Agregar a Orden"** green button — quick add with default ingredients
+- **"Personalizar"** button — expands inline customization (see Screen 4) under the product card via Stimulus controller
+
+### Order Sidebar Header
+
+The sidebar header contains order info (no separate navbar):
+- **Table name · Order code** (e.g., "Mesa 5 · CFE2601-001")
+- **Status badge** (e.g., [Preparando])
+
+### Item Actions by Status
+
+| Item Status | Actions Shown |
+|-------------|---------------|
+| ORDERING | [Eliminar] (hard delete, kitchen never saw it) |
+| COOKING | [Listo] [Cancelar] (cancel requires confirmation dialog, soft cancel → status cancelled) |
+| READY | [Marcar Entregado] |
+| DELIVERED | (no action buttons) |
+| CANCELLED | (no action buttons) |
+
+### Order-Level Actions
+
+Shown at the bottom of the order sidebar:
+
+| Order Status | Actions |
+|--------------|---------|
+| OPEN | [Confirmar Orden] |
+| COOKING | [Cancelar Orden] [Pedir Cuenta] |
+| READY | [Cancelar Orden] [Pedir Cuenta] |
+| DELIVERED | [Pedir Cuenta] |
+
+### Status Transition on Adding Items
+
+Adding an item to a **READY** or **DELIVERED** order automatically transitions the order back to **COOKING**. New items go directly to COOKING status.
+
+### Flash Messages
+
+Flash messages appear fixed-position in the top-right corner.
+
+### Turbo Integration
+
+- Category tabs load via **Turbo Frame**
+- Add/remove items use **Turbo Stream** responses
+- Real-time updates via ActionCable
 
 ---
 
-## Screen 4: Product Customization Modal
+## Screen 4: Inline Product Customization
+
+Customization expands **inline** under the product card in the product browser panel via a Stimulus controller. It is not a modal or separate page.
 
 ```
 +--------------------------------------------------------------------+
-|                                                                    |
+|  PRODUCT CARD (expanded)                                           |
 |  +--------------------------------------------------------------+ |
-|  |              +----------------------------+                  | |
-|  |              |      PRODUCT IMAGE         |                  | |
-|  |              +----------------------------+                  | |
-|  |                                                              | |
-|  |              CREPA DE NUTELLA                 $45.00         | |
-|  |              Crepa con Nutella                               | |
+|  |  +-----+                                                     | |
+|  |  | IMG |  CREPA DE NUTELLA                        $45.00     | |
+|  |  |     |  Crepa con Nutella                                  | |
+|  |  +-----+                                                     | |
 |  +--------------------------------------------------------------+ |
 |                                                                   |
 |  Ingredientes (ajustar porciones)               [Restablecer]     |
@@ -262,94 +328,15 @@ Extras use `[-]` and `[+]` buttons with a quantity indicator. Same extra can be 
 
 ---
 
-## Screen 5: Order Summary (Before Confirming)
+## Screen 5: (Merged into Screen 3)
 
-```
-+--------------------------------------------------------------------+
-| < MESA 5                                Orden: CFE2601-001        |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  Productos de la orden                         [Agregar Productos] |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #1  CREPA DE NUTELLA                                $75.00  | |
-|  |      ------------------------------------------------        | |
-|  |      Crema Batida: 1/2                                       | |
-|  |      + Rell. Extra Cajeta x1                    +$10.00      | |
-|  |      + Extra Chocolate x2                       +$20.00      | |
-|  |      Estado: Ordenando                  [Editar] [X]        | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #2  OREO COFFEE FRAPPE                             $95.00   | |
-|  |      ------------------------------------------------        | |
-|  |      Coffee: 1/2                                             | |
-|  |      + Extra Fresas x1                          +$20.00      | |
-|  |      Estado: Ordenando                  [Editar] [X]        | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #3  CUCURUMBE                                      $99.00   | |
-|  |      ------------------------------------------------        | |
-|  |      Todos los ingredientes estandar                         | |
-|  |      Estado: Ordenando                  [Editar] [X]        | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  Total (3 productos)                              $269.00   | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |              Confirmar Orden                                 | |
-|  |           (Enviar a Cocina)                                  | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-+--------------------------------------------------------------------+
-```
-
-**When Confirmar Orden is clicked:**
-- Order status -> COOKING
-- ALL items status -> COOKING (automatic)
-- Items appear in kitchen queue immediately
+See Screen 3 — the order sidebar shows the order summary for all statuses.
 
 ---
 
-## Screen 6: Active Order (COOKING)
+## Screen 6: (Merged into Screen 3)
 
-```
-+--------------------------------------------------------------------+
-| < MESAS                             MESA 5 - CFE2601-001          |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  Estado: Preparando                                 14:35         |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #1  CREPA DE NUTELLA                                $75.00  | |
-|  |      Crema: 1/2 | + Rell. Extra Cajeta x1                   | |
-|  |      + Extra Chocolate x2                                    | |
-|  |      Estado: Preparando                                      | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #2  OREO COFFEE FRAPPE                             $95.00   | |
-|  |      Coffee: 1/2 | + Extra Fresas x1                        | |
-|  |      Estado: Preparando                                      | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #3  CUCURUMBE                                      $99.00   | |
-|  |      Estado: Preparando                                      | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  [Agregar Productos]  [Cancelar Orden]  Total: $269.00            |
-|                                              [Pedir Cuenta]      |
-|                                                                    |
-+--------------------------------------------------------------------+
-```
+See Screen 3 — the same single-page layout is used for open, cooking, ready, and delivered orders. Item action buttons change based on item status (see Screen 3 item actions table).
 
 ---
 
@@ -421,42 +408,9 @@ Extras use `[-]` and `[+]` buttons with a quantity indicator. Same extra can be 
 
 ---
 
-## Screen 8: Order with Mixed Item Statuses
+## Screen 8: (Merged into Screen 3)
 
-```
-+--------------------------------------------------------------------+
-| < MESAS                             MESA 5 - CFE2601-009          |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  Estado: Preparando                                 14:30         |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #1  CREPA DE NUTELLA                                $75.00  | |
-|  |      Estado: Listo                    [Marcar Entregado]     | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #2  OREO COFFEE FRAPPE                             $95.00   | |
-|  |      Estado: Preparando                                      | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #3  CUCURUMBE                                      $99.00   | |
-|  |      Estado: Entregado                                       | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  #4  ESPRESSO                                       $25.00   | |
-|  |      Estado: Cancelado                                       | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-+--------------------------------------------------------------------+
-|                                                                    |
-|  [Agregar Productos]  [Cancelar Orden]  Total: $269.00            |
-|                                              [Pedir Cuenta]      |
-|                                                                    |
-+--------------------------------------------------------------------+
-```
+See Screen 3 — mixed item statuses are handled in the same single-page layout. Each item shows its own status badge and appropriate action buttons. The product browser remains visible alongside the order sidebar.
 
 **Order Status Logic:**
 
@@ -741,9 +695,9 @@ All roles (waiter, kitchen, admin) can perform these actions. Role determines **
 
 | Item Status | Available Actions |
 |-------------|-------------------|
-| ORDERING | Editar, Eliminar |
-| COOKING | Listo, Cancelar |
-| READY | Marcar Entregado, Cancelar |
+| ORDERING | Eliminar (hard delete, kitchen never saw it) |
+| COOKING | Listo, Cancelar (with confirmation dialog, soft cancel) |
+| READY | Marcar Entregado |
 | DELIVERED | (sin accion) |
 | CANCELLED | (sin accion) |
 
@@ -751,9 +705,11 @@ All roles (waiter, kitchen, admin) can perform these actions. Role determines **
 
 | Order Status | Available Actions |
 |--------------|-------------------|
-| OPEN | Confirmar, Agregar productos |
-| COOKING | Agregar productos, Cancelar orden, Pedir cuenta |
-| READY | Agregar productos, Cancelar orden, Pedir cuenta |
-| DELIVERED | Pedir cuenta |
+| OPEN | Confirmar Orden |
+| COOKING | Cancelar Orden, Pedir Cuenta |
+| READY | Cancelar Orden, Pedir Cuenta |
+| DELIVERED | Pedir Cuenta |
 | CLOSED | (sin accion) |
 | CANCELLED | (sin accion) |
+
+**Note:** There is no "Agregar Productos" toggle button. The product browser is always visible on the order page for all statuses. Adding items to a READY or DELIVERED order transitions the order back to COOKING.

@@ -125,9 +125,9 @@ ORDERING -> COOKING -> READY -> DELIVERED
 
 ### 4. Adding Items After Confirm
 
-When waiter taps [ADD MORE ITEMS] on a COOKING or READY order:
+The product browser is always visible on the order page (no "Agregar Productos" toggle). When a waiter adds items to a COOKING, READY, or DELIVERED order:
 - New items go directly to COOKING (skip ORDERING)
-- Order stays/returns to COOKING
+- Order transitions back to COOKING (if it was READY or DELIVERED)
 - Items appear in kitchen queue immediately
 
 ### 5. Authentication Model

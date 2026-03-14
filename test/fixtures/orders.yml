@@ -16,3 +16,26 @@ cooking_order:
   total_cents: 8000
   opened_at: <%= 30.minutes.ago %>
   cooking_at: <%= 25.minutes.ago %>
+
+ready_order:
+  store: cafe_delicias
+  table: mesa_3
+  user: waiter_juan
+  status: ready
+  code: CFE2603-TEST3
+  total_cents: 3500
+  opened_at: <%= 40.minutes.ago %>
+  cooking_at: <%= 35.minutes.ago %>
+  ready_at: <%= 5.minutes.ago %>
+
+delivered_order:
+  store: cafe_delicias
+  table: mesa_4
+  user: waiter_juan
+  status: delivered
+  code: CFE2603-TEST4
+  total_cents: 4500
+  opened_at: <%= 50.minutes.ago %>
+  cooking_at: <%= 45.minutes.ago %>
+  ready_at: <%= 10.minutes.ago %>
+  delivered_at: <%= 5.minutes.ago %>

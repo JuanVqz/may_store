@@ -1,11 +1,13 @@
 class LineItemsController < ApplicationController
   before_action :set_order
-  before_action :set_line_item, only: [:destroy, :ready, :deliver]
+  before_action :set_line_item, only: [:destroy, :ready, :deliver, :cancel]
 
   def new
     @product = Current.store.products.find(params[:product_id])
     @ingredients = @product.product_components.ingredient.ordered.includes(:component)
     @extras = @product.product_components.extra.ordered.includes(:component)
+
+    render partial: "line_items/customization_form", locals: { product: @product, ingredients: @ingredients, extras: @extras, order: @order }
   end
 
   def create
@@ -23,13 +25,22 @@ class LineItemsController < ApplicationController
 
     build_components(@line_item, product)
     @line_item.calculate_total!
+    @order.reload
 
-    redirect_to order_products_path(@order), notice: t("order.item_added")
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to order_path(@order), notice: t("order.item_added") }
+    end
   end
 
   def destroy
     @line_item.destroy!
-    redirect_to order_path(@order)
+    @order.reload
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to order_path(@order) }
+    end
   end
 
   def ready
@@ -40,6 +51,16 @@ class LineItemsController < ApplicationController
   def deliver
     @line_item.mark_delivered!
     redirect_to order_path(@order), notice: t("line_item.marked_delivered")
+  end
+
+  def cancel
+    @line_item.cancel!
+    @order.reload
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to order_path(@order), notice: t("kitchen.item_cancelled") }
+    end
   end
 
   private
@@ -57,7 +78,6 @@ class LineItemsController < ApplicationController
   end
 
   def build_components(line_item, product)
-    # Build ingredients from params or defaults
     product.product_components.ingredient.includes(:component).each do |pc|
       portion = params.dig(:ingredients, pc.component_id.to_s).presence || 1.0
       LineItemComponent.create!(
@@ -69,7 +89,6 @@ class LineItemsController < ApplicationController
       )
     end
 
-    # Build extras from params
     (params[:extras] || {}).each do |component_id, quantity|
       qty = quantity.to_i
       next if qty <= 0

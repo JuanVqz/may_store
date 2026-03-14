@@ -1,7 +1,7 @@
 class OrdersController < ApplicationController
   before_action :set_order, only: [:show, :confirm, :cancel]
 
-  def new
+  def create
     @table = Current.store.tables.find(params[:table_id])
     @order = Current.store.orders.create!(
       table: @table,
@@ -9,14 +9,33 @@ class OrdersController < ApplicationController
       status: :open,
       opened_at: Time.current
     )
-    redirect_to order_products_path(@order)
+    redirect_to order_path(@order)
   end
 
   def show
-    @line_items = @order.line_items.includes(:product, :line_item_components)
+    @line_items = @order.line_items
+                       .where.not(status: :cancelled)
+                       .includes(:product, line_item_components: :component)
+                       .order(created_at: :desc)
+
+    if @order.open? || @order.cooking? || @order.ready? || @order.delivered?
+      @categories = Current.store.categories.active.ordered
+      @category =
+        if params[:category_id]
+          Current.store.categories.find(params[:category_id])
+        else
+          @categories.first
+        end
+      @products = @category&.products&.active&.available&.includes(:product_components) || Product.none
+    end
   end
 
   def confirm
+    if @order.line_items.empty?
+      redirect_to order_path(@order), alert: t("order.no_items")
+      return
+    end
+
     @order.confirm!
     redirect_to order_path(@order), notice: t("order.confirmed")
   end

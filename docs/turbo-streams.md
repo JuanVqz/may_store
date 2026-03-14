@@ -94,3 +94,9 @@ Broadcasts to:
 - **Development:** `async` adapter (in-memory, single process)
 - **Production:** `solid_cable` adapter (database-backed, works across processes)
 - Config: `config/cable.yml`
+
+## Design Note: Why Not Turbo Morph?
+
+Turbo 8 supports page-level morph refreshes (`broadcasts_refreshes` + `<meta name="turbo-refresh-method" content="morph">`), which would simplify broadcast code significantly. We evaluated this for the single-page order flow and decided to keep targeted broadcasts for now because the current approach is already working and tested.
+
+Morph can be adopted per-page later without affecting the rest of the app — it's scoped by meta tags in specific views. See `plans/decisions/26-03-13-keep-targeted-broadcasts.md`.

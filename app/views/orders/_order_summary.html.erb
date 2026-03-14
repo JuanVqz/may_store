@@ -1,0 +1,24 @@
+<div id="order_summary">
+  <div class="section-header mb-1">
+    <span class="text-muted"><%= t("order.total", count: order.line_items.size) %></span>
+    <span class="product-price"><%= order.formatted_total %></span>
+  </div>
+
+  <% if order.open? %>
+    <% if order.line_items.any? %>
+      <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "btn btn-success btn-block btn-lg mb-1" %>
+    <% end %>
+  <% end %>
+
+  <% if order.delivered? %>
+    <%= link_to t("order.request_bill"), "#", class: "btn btn-primary btn-block btn-lg mb-1" %>
+  <% end %>
+
+  <% unless order.closed? || order.cancelled? %>
+    <%= button_to t("order.cancel_order"),
+          cancel_order_path(order),
+          method: :patch,
+          class: "btn btn-danger btn-block mt-1",
+          data: { turbo_confirm: t("order.cancel_confirm") } %>
+  <% end %>
+</div>

@@ -1,8 +1,9 @@
-<div id="line_item_<%= item.id %>" class="product-card">
+<div id="line_item_<%= item.id %>" class="product-card"
+  <%= 'data-controller="highlight"' if local_assigns[:highlight] %>>
   <div class="product-info">
     <div class="product-name">
       <%= item.product.name %>
-      <span class="status-badge" style="background: <%= item.status_color %>"><%= item.status_label %></span>
+      <span class="status-badge status-<%= item.status %>"><%= item.status_label %></span>
     </div>
     <% ingredients = item.line_item_components.select(&:ingredient?) %>
     <% extras = item.line_item_components.select(&:extra?) %>
@@ -21,25 +22,32 @@
     <% if item.special_notes.present? %>
       <div class="product-desc"><em><%= item.special_notes %></em></div>
     <% end %>
-    <div class="product-footer">
-      <span class="product-price"><%= item.formatted_total_price %></span>
+  </div>
+  <div class="product-footer">
+    <span class="product-price"><%= item.formatted_total_price %></span>
+    <div class="btn-group">
       <% if item.ordering? %>
         <%= button_to t("delete"),
               order_line_item_path(order, item),
               method: :delete,
-              class: "btn btn-sm btn-danger" %>
+              class: "btn btn-danger" %>
       <% end %>
       <% if item.cooking? %>
         <%= button_to t("kitchen.ready"),
               ready_order_line_item_path(order, item),
               method: :patch,
-              class: "btn btn-sm btn-primary" %>
+              class: "btn btn-primary" %>
+        <%= button_to t("kitchen.cancel"),
+              cancel_order_line_item_path(order, item),
+              method: :patch,
+              class: "btn btn-danger",
+              data: { turbo_confirm: t("kitchen.cancel_confirm") } %>
       <% end %>
       <% if item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
               deliver_order_line_item_path(order, item),
               method: :patch,
-              class: "btn btn-sm btn-primary" %>
+              class: "btn btn-primary" %>
       <% end %>
     </div>
   </div>

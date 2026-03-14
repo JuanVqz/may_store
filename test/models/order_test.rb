@@ -97,6 +97,14 @@ class OrderTest < ActiveSupport::TestCase
     assert order.fully_paid?
   end
 
+  test "cancelling all items cancels the order" do
+    order = orders(:cooking_order)
+    line_items(:cooking_cappuccino).cancel!
+    line_items(:cooking_americano).cancel!
+
+    assert_equal "cancelled", order.reload.status
+  end
+
   test "price_in_cents helpers" do
     order = orders(:cooking_order)
     order.update_columns(total_cents: 8000)

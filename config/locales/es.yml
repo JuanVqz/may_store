@@ -127,7 +127,7 @@ es:
     title: "Productos"
     browse: "Explorar Productos"
     customize: "Personalizar"
-    add_to_order: "Agregar a Orden"
+    add_to_order: "Agregar"
     price: "Precio"
     unavailable: "No disponible"
 
@@ -136,8 +136,8 @@ es:
   # ============================================
   customization:
     title: "Personalizar Producto"
-    ingredients: "Ingredientes (ajustar porciones)"
-    extras: "Extras (agregar mas)"
+    ingredients: "Ingredientes"
+    extras: "Extras"
     special_notes: "Notas especiales"
     reset: "Restablecer"
     extra_count: "%{count}x"
@@ -175,6 +175,7 @@ es:
     waiting_for_waiter: "Listo, esperando mesero"
     marked_ready: "Producto marcado como listo"
     item_cancelled: "Producto cancelado"
+    cancel_confirm: "¿Estas seguro de cancelar este producto?"
     modified: "Modificado"
     no_items: "No hay productos en cola"
 

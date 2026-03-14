@@ -100,66 +100,65 @@ end
 | **Complexity** | Very low — one line per model, two meta tags. No target IDs, no broadcast partials. |
 | **State preservation** | Automatic — scroll position, focus, form inputs, open accordions all preserved by morph. |
 
-### Recommendation
+### Decision: Keep Targeted Broadcasts
 
-**Use morphing for this refactor.** Reasons:
+**Stick with the current targeted Turbo Stream approach.** Morph can be adopted later per-page (via `<meta>` tags in specific views) without affecting the rest of the app, but for now the existing broadcast infrastructure works and is already tested.
 
-1. The single-page order view will have many interactive elements (accordions, form inputs, category tabs). Morphing preserves all of that state automatically.
-2. A restaurant store has low concurrent connections (a handful of waiters + kitchen). The extra server load is negligible.
-3. We can delete all custom broadcast methods, broadcast-specific partials, and target ID wiring. Much less code to maintain.
-4. Adding new real-time elements (e.g. kitchen view later) requires zero broadcast setup — just `broadcasts_refreshes` on the model.
+See `plans/decisions/26-03-13-keep-targeted-broadcasts.md` for rationale.
 
 ---
 
 ## Steps
 
-### 1. Unified Order Page
+### 1. Controller & Route Prep
 
-- [ ] New `orders/show` layout: product browser on top, order summary on bottom
-- [ ] Category tabs switch products via Turbo Frame (no full reload)
-- [ ] Order summary section always visible, updated via Turbo Stream on item add/remove
+- [x] Add product listing logic to `OrdersController#show` (categories, products for selected category)
+- [x] Make `LineItemsController#create` respond with Turbo Stream (append to summary + update total)
+- [x] Make `LineItemsController#destroy` respond with Turbo Stream (remove from summary + update total)
+- [x] Add route for inline customization: `LineItemsController#new` renders partial via fetch
+- [x] Add `cancel` route + action for individual line items
 
-### 2. Inline Customization
+### 2. Unified `orders/show` Page
 
-- [ ] Clicking [⚙] expands an accordion under the product card (Turbo Frame or Stimulus)
-- [ ] Customization form submits via Turbo, collapses on success
-- [ ] Products without customization use [+] button that adds directly via Turbo
+- [x] Rebuild `orders/show` with two sections: product browser (top) + order summary (bottom)
+- [x] Category tabs switch products via Turbo Frame (no full reload)
+- [x] Product cards show [+] (quick add) and [⚙] (customize) buttons
+- [x] Order summary always visible: line items, running total, delete buttons (while OPEN)
+- [x] "Confirmar Orden" button at bottom
+- [x] `orders#new` now redirects to `orders#show` instead of product browser
 
-### 3. Quick Add (No Customization)
+### 3. Inline Customization
 
-- [ ] [+] button sends POST via Turbo Stream, item appears in order summary instantly
-- [ ] No page navigation needed
+- [x] [⚙] expands accordion under product card (`order-page` Stimulus controller)
+- [x] Render customization form via fetch (`_customization_form.html.erb` partial)
+- [x] Form submits via Turbo Stream — appends item to summary, collapses accordion
+- [x] [+] quick-add sends POST via Turbo Stream — item appears in summary instantly
+- [x] Reuse existing `customization_controller.js` for portions/extras/price calc
 
-### 4. Order Summary (Bottom Section)
+### 4. Active Order Mode
 
-- [ ] Shows line items with name, price, delete button (while OPEN)
-- [ ] Running total updates live
-- [ ] "Confirmar Orden" button transitions to active order view in-place
+- [x] After confirm, product browser hides — order shows status badges + action buttons
+- [x] Item actions: Listo, Marcar Entregado, Cancelar (based on item status)
+- [x] "Agregar Productos" re-expands the product browser
+- [x] Real-time updates via existing Turbo Stream broadcasts (updated to target `order_summary` + individual items)
 
-### 5. Active Order Mode
+### 5. Cleanup
 
-- [ ] After confirmation, product browser section hides or collapses
-- [ ] Order items show status badges, mark ready/delivered buttons
-- [ ] "Agregar Productos" re-expands the product browser
-- [ ] Real-time updates via existing Turbo Streams broadcasts
+- [x] Removed `OrderProductsController` and `order_products/index.html.erb`
+- [x] Removed standalone `line_items/new.html.erb` full page
+- [x] Removed unused `orders/_order.html.erb` partial (broadcast updated to target `_order_summary`)
+- [x] Removed `order_products` route
 
-### 6. Controller Refactor
+### 6. Tests
 
-- [ ] Merge `OrderProductsController` logic into `OrdersController#show`
-- [ ] `LineItemsController#create` responds with Turbo Stream (append item to summary)
-- [ ] `LineItemsController#new` renders inline partial (Turbo Frame) instead of full page
-- [ ] Remove or deprecate standalone product browser / customization pages
-
-### 7. Stimulus Controllers
-
-- [ ] Accordion controller for inline customization expand/collapse
-- [ ] Reuse existing `customization_controller` for portions/extras/price calc
-
-### 8. Tests
-
-- [ ] Update controller tests for new response formats (Turbo Stream)
-- [ ] Test inline customization flow
-- [ ] Test quick-add flow
+- [x] Update controller tests for new redirect targets
+- [x] Test Turbo Stream responses (create appends item + updates summary, destroy removes + updates summary)
+- [x] Test inline customization endpoint (new returns partial with product + ingredient names)
+- [x] Test cancel action for individual line items
+- [x] Test unified show page: product browser visible for open, collapsed for cooking, category filtering
+- [x] Test active order mode (cooking order shows Listo button)
+- [x] Test adding item to ready order transitions it back to cooking
+- [x] Test adding item to delivered order transitions it back to cooking
 
 ---
 

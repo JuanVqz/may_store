@@ -1,0 +1,44 @@
+<%= turbo_frame_tag "product_browser" do %>
+  <div class="category-tabs mt-1 mb-2">
+    <% categories.each do |cat| %>
+      <%= link_to cat.name,
+            order_path(order, category_id: cat.id),
+            data: { turbo_frame: "product_browser" },
+            class: "category-tab #{cat == category ? 'active' : ''}" %>
+    <% end %>
+  </div>
+
+  <% if products.any? %>
+    <div class="card">
+      <% products.each do |product| %>
+        <div class="product-card">
+          <div class="product-image">&#9749;</div>
+          <div class="product-info">
+            <div class="product-name"><%= product.name %></div>
+            <div class="product-desc"><%= product.description %></div>
+          </div>
+          <div class="product-footer">
+            <span class="product-price"><%= product.formatted_base_price %></span>
+            <div class="btn-group">
+              <%= button_to t("products.add_to_order"),
+                    order_line_items_path(order, line_item: { product_id: product.id }),
+                    method: :post,
+                    class: "btn btn-success" %>
+              <% if product.allows_customization && product.product_components.any? %>
+                <button type="button" class="btn btn-outline"
+                        data-action="click->order-page#toggleCustomization"
+                        data-product-id="<%= product.id %>"
+                        data-url="<%= new_order_line_item_path(order, product_id: product.id) %>">
+                  <%= t("products.customize") %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div id="customization_product_<%= product.id %>"></div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-center text-muted mt-2"><%= t("no_results") %></p>
+  <% end %>
+<% end %>

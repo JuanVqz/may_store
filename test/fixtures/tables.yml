@@ -4,6 +4,18 @@ mesa_1:
   position: 1
   active: true
 
+mesa_3:
+  store: cafe_delicias
+  name: Mesa 3
+  position: 3
+  active: true
+
+mesa_4:
+  store: cafe_delicias
+  name: Mesa 4
+  position: 4
+  active: true
+
 mesa_5:
   store: cafe_delicias
   name: Mesa 5

@@ -42,27 +42,27 @@ body {
   z-index: 100;
 }
 
+.navbar a { color: white; text-decoration: none; }
+
 .navbar-brand { font-weight: 700; font-size: 1.125rem; }
 .navbar-right { display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; }
 .navbar-right a { color: white; text-decoration: none; opacity: 0.9; }
 .navbar-right a:hover { opacity: 1; }
 
-.navbar-back {
-  background: var(--color-card);
-  color: var(--color-text);
-  border-bottom: 1px solid var(--color-border);
-}
-.navbar-back a { color: var(--color-primary); }
-
 /* Container */
-.container { max-width: 1024px; margin: 0 auto; padding: 1rem; }
+.container { max-width: 1224px; margin: 0 auto; padding: 1rem; }
 
 /* Flash messages */
 .flash {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 200;
   padding: 0.75rem 1rem;
   border-radius: var(--radius);
-  margin-bottom: 1rem;
   font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-width: 360px;
 }
 .flash-notice { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
 .flash-alert { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
@@ -83,6 +83,8 @@ body {
 }
 .btn-primary { background: var(--color-primary); color: white; }
 .btn-primary:hover { background: var(--color-primary-hover); }
+.btn-success { background: var(--color-success); color: white; }
+.btn-success:hover { background: #16A34A; }
 .btn-danger { background: var(--color-danger); color: white; }
 .btn-danger:hover { background: var(--color-danger-hover); }
 .btn-outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); }
@@ -204,7 +206,7 @@ body {
 .category-tab.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
 
 /* Product list */
-.product-card { display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--color-border); }
+.product-card { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding: 1rem; border-bottom: 1px solid var(--color-border); }
 .product-card:last-child { border-bottom: none; }
 .product-image {
   width: 64px; height: 64px;
@@ -217,8 +219,136 @@ body {
 .product-info { flex: 1; min-width: 0; }
 .product-name { font-weight: 600; font-size: 0.9375rem; }
 .product-desc { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.125rem; }
-.product-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+.product-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .product-price { font-weight: 700; color: var(--color-primary); }
+
+/* Inline customization */
+.customization-inline {
+  padding: 1rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.customization-section {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+.customization-ingredient { margin-bottom: 0.5rem; }
+.customization-ingredient-name { font-size: 0.8125rem; }
+
+.portion-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: space-evenly;
+  margin-top: 0.25rem;
+}
+.portion-group input[type="radio"] { display: none; }
+
+.extra-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.25rem;
+  border-radius: var(--radius);
+}
+.extra-row:nth-child(even) { background: var(--color-bg); }
+.extra-row-name { font-size: 0.8125rem; }
+.extra-row-price { font-size: 0.75rem; }
+.extra-row-controls { display: flex; align-items: center; gap: 0.25rem; }
+.extra-qty-input { width: 48px; text-align: center; padding: 0.25rem; }
+
+.customization-notes { font-size: 0.8125rem; }
+.customization-actions { display: flex; gap: 0.5rem; }
+
+.btn-gray { background: var(--color-gray); color: white; }
+.btn-gray:hover { background: #4B5563; }
+
+/* Button groups */
+.btn-group { display: flex; gap: 0.25rem; }
+
+/* Order page layout */
+.order-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.order-products {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.order-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  max-height: 40dvh;
+  overflow-y: auto;
+  padding: 1rem;
+  border-top: 2px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.order-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+
+.order-items-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+}
+
+@media (min-width: 768px) {
+  .product-card { flex-wrap: nowrap; }
+  .product-footer { width: auto; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+
+  .order-layout {
+    flex-direction: row;
+  }
+
+  .order-products {
+    flex: 3;
+    border-right: 2px solid var(--color-border);
+    overflow-y: auto;
+  }
+
+  .order-sidebar {
+    flex: 2;
+    max-height: none;
+    border-top: none;
+    overflow-y: auto;
+  }
+}
+
+/* Item added highlight animation */
+@keyframes item-added {
+  0% { background: #DCFCE7; }
+  100% { background: transparent; }
+}
+.item-added { animation: item-added 1.5s ease-out; }
+
+/* Hidden utility */
+.hidden { display: none; }
+
+/* Status badge colors */
+.status-open { background: var(--color-yellow); color: var(--color-text); }
+.status-ordering { background: var(--color-yellow); color: var(--color-text); }
+.status-cooking { background: var(--color-warning); }
+.status-ready { background: var(--color-success); }
+.status-delivered { background: var(--color-purple); }
+.status-closed { background: var(--color-gray); }
+.status-cancelled { background: var(--color-danger); }
 
 /* Utilities */
 .text-center { text-align: center; }
@@ -227,3 +357,8 @@ body {
 .mt-2 { margin-top: 1rem; }
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
+.product-footer .btn { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+
+@media (min-width: 768px) {
+  .product-footer .btn { font-size: 0.875rem; padding: 0.625rem 1.25rem; }
+}

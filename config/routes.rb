@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   # Tables
   resources :tables, only: [:index] do
     # Create new order for a table
-    resources :orders, only: [:new], controller: "orders", as: :orders
+    resources :orders, only: [:create], controller: "orders", as: :orders
   end
 
   # Orders
@@ -17,14 +17,12 @@ Rails.application.routes.draw do
       patch :cancel
     end
 
-    # Product browsing within an order
-    resources :products, only: [:index], controller: "order_products"
-
     # Line items within an order
     resources :line_items, only: [:new, :create, :destroy] do
       member do
         patch :ready
         patch :deliver
+        patch :cancel
       end
     end
   end
