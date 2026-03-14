@@ -1,0 +1,11 @@
+<div class="home-grid">
+  <%= link_to tables_path, class: "home-card" do %>
+    <span class="home-card-icon">🍽️</span>
+    <span class="home-card-label"><%= t("home.tables") %></span>
+  <% end %>
+
+  <%= link_to takeouts_path, class: "home-card" do %>
+    <span class="home-card-icon">🛍️</span>
+    <span class="home-card-label"><%= t("home.takeout") %></span>
+  <% end %>
+</div>

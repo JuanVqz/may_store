@@ -25,7 +25,7 @@ MayStore uses ActionCable-backed Turbo Streams to push status changes to connect
                     ▼                          ▼                      ▼
           ┌─────────────────┐      ┌─────────────────┐    ┌─────────────────┐
           │  Waiter viewing  │      │  Another waiter  │    │  Kitchen queue   │
-          │  order show page │      │  on tables page  │    │  (future)        │
+          │  order show page │      │  on tables page  │    │  kitchen/index   │
           └─────────────────┘      └─────────────────┘    └─────────────────┘
 ```
 
@@ -35,6 +35,7 @@ MayStore uses ActionCable-backed Turbo Streams to push status changes to connect
 |-------------------------------|---------------------------------|-----------------------------------|
 | `order_{id}`                  | Order show page (`orders/show`) | Line item partial on item status change. Full order partial on order status change. |
 | `store_{id}_tables`           | Tables index page               | Table card partial on order status change (e.g. cooking → ready updates the table grid). |
+| `store_{id}_kitchen`          | Kitchen queue page              | Line item card on status change: append (cooking), replace (ready), remove (delivered/cancelled). |
 
 ## How it works
 
@@ -64,6 +65,7 @@ after_update_commit :broadcast_item_update, if: :saved_change_to_status?
 
 Broadcasts to:
 - `order_{order_id}` → replaces `#line_item_{id}` (individual item card)
+- `store_{store_id}_kitchen` → append/replace/remove `#kitchen_line_item_{id}` (kitchen queue card)
 
 ### 3. Partials used for broadcasts
 
@@ -71,6 +73,7 @@ Broadcasts to:
 |----------------------------------|----------------------|----------------------|
 | `orders/_order.html.erb`         | `order_{id}`         | Order status changes |
 | `line_items/_line_item.html.erb` | `line_item_{id}`     | Item status changes  |
+| `kitchen/_line_item_card.html.erb` | `kitchen_line_item_{id}` | Kitchen queue updates |
 | `tables/_table.html.erb`         | `table_{table_id}`   | Table grid updates   |
 
 ## Flow Example: Kitchen marks item ready

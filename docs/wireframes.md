@@ -32,7 +32,7 @@ ORDERING -> COOKING -> READY -> DELIVERED
 5. **Adding items** to a cooking/ready/delivered order: new items go directly to COOKING, order transitions (back) to COOKING
 6. **All users authenticate** via Account (employee_number + password)
 7. **All text from I18n** — no hardcoded strings in views
-8. **Role determines default screen**, not permissions (waiter -> tables, kitchen -> queue, admin -> dashboard)
+8. **Role determines default screen**, not permissions (waiter -> home, kitchen -> queue, admin -> dashboard)
 
 ---
 
@@ -41,6 +41,8 @@ ORDERING -> COOKING -> READY -> DELIVERED
 | # | Screen | Priority | Role |
 |---|--------|----------|------|
 | 1 | Login | P0 | All |
+| 1b | Home | P0 | Waiter |
+| 1c | Takeouts | P0 | Waiter |
 | 2 | Table Selection | P0 | Waiter |
 | 3 | Order Page (Single-Page) | P0 | Waiter |
 | 4 | Inline Product Customization | P0 | Waiter |
@@ -90,11 +92,63 @@ ORDERING -> COOKING -> READY -> DELIVERED
 1. Store resolved from subdomain
 2. Find `Account` by `employee_number` scoped to store
 3. `account.authenticate(params[:password])`
-4. Redirect by `user.role`: waiter -> mesas, kitchen -> cocina, admin -> admin dashboard
+4. Redirect by `user.role`: waiter -> `/` (home), kitchen -> cocina, admin -> admin dashboard
 
 ---
 
-## Screen 2: Table Selection (Dashboard)
+## Screen 1b: Home (Waiter Landing)
+
+After login, waiters land on the home screen at `/` (root). Two large square buttons navigate to table orders or takeout orders.
+
+```
++--------------------------------------------------------------------+
+| MayStore                              Bienvenido, Juan       [Salir] |
++--------------------------------------------------------------------+
+|                                                                    |
+|           +-------------------+  +-------------------+             |
+|           |                   |  |                   |             |
+|           |     🍽️ Mesas      |  |  🛍️ Para Llevar   |             |
+|           |                   |  |                   |             |
+|           +-------------------+  +-------------------+             |
+|                                                                    |
++--------------------------------------------------------------------+
+```
+
+- **Mesas** links to Screen 2 (Table Selection)
+- **Para Llevar** links to Screen 1c (Takeouts)
+
+---
+
+## Screen 1c: Takeouts (Para Llevar)
+
+List of active takeout orders (non-closed, non-cancelled). Each row shows order code, status, time, and total. The "+ Nueva Orden" button creates a new takeout order (no spot assigned).
+
+```
++--------------------------------------------------------------------+
+| MayStore                              Bienvenido, Juan       [Salir] |
++--------------------------------------------------------------------+
+|                                                                    |
+|  Para Llevar                              [+ Nueva Orden]          |
+|                                                                    |
+|  +--------------------------------------------------------------+ |
+|  | CFE2603-002    Abierto              14:35    $95.00           | |
+|  +--------------------------------------------------------------+ |
+|  | CFE2603-005    Preparando           14:20    $120.00          | |
+|  +--------------------------------------------------------------+ |
+|  | CFE2603-008    Listo                14:10    $45.00           | |
+|  +--------------------------------------------------------------+ |
+|                                                                    |
++--------------------------------------------------------------------+
+```
+
+- Clicking a row opens Screen 3 (Order Page) for that takeout order
+- "+ Nueva Orden" creates an order with no spot and redirects to Screen 3
+
+---
+
+## Screen 2: Table Selection
+
+Accessed from Home (Screen 1b) via the "Mesas" button.
 
 ```
 +--------------------------------------------------------------------+
@@ -134,7 +188,7 @@ The product browser is **always visible** for all order statuses (open, cooking,
 +-------------------------------+-----------------------------------+
 |  PRODUCT BROWSER              |  ORDER SIDEBAR                    |
 |                               |                                   |
-|  +--------+ +--------+ +---+ |  <- Mesas   Mesa 5                |
+|  +--------+ +--------+ +---+ |  <- Atras   Mesa 5                |
 |  |BEBIDAS | |TIZANAS | |...| |  CFE2601-001        [Preparando]  |
 |  |CALIENTE| |        | |   | |                                   |
 |  |[ACTIVO]| |        | |   | |  Productos de la orden             |
@@ -185,7 +239,7 @@ Each product card has:
 ### Order Sidebar Header
 
 The sidebar header contains order info (no separate navbar):
-- **Table name · Order code** (e.g., "Mesa 5 · CFE2601-001")
+- **Spot name · Order code** (e.g., "Mesa 5 · CFE2601-001") — for takeout orders with no spot, shows "Para Llevar · CFE2603-002"
 - **Status badge** (e.g., [Preparando])
 
 ### Item Actions by Status
@@ -405,6 +459,7 @@ See Screen 3 — the same single-page layout is used for open, cooking, ready, a
 6. **Modified ingredients** shown with * marker
 7. **Extras** shown with + prefix and quantity: `+ Extra Chocolate x2`
 8. **Auto-refreshes** via Turbo Streams
+9. **Takeout orders** show "PARA LLEVAR" instead of a table name (e.g., "PARA LLEVAR | CFE2603-002 | 14:35 | Juan")
 
 ---
 
@@ -433,7 +488,7 @@ See Screen 3 — mixed item statuses are handled in the same single-page layout.
 |  |                                                              | |
 |  |                        CUENTA                                | |
 |  |                                                              | |
-|  |  Mesa: 5                                                     | |
+|  |  Lugar: Mesa 5                                                | |
 |  |  Orden: CFE2601-009                                          | |
 |  |  Fecha: 12 de marzo de 2026                                  | |
 |  |  Mesero: Juan                                                | |
@@ -686,7 +741,7 @@ ORDERING -> COOKING -> READY -> DELIVERED
 | ordering | Ordenando | Item in order, not confirmed |
 | cooking | Preparando | In kitchen |
 | ready | Listo | Kitchen finished |
-| delivered | Entregado | Delivered to table |
+| delivered | Entregado | Delivered to spot |
 | cancelled | Cancelado | Removed from order |
 
 ### Item Actions (All Roles)

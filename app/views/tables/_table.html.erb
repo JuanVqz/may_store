@@ -1,14 +1,21 @@
-<div id="table_<%= table.id %>">
+<div id="spot_<%= spot.id %>">
   <% if defined?(order) && order && !order.closed? && !order.cancelled? %>
     <%= link_to order_path(order), class: "table-card", data: { status: order.status } do %>
-      <span class="table-card-name"><%= table.name %></span>
+      <span class="table-card-name"><%= spot.name %></span>
       <span class="table-card-status" style="color: <%= order.status_color %>">
         <%= order.status_label %>
       </span>
+      <% if order.cooking? || order.ready? || order.delivered? %>
+        <% counts = order.readiness_counts %>
+        <% if counts[:total] > 0 %>
+          <span class="table-card-progress"><%= t("tables.items_ready", count: counts[:ready], total: counts[:total]) %></span>
+          <span class="table-card-progress"><%= t("tables.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
+        <% end %>
+      <% end %>
     <% end %>
   <% else %>
-    <%= link_to table_orders_path(table), class: "table-card", data: { turbo_method: :post, turbo_prefetch: false } do %>
-      <span class="table-card-name"><%= table.name %></span>
+    <%= link_to spot_orders_path(spot), class: "table-card", data: { turbo_method: :post, turbo_prefetch: false } do %>
+      <span class="table-card-name"><%= spot.name %></span>
       <span class="table-card-status text-muted"><%= t("tables.available") %></span>
     <% end %>
   <% end %>

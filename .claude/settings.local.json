@@ -3,7 +3,14 @@
     "allow": [
       "Bash(bin/rails test:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(grep -E \"\\\\.\\(html|erb\\)$\")",
+      "Bash(bin/rails db:rollback STEP=1)",
+      "Bash(bin/rails db:migrate)",
+      "Bash(bin/rails db:migrate:status)",
+      "Bash(bin/rails db:rollback STEP=5)",
+      "Bash(bin/rails runner:*)",
+      "Bash(bin/rails db:seed)"
     ]
   }
 }

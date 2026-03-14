@@ -2,7 +2,7 @@ class Order < ApplicationRecord
   include PriceCents
 
   belongs_to :store
-  belongs_to :table
+  belongs_to :spot
   belongs_to :user
   has_many :line_items, dependent: :destroy
   has_many :payments, dependent: :destroy
@@ -45,9 +45,16 @@ class Order < ApplicationRecord
   def confirm!
     raise ActiveRecord::RecordInvalid, self if line_items.empty?
 
+    confirmed_items = line_items.where(status: :ordering).to_a
+
     transaction do
       update!(status: :cooking, cooking_at: Time.current)
       line_items.where(status: :ordering).update_all(status: :cooking)
+    end
+
+    confirmed_items.each do |item|
+      item.reload
+      item.broadcast_kitchen_update
     end
   end
 
@@ -89,6 +96,7 @@ class Order < ApplicationRecord
       special_notes: special_notes
     )
     item.calculate_total!
+    item.broadcast_kitchen_update
     item
   end
 
@@ -102,6 +110,14 @@ class Order < ApplicationRecord
 
   def fully_paid?
     remaining_cents <= 0
+  end
+
+  def readiness_counts
+    active = line_items.where.not(status: :cancelled)
+    total_count = active.count
+    ready_count = active.where(status: [:ready, :delivered]).count
+    delivered_count = active.where(status: :delivered).count
+    { ready: ready_count, delivered: delivered_count, total: total_count }
   end
 
   private
@@ -118,7 +134,7 @@ class Order < ApplicationRecord
       locals: { order: self }
 
     # Broadcast each line item to update action buttons (e.g., after confirm, items switch to cooking)
-    line_items.includes(:product, line_item_components: :component).each do |item|
+    line_items.reload.includes(:product, line_item_components: :component).each do |item|
       broadcast_replace_to "order_#{id}",
         target: "line_item_#{item.id}",
         partial: "line_items/line_item",
@@ -126,9 +142,16 @@ class Order < ApplicationRecord
     end
 
     broadcast_replace_to "store_#{store_id}_tables",
-      target: "table_#{table_id}",
+      target: "spot_#{spot_id}",
       partial: "tables/table",
-      locals: { table: table, order: self }
+      locals: { spot: spot, order: self }
+
+    if spot.takeout?
+      broadcast_replace_to "store_#{store_id}_takeouts",
+        target: "takeout_order_#{id}",
+        partial: "takeouts/order_card",
+        locals: { order: self }
+    end
   end
 
   def generate_code

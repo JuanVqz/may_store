@@ -1,0 +1,18 @@
+<%= turbo_stream_from "store_#{Current.store.id}_kitchen" %>
+
+<div class="section-header">
+  <h1 class="section-title"><%= t("kitchen.title") %></h1>
+</div>
+
+<div class="kitchen-subheader">
+  <span><%= t("kitchen.ordered_by") %>: <%= t("kitchen.oldest_first") %></span>
+  <span id="kitchen-queue-count"><%= t("kitchen.queue_count", count: @line_items.size) %></span>
+</div>
+
+<div id="kitchen-queue" data-controller="kitchen-audio kitchen-queue">
+  <p class="empty-state" data-kitchen-queue-target="empty" <%= 'style="display:none"'.html_safe if @line_items.any? %>><%= t("kitchen.no_items") %></p>
+  <% oldest_cooking_id = @line_items.find(&:cooking?)&.id %>
+  <% @line_items.each do |item| %>
+    <%= render "kitchen/line_item_card", item: item, oldest_cooking_id: oldest_cooking_id %>
+  <% end %>
+</div>

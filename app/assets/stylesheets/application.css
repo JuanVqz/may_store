@@ -338,6 +338,162 @@ body {
 }
 .item-added { animation: item-added 1.5s ease-out; }
 
+/* Home grid */
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 480px;
+  margin: 2rem auto 0;
+}
+
+@media (min-width: 768px) {
+  .home-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  border: 2px solid var(--color-border);
+  background: var(--color-card);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  cursor: pointer;
+}
+.home-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+.home-card:active { transform: translateY(0); }
+
+.home-card-icon { font-size: 3rem; line-height: 1; }
+.home-card-label { font-size: 1.125rem; font-weight: 700; }
+
+/* Takeout orders */
+.takeout-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.takeout-order-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  text-decoration: none;
+  color: var(--color-text);
+  border-left: 4px solid var(--color-border);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.takeout-order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.takeout-order-card[data-status="open"] { border-left-color: var(--color-yellow); }
+.takeout-order-card[data-status="cooking"] { border-left-color: var(--color-warning); }
+.takeout-order-card[data-status="ready"] { border-left-color: var(--color-success); }
+.takeout-order-card[data-status="delivered"] { border-left-color: var(--color-purple); }
+
+.takeout-order-code {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.takeout-order-middle {
+  flex: 1;
+  min-width: 0;
+}
+
+.takeout-order-time {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.takeout-order-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.takeout-order-total {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+/* Kitchen queue */
+.kitchen-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.kitchen-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin: 0.5rem 1rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.kitchen-card--oldest { border-left: 4px solid var(--color-danger); }
+.kitchen-card--ready { border-left: 4px solid var(--color-success); }
+
+.kitchen-card-header { padding: 0.75rem 1rem 0; }
+
+.kitchen-card-banner {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+.kitchen-card-banner--oldest { color: var(--color-danger); }
+.kitchen-card-banner--ready { color: var(--color-success); }
+
+.kitchen-card-meta {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.kitchen-card-body { padding: 0.5rem 1rem; }
+
+.kitchen-card-product {
+  font-weight: 700;
+  font-size: 1.0625rem;
+  margin-bottom: 0.25rem;
+}
+
+.kitchen-card-details {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.125rem;
+}
+
+.kitchen-card-notes {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+  margin-top: 0.25rem;
+}
+
+.kitchen-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.kitchen-card-actions .btn { flex: 1; font-size: 1rem; padding: 0.75rem; }
+
 /* Hidden utility */
 .hidden { display: none; }
 

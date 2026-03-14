@@ -3,19 +3,19 @@ require "test_helper"
 class OrderTest < ActiveSupport::TestCase
   setup do
     @store = stores(:cafe_delicias)
-    @table = tables(:mesa_5)
+    @spot = spots(:mesa_5)
     @user = users(:waiter_juan)
     @product = products(:americano)
   end
 
   test "generates code on create" do
-    order = Order.create!(store: @store, table: @table, user: @user, status: :open)
+    order = Order.create!(store: @store, spot: @spot, user: @user, status: :open)
     assert_match(/\ACFE\d{4}-\d{3}\z/, order.code)
   end
 
   test "increments sequence for same store and month" do
-    order1 = Order.create!(store: @store, table: @table, user: @user, status: :open)
-    order2 = Order.create!(store: @store, table: @table, user: @user, status: :open)
+    order1 = Order.create!(store: @store, spot: @spot, user: @user, status: :open)
+    order2 = Order.create!(store: @store, spot: @spot, user: @user, status: :open)
 
     seq1 = order1.code.split("-").last.to_i
     seq2 = order2.code.split("-").last.to_i
@@ -110,5 +110,25 @@ class OrderTest < ActiveSupport::TestCase
     order.update_columns(total_cents: 8000)
     assert_equal 80.0, order.total
     assert_equal "$80.00", order.formatted_total
+  end
+
+  test "readiness_counts returns ready and total counts" do
+    order = orders(:cooking_order)
+    counts = order.readiness_counts
+    assert_equal 0, counts[:ready]
+    assert_equal 2, counts[:total]
+
+    line_items(:cooking_cappuccino).mark_ready!
+    counts = order.readiness_counts
+    assert_equal 1, counts[:ready]
+    assert_equal 2, counts[:total]
+  end
+
+  test "readiness_counts excludes cancelled items" do
+    order = orders(:cooking_order)
+    line_items(:cooking_americano).cancel!
+    counts = order.readiness_counts
+    assert_equal 0, counts[:ready]
+    assert_equal 1, counts[:total]
   end
 end

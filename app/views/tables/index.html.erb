@@ -5,9 +5,9 @@
 </div>
 
 <div class="tables-grid">
-  <% @tables.each do |table| %>
-    <% order = @active_orders[table.id] %>
-    <%= render "tables/table", table: table, order: order %>
+  <% @spots.each do |spot| %>
+    <% order = @active_orders[spot.id] %>
+    <%= render "tables/table", spot: spot, order: order %>
   <% end %>
 </div>
 

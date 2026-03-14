@@ -1,6 +1,6 @@
 class Store < ApplicationRecord
   has_many :users
-  has_many :tables
+  has_many :spots
   has_many :categories
   has_many :components
   has_many :products

@@ -94,17 +94,36 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_match "order_summary", response.body
   end
 
-  test "ready marks item as ready" do
+  test "ready marks item as ready and tracks actor" do
     item = line_items(:cooking_cappuccino)
     patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
-    assert_equal "ready", item.reload.status
+    item.reload
+    assert_equal "ready", item.status
+    assert_equal @user, item.ready_by
   end
 
-  test "deliver marks item as delivered" do
+  test "ready responds with turbo stream" do
+    item = line_items(:cooking_cappuccino)
+    patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain), as: :turbo_stream
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
+  end
+
+  test "deliver marks item as delivered and tracks actor" do
     item = line_items(:cooking_cappuccino)
     item.mark_ready!
     patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
-    assert_equal "delivered", item.reload.status
+    item.reload
+    assert_equal "delivered", item.status
+    assert_equal @user, item.delivered_by
+  end
+
+  test "deliver responds with turbo stream" do
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!
+    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain), as: :turbo_stream
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
   end
 
   test "create saves special_notes from customization form" do
@@ -129,9 +148,25 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "cooking", order.reload.status
   end
 
-  test "cancel marks item as cancelled" do
+  test "cancel marks item as cancelled and tracks actor" do
     item = line_items(:cooking_cappuccino)
     patch cancel_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
-    assert_equal "cancelled", item.reload.status
+    item.reload
+    assert_equal "cancelled", item.status
+    assert_equal @user, item.cancelled_by
+  end
+
+  test "ready rejects non-cooking item" do
+    item = line_items(:ordering_americano)
+    patch ready_order_line_item_url(@order, item, subdomain: @store.subdomain)
+    assert_redirected_to order_url(@order, subdomain: @store.subdomain)
+    assert_equal "ordering", item.reload.status
+  end
+
+  test "deliver rejects cooking item" do
+    item = line_items(:cooking_cappuccino)
+    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    assert_redirected_to order_url(orders(:cooking_order), subdomain: @store.subdomain)
+    assert_equal "cooking", item.reload.status
   end
 end

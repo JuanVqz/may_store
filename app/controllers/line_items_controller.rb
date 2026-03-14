@@ -1,4 +1,6 @@
 class LineItemsController < ApplicationController
+  rescue_from LineItem::InvalidTransition, with: :handle_invalid_transition
+
   before_action :set_order
   before_action :set_line_item, only: [:destroy, :ready, :deliver, :cancel]
 
@@ -46,17 +48,27 @@ class LineItemsController < ApplicationController
   end
 
   def ready
-    @line_item.mark_ready!
-    redirect_to order_path(@order), notice: t("kitchen.marked_ready")
+    @line_item.mark_ready!(by: Current.user)
+    @order.reload
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to order_path(@order), notice: t("kitchen.marked_ready") }
+    end
   end
 
   def deliver
-    @line_item.mark_delivered!
-    redirect_to order_path(@order), notice: t("line_item.marked_delivered")
+    @line_item.mark_delivered!(by: Current.user)
+    @order.reload
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to order_path(@order), notice: t("line_item.marked_delivered") }
+    end
   end
 
   def cancel
-    @line_item.cancel!
+    @line_item.cancel!(by: Current.user)
     @order.reload
 
     respond_to do |format|
@@ -105,6 +117,13 @@ class LineItemsController < ApplicationController
           unit_price_cents: component.price_cents
         )
       end
+    end
+  end
+
+  def handle_invalid_transition(exception)
+    respond_to do |format|
+      format.turbo_stream { head :unprocessable_entity }
+      format.html { redirect_to order_path(@order), alert: exception.message }
     end
   end
 end
