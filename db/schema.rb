@@ -95,16 +95,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
 
   create_table "line_items", force: :cascade do |t|
     t.integer "base_price_cents", default: 0, null: false
+    t.bigint "cancelled_by_id"
     t.datetime "created_at", null: false
+    t.bigint "delivered_by_id"
     t.uuid "order_id", null: false
     t.bigint "product_id", null: false
+    t.bigint "ready_by_id"
     t.text "special_notes"
     t.string "status", default: "ordering", null: false
     t.integer "total_price_cents", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["cancelled_by_id"], name: "index_line_items_on_cancelled_by_id"
     t.index ["created_at"], name: "index_line_items_on_created_at"
+    t.index ["delivered_by_id"], name: "index_line_items_on_delivered_by_id"
     t.index ["order_id"], name: "index_line_items_on_order_id"
     t.index ["product_id"], name: "index_line_items_on_product_id"
+    t.index ["ready_by_id"], name: "index_line_items_on_ready_by_id"
     t.index ["status"], name: "index_line_items_on_status"
   end
 
@@ -128,17 +134,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.text "notes"
     t.datetime "opened_at"
     t.datetime "ready_at"
+    t.bigint "spot_id", null: false
     t.string "status", default: "open", null: false
     t.bigint "store_id", null: false
-    t.bigint "table_id", null: false
     t.integer "total_cents", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["created_at"], name: "index_orders_on_created_at"
+    t.index ["spot_id"], name: "index_orders_on_spot_id"
     t.index ["store_id", "code"], name: "index_orders_on_store_id_and_code", unique: true
     t.index ["store_id", "status"], name: "index_orders_on_store_id_and_status"
     t.index ["store_id"], name: "index_orders_on_store_id"
-    t.index ["table_id"], name: "index_orders_on_table_id"
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
@@ -196,6 +202,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.index ["store_id"], name: "index_products_on_store_id"
   end
 
+  create_table "spots", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "position"
+    t.string "spot_type", default: "dine_in", null: false
+    t.bigint "store_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["store_id", "name"], name: "index_spots_on_store_id_and_name", unique: true
+    t.index ["store_id", "position"], name: "index_spots_on_store_id_and_position"
+    t.index ["store_id", "spot_type"], name: "index_spots_on_store_id_and_spot_type"
+    t.index ["store_id"], name: "index_spots_on_store_id"
+  end
+
   create_table "stores", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -207,18 +227,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.index ["active"], name: "index_stores_on_active"
     t.index ["order_prefix"], name: "index_stores_on_order_prefix", unique: true
     t.index ["subdomain"], name: "index_stores_on_subdomain", unique: true
-  end
-
-  create_table "tables", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.integer "position"
-    t.bigint "store_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["store_id", "name"], name: "index_tables_on_store_id_and_name", unique: true
-    t.index ["store_id", "position"], name: "index_tables_on_store_id_and_position"
-    t.index ["store_id"], name: "index_tables_on_store_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -247,9 +255,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
   add_foreign_key "line_item_components", "line_items"
   add_foreign_key "line_items", "orders"
   add_foreign_key "line_items", "products"
+  add_foreign_key "line_items", "users", column: "cancelled_by_id"
+  add_foreign_key "line_items", "users", column: "delivered_by_id"
+  add_foreign_key "line_items", "users", column: "ready_by_id"
   add_foreign_key "order_counters", "stores"
+  add_foreign_key "orders", "spots"
   add_foreign_key "orders", "stores"
-  add_foreign_key "orders", "tables"
   add_foreign_key "orders", "users"
   add_foreign_key "payment_methods", "stores"
   add_foreign_key "payments", "orders"
@@ -258,6 +269,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
   add_foreign_key "product_components", "products"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "stores"
-  add_foreign_key "tables", "stores"
+  add_foreign_key "spots", "stores"
   add_foreign_key "users", "stores"
 end

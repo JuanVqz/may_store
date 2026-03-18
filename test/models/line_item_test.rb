@@ -19,10 +19,33 @@ class LineItemTest < ActiveSupport::TestCase
     assert_equal "ready", item.status
   end
 
+  test "mark_ready tracks who marked it ready" do
+    user = users(:waiter_juan)
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!(by: user)
+    assert_equal user, item.ready_by
+  end
+
   test "cancel changes status" do
     item = line_items(:cooking_americano)
     item.cancel!
     assert_equal "cancelled", item.status
+  end
+
+  test "cancel tracks who cancelled it" do
+    user = users(:waiter_juan)
+    item = line_items(:cooking_americano)
+    item.cancel!(by: user)
+    assert_equal user, item.cancelled_by
+  end
+
+  test "mark_delivered tracks who delivered it" do
+    user = users(:waiter_juan)
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!
+    item.mark_delivered!(by: user)
+    assert_equal "delivered", item.status
+    assert_equal user, item.delivered_by
   end
 
   test "status callbacks trigger order status check" do
@@ -43,5 +66,35 @@ class LineItemTest < ActiveSupport::TestCase
     item = line_items(:cooking_cappuccino)
     assert_equal 45.0, item.base_price
     assert_equal "$45.00", item.formatted_base_price
+  end
+
+  # Status transition guards
+  test "mark_ready raises on non-cooking item" do
+    item = line_items(:ordering_americano)
+    assert_raises(LineItem::InvalidTransition) { item.mark_ready! }
+  end
+
+  test "mark_ready raises on already ready item" do
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!
+    assert_raises(LineItem::InvalidTransition) { item.mark_ready! }
+  end
+
+  test "mark_delivered raises on cooking item" do
+    item = line_items(:cooking_cappuccino)
+    assert_raises(LineItem::InvalidTransition) { item.mark_delivered! }
+  end
+
+  test "cancel raises on delivered item" do
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!
+    item.mark_delivered!
+    assert_raises(LineItem::InvalidTransition) { item.cancel! }
+  end
+
+  test "cancel raises on already cancelled item" do
+    item = line_items(:cooking_americano)
+    item.cancel!
+    assert_raises(LineItem::InvalidTransition) { item.cancel! }
   end
 end

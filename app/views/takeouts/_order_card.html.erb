@@ -1,0 +1,19 @@
+<div id="takeout_order_<%= order.id %>">
+  <%= link_to order_path(order), class: "takeout-order-card card", data: { status: order.status } do %>
+    <span class="takeout-order-code"><%= order.code %></span>
+    <div class="takeout-order-middle">
+      <span class="takeout-order-time">hace <%= time_ago_in_words(order.created_at) %></span>
+      <% if order.cooking? || order.ready? || order.delivered? %>
+        <% counts = order.readiness_counts %>
+        <% if counts[:total] > 0 %>
+          <span class="takeout-order-progress"><%= t("takeouts.items_ready", count: counts[:ready], total: counts[:total]) %></span>
+          <span class="takeout-order-progress"><%= t("takeouts.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="takeout-order-right">
+      <span class="takeout-order-total"><%= order.formatted_total %></span>
+      <span class="status-badge status-<%= order.status %>"><%= order.status_label %></span>
+    </div>
+  <% end %>
+</div>

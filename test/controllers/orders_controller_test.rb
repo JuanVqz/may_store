@@ -8,9 +8,9 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "create creates order and redirects to order show" do
-    table = tables(:mesa_1)
+    spot = spots(:mesa_1)
     assert_difference "Order.count", 1 do
-      post table_orders_url(table, subdomain: @store.subdomain)
+      post spot_orders_url(spot, subdomain: @store.subdomain)
     end
     order = @store.orders.order(created_at: :desc).first
     assert_equal "open", order.status
@@ -53,8 +53,8 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "confirm with no items redirects with alert" do
-    table = tables(:mesa_1)
-    post table_orders_url(table, subdomain: @store.subdomain)
+    spot = spots(:mesa_1)
+    post spot_orders_url(spot, subdomain: @store.subdomain)
     order = @store.orders.order(created_at: :desc).first
     patch confirm_order_url(order, subdomain: @store.subdomain)
     assert_equal "open", order.reload.status

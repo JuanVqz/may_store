@@ -21,7 +21,7 @@
   <body>
     <% if Current.user %>
       <nav class="navbar">
-        <span class="navbar-brand"><%= link_to t("app_name"), tables_path %></span>
+        <span class="navbar-brand"><%= link_to t("app_name"), root_path %></span>
         <div class="navbar-right">
           <span><%= t("welcome", name: Current.user.name) %></span>
           <%= button_to t("exit"), logout_path, method: :delete, class: "btn btn-sm btn-outline", style: "color: white; border-color: rgba(255,255,255,0.5);" %>

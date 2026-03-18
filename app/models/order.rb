@@ -2,7 +2,7 @@ class Order < ApplicationRecord
   include PriceCents
 
   belongs_to :store
-  belongs_to :table
+  belongs_to :spot
   belongs_to :user
   has_many :line_items, dependent: :destroy
   has_many :payments, dependent: :destroy
@@ -26,7 +26,7 @@ class Order < ApplicationRecord
   }.freeze
 
   before_create :generate_code
-  after_update_commit :broadcast_order_update, if: :saved_change_to_status?
+  after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
 
   price_in_cents :total
 
@@ -49,6 +49,8 @@ class Order < ApplicationRecord
       update!(status: :cooking, cooking_at: Time.current)
       line_items.where(status: :ordering).update_all(status: :cooking)
     end
+
+    broadcast_refresh_to "store_#{store_id}_kitchen"
   end
 
   def check_ready!
@@ -79,7 +81,7 @@ class Order < ApplicationRecord
     end
   end
 
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready? || delivered?
 
     item = line_items.create!(
@@ -89,6 +91,7 @@ class Order < ApplicationRecord
       special_notes: special_notes
     )
     item.calculate_total!
+    broadcast_refresh_to "store_#{store_id}_kitchen"
     item
   end
 
@@ -104,31 +107,20 @@ class Order < ApplicationRecord
     remaining_cents <= 0
   end
 
+  def readiness_counts
+    active = line_items.where.not(status: :cancelled)
+    total_count = active.count
+    ready_count = active.where(status: [:ready, :delivered]).count
+    delivered_count = active.where(status: :delivered).count
+    { ready: ready_count, delivered: delivered_count, total: total_count }
+  end
+
   private
 
-  def broadcast_order_update
-    broadcast_replace_to "order_#{id}",
-      target: "order_header",
-      partial: "orders/order_header",
-      locals: { order: self }
-
-    broadcast_replace_to "order_#{id}",
-      target: "order_summary",
-      partial: "orders/order_summary",
-      locals: { order: self }
-
-    # Broadcast each line item to update action buttons (e.g., after confirm, items switch to cooking)
-    line_items.includes(:product, line_item_components: :component).each do |item|
-      broadcast_replace_to "order_#{id}",
-        target: "line_item_#{item.id}",
-        partial: "line_items/line_item",
-        locals: { item: item, order: self }
-    end
-
-    broadcast_replace_to "store_#{store_id}_tables",
-      target: "table_#{table_id}",
-      partial: "tables/table",
-      locals: { table: table, order: self }
+  def broadcast_refreshes
+    broadcast_refresh_to "order_#{id}"
+    broadcast_refresh_to "store_#{store_id}_tables"
+    broadcast_refresh_to "store_#{store_id}_takeouts"
   end
 
   def generate_code
@@ -137,14 +129,23 @@ class Order < ApplicationRecord
     prefix = store.order_prefix
     year_month = Time.current.strftime("%y%m")
 
-    counter = OrderCounter.find_or_create_by!(store_id: store_id, year_month: year_month) do |c|
-      c.current_sequence = 0
+    retries = 3
+    begin
+      OrderCounter.find_or_create_by!(store_id: store_id, year_month: year_month) do |c|
+        c.current_sequence = 0
+      end
+    rescue ActiveRecord::RecordNotUnique
+      retry if (retries -= 1) > 0
+      raise
     end
 
-    OrderCounter.where(id: counter.id)
-                .update_all("current_sequence = current_sequence + 1")
-    counter.reload
+    sql = OrderCounter.sanitize_sql_array([
+      "UPDATE order_counters SET current_sequence = current_sequence + 1, updated_at = NOW() " \
+      "WHERE store_id = ? AND year_month = ? RETURNING current_sequence",
+      store_id, year_month
+    ])
+    seq = OrderCounter.connection.select_value(sql)
 
-    self.code = "#{prefix}#{year_month}-#{counter.current_sequence.to_s.rjust(3, '0')}"
+    self.code = "#{prefix}#{year_month}-#{seq.to_s.rjust(3, '0')}"
   end
 end

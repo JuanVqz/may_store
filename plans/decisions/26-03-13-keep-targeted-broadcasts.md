@@ -1,31 +1,34 @@
-# Decision: Keep Targeted Turbo Stream Broadcasts
+# Decision: Targeted Broadcasts → Turbo Morph
 
-**Date:** 2026-03-13
-**Context:** Single-page order flow refactor
+**Date:** 2026-03-13 (original), **Updated:** 2026-03-18
 
-## Options Considered
+## Original Decision (2026-03-13)
 
-### A. Turbo Morph Refreshes (rejected for now)
+Keep targeted Turbo Stream broadcasts (manual `broadcast_replace_to`/`broadcast_append_to`/`broadcast_remove_to`). The infrastructure worked and was tested.
 
-- `broadcasts_refreshes` on models + `<meta name="turbo-refresh-method" content="morph">` in views
-- Simpler code: no custom broadcast methods, no target IDs, no broadcast-specific partials
-- Automatic state preservation (scroll, focus, open accordions)
-- Higher server load: every connected client re-fetches the full page on each change
-- Can be scoped per-page (meta tags only in specific views), so it wouldn't affect the rest of the app
+## Reversal (2026-03-18)
 
-### B. Targeted Turbo Stream Broadcasts (chosen)
+**Switched to Turbo Morph.** The targeted broadcast approach became untenable as real-time views grew.
 
-- Current approach: models broadcast specific partials to specific DOM targets via ActionCable
-- Already implemented and tested for Order, LineItem, and Table updates
-- Lower server load: only renders the small partial that changed
-- More code to maintain: custom broadcast methods, target IDs, partial sync
+### Why we switched
 
-## Decision
+Adding the kitchen queue revealed the cost of targeted broadcasts:
+- 5+ broadcast methods across 2 models (~70 lines of broadcast code)
+- Stale data bugs from in-memory associations in broadcast callbacks
+- Double broadcasts causing DOM flicker
+- Every new real-time feature (queue count, empty state, readiness progress, takeouts) required new broadcast methods and DOM target coordination
+- Actions triggered from one view (kitchen) sent turbo_stream responses targeting DOM elements that only existed on another view (order show)
 
-**Keep targeted broadcasts.** The current infrastructure works and is already tested. Morph is a future option that can be adopted per-page without a full rewrite — no need to switch now.
+### What morph gives us
 
-## Revisit When
+- **4 lines replace ~70**: each model has one `broadcast_refreshes` method broadcasting `broadcast_refresh_to` to its channels
+- **No stale data**: morph re-renders the full page with fresh data from the server
+- **No DOM target coordination**: no need to match partial names, target IDs, or broadcast actions
+- **Free features**: queue count, empty state, readiness progress all "just work" because the page re-renders
+- **Actions use redirects**: `ready`, `deliver`, `cancel` just `redirect_back` — morph handles all page updates across all connected clients
 
-- The single-page order flow has many interactive elements that lose state on broadcast replaces
-- Maintaining broadcast methods and target IDs becomes a pain point
-- We add more real-time views (e.g., kitchen queue) and the broadcast boilerplate grows
+### Tradeoff accepted
+
+- Higher server load per update (full page re-render vs small partial)
+- At cafe/restaurant scale this is negligible
+- Audio beep notifications need a different approach (deferred to backlog)

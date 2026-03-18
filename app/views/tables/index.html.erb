@@ -1,3 +1,4 @@
+<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "store_#{Current.store.id}_tables" %>
 
 <div class="section-header">
@@ -5,9 +6,9 @@
 </div>
 
 <div class="tables-grid">
-  <% @tables.each do |table| %>
-    <% order = @active_orders[table.id] %>
-    <%= render "tables/table", table: table, order: order %>
+  <% @spots.each do |spot| %>
+    <% order = @active_orders[spot.id] %>
+    <%= render "tables/table", spot: spot, order: order %>
   <% end %>
 </div>
 

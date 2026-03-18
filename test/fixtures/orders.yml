@@ -1,6 +1,6 @@
 open_order:
   store: cafe_delicias
-  table: mesa_5
+  spot: mesa_5
   user: waiter_juan
   status: open
   code: CFE2603-TEST1
@@ -9,7 +9,7 @@ open_order:
 
 cooking_order:
   store: cafe_delicias
-  table: mesa_1
+  spot: mesa_1
   user: waiter_juan
   status: cooking
   code: CFE2603-TEST2
@@ -19,7 +19,7 @@ cooking_order:
 
 ready_order:
   store: cafe_delicias
-  table: mesa_3
+  spot: mesa_3
   user: waiter_juan
   status: ready
   code: CFE2603-TEST3
@@ -30,7 +30,7 @@ ready_order:
 
 delivered_order:
   store: cafe_delicias
-  table: mesa_4
+  spot: mesa_4
   user: waiter_juan
   status: delivered
   code: CFE2603-TEST4

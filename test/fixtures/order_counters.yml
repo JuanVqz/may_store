@@ -1,1 +1,4 @@
-# empty - created dynamically by Order#generate_code
+cafe_march:
+  store: cafe_delicias
+  year_month: "2603"
+  current_sequence: 5

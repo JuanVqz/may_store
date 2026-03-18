@@ -4,7 +4,7 @@ class CreateOrders < ActiveRecord::Migration[8.1]
 
     create_table :orders, id: :uuid do |t|
       t.references :store, null: false, foreign_key: true
-      t.references :table, null: false, foreign_key: true
+      t.references :spot, null: false, foreign_key: true
       t.references :user, null: false, foreign_key: true
       t.string :status, null: false, default: "open"
       t.string :code, null: false

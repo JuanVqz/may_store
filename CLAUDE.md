@@ -43,9 +43,41 @@ Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md
 
 - `plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
 
+## Worktrees
+
+Use git worktrees for all feature work. Worktrees live in `.worktrees/` (repo root, not `.claude/worktrees/`).
+
+Branch naming convention: `{type}/{short_description}` using snake_case:
+- `feature/kitchen_queue` — new functionality
+- `fix/deliver_broadcast_stale_data` — bug fix
+- `chore/update_turbo_rails` — dependency updates, config changes
+- `maintenance/refactor_broadcasts_to_morph` — refactoring, cleanup
+
+Create with:
+```bash
+git worktree add .worktrees/feature/kitchen_queue -b feature/kitchen_queue
+```
+
+Remove when done (after merge):
+```bash
+git worktree remove .worktrees/feature/kitchen_queue
+```
+
 ## Migrations
 
 Not in production yet — when a migration needs changes, rollback (`rails db:rollback`), edit the existing migration file, and re-run (`rails db:migrate`). Do NOT create a new migration to alter a table that hasn't shipped.
+
+## Reference Codebase
+
+`/Users/juan/code/mine/fizzy` — Production Rails app using Hotwire Native. Use as reference for:
+- Controller concerns pattern (slim ApplicationController, modular concerns)
+- Model concerns by behavior (Closeable, Assignable, etc.)
+- Turbo Morph broadcasts (`broadcasts_refreshes`, `broadcast_refresh_to`)
+- CSS platform separation (`native.css`, `ios.css`, `android.css` with `@layer`)
+- Bridge controllers for Turbo Native (`@hotwired/hotwire-native-bridge`)
+- Test patterns (`Turbo::Broadcastable::TestHelper`, fixture organization)
+
+See `docs/reference-patterns.md` for detailed patterns extracted from this codebase.
 
 ## Key Rules
 

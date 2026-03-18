@@ -1,23 +1,33 @@
 mesa_1:
   store: cafe_delicias
   name: Mesa 1
+  spot_type: dine_in
   position: 1
   active: true
 
 mesa_3:
   store: cafe_delicias
   name: Mesa 3
+  spot_type: dine_in
   position: 3
   active: true
 
 mesa_4:
   store: cafe_delicias
   name: Mesa 4
+  spot_type: dine_in
   position: 4
   active: true
 
 mesa_5:
   store: cafe_delicias
   name: Mesa 5
+  spot_type: dine_in
   position: 5
+  active: true
+
+para_llevar:
+  store: cafe_delicias
+  name: Para Llevar
+  spot_type: takeout
   active: true

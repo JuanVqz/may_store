@@ -29,7 +29,7 @@ ProductComponent.delete_all
 Component.delete_all
 Product.delete_all
 Category.delete_all
-Table.delete_all
+Spot.delete_all
 Account.delete_all
 User.delete_all
 Store.delete_all
@@ -46,7 +46,7 @@ end
 # ============================================
 store = Store.create!(
   name: "Cafe Delicias",
-  subdomain: "cafe-delicias",
+  subdomain: "cafe",
   order_prefix: "CFE",
   logo_url: "https://example.com/logo.png",
   active: true
@@ -92,12 +92,13 @@ puts "  Kitchen: #{users.count { |u| u.kitchen? }}"
 puts "  Admin:   #{users.count { |u| u.admin? }}"
 
 # ============================================
-# TABLES
+# SPOTS (Tables + Takeout)
 # ============================================
 (1..15).each do |n|
-  Table.create!(store: store, name: "Mesa #{n}", position: n, active: true)
+  Spot.create!(store: store, name: "Mesa #{n}", spot_type: :dine_in, position: n, active: true)
 end
-puts "Created 15 tables"
+takeout_spot = Spot.create!(store: store, name: "Para Llevar", spot_type: :takeout, active: true)
+puts "Created 15 table spots + 1 takeout spot"
 
 # ============================================
 # CATEGORIES
@@ -417,12 +418,12 @@ puts "Created #{payment_methods_data.count} payment methods"
 # ============================================
 puts "\n--- Creating Sample Order ---"
 
-table = Table.find_by(name: "Mesa 5")
+mesa_5 = Spot.find_by(name: "Mesa 5")
 waiter = users.find { |u| u.waiter? }
 
 order = Order.create!(
   store: store,
-  table: table,
+  spot: mesa_5,
   user: waiter,
   status: :open,
   opened_at: Time.current
@@ -480,6 +481,50 @@ puts "  - #{order.line_items.count} items"
 puts "  - Total: $#{'%.2f' % order.total}"
 
 # ============================================
+# SAMPLE TAKEOUT ORDER
+# ============================================
+puts "\n--- Creating Sample Takeout Order ---"
+
+americano = Product.find_by(name: "Americano")
+latte_caramel = Product.find_by(name: "Latte Caramel")
+
+takeout_order = Order.create!(
+  store: store,
+  spot: takeout_spot,
+  user: waiter,
+  status: :open,
+  opened_at: Time.current
+)
+
+t_item1 = LineItem.create!(
+  order: takeout_order,
+  product: americano,
+  status: :ordering,
+  base_price_cents: americano.base_price_cents
+)
+americano.product_components.where(component_type: :ingredient).each do |pc|
+  LineItemComponent.create!(line_item: t_item1, component: pc.component, component_type: :ingredient, portion: 1.0, unit_price_cents: 0)
+end
+t_item1.calculate_total!
+
+t_item2 = LineItem.create!(
+  order: takeout_order,
+  product: latte_caramel,
+  status: :ordering,
+  base_price_cents: latte_caramel.base_price_cents
+)
+latte_caramel.product_components.where(component_type: :ingredient).each do |pc|
+  LineItemComponent.create!(line_item: t_item2, component: pc.component, component_type: :ingredient, portion: 1.0, unit_price_cents: 0)
+end
+t_item2.calculate_total!
+
+takeout_order.recalculate_total!
+
+puts "Created takeout order: #{takeout_order.code}"
+puts "  - #{takeout_order.line_items.count} items"
+puts "  - Total: $#{'%.2f' % takeout_order.total}"
+
+# ============================================
 # SUMMARY
 # ============================================
 puts "\n" + "=" * 50
@@ -493,7 +538,7 @@ puts "Users: #{User.count} (password: password123)"
 puts "  - Waiters: #{User.where(role: :waiter).count}"
 puts "  - Kitchen: #{User.where(role: :kitchen).count}"
 puts "  - Admin:   #{User.where(role: :admin).count}"
-puts "Tables: #{Table.count}"
+puts "Spots: #{Spot.count} (#{Spot.tables.count} tables, #{Spot.takeouts.count} takeout)"
 puts "Categories: #{Category.count}"
 puts "Products: #{Product.count}"
 puts "Components: #{Component.count}"

@@ -1,92 +1,179 @@
-# Turbo Streams — Real-time Updates
+# Real-time Updates — Turbo Morph & Streams
 
 ## Overview
 
-MayStore uses ActionCable-backed Turbo Streams to push status changes to connected browsers in real-time. No polling — updates arrive instantly via WebSocket.
+MayStore uses ActionCable-backed Turbo to push updates to connected browsers in real-time. No polling — updates arrive instantly via WebSocket.
+
+We use two complementary approaches:
+- **Turbo Morph** — for broadcasting state changes across pages (status updates, counters, progress)
+- **Turbo Streams** — for HTTP responses that modify the requesting page's DOM (add/remove items)
 
 ## Architecture
 
 ```
-┌─────────────┐     status change      ┌──────────────┐
-│  Kitchen UI  │ ──────────────────────>│  LineItem     │
-│  (browser)   │   PATCH /ready         │  model        │
-└─────────────┘                         └──────┬───────┘
-                                               │
-                                     after_update_commit
-                                               │
-                                    ┌──────────▼───────────┐
-                                    │  broadcast_replace_to │
-                                    │  "order_{id}"         │
-                                    └──────────┬───────────┘
-                                               │
-                              ActionCable (WebSocket)
-                                               │
-                    ┌──────────────────────────┼──────────────────────┐
-                    ▼                          ▼                      ▼
-          ┌─────────────────┐      ┌─────────────────┐    ┌─────────────────┐
-          │  Waiter viewing  │      │  Another waiter  │    │  Kitchen queue   │
-          │  order show page │      │  on tables page  │    │  (future)        │
-          └─────────────────┘      └─────────────────┘    └─────────────────┘
+                    ┌─────────────────────────────────────────────────────┐
+                    │                    RAILS SERVER                     │
+                    │                                                     │
+                    │  ┌─────────────┐         ┌──────────────────────┐  │
+                    │  │ LineItem    │         │ Order                │  │
+                    │  │             │         │                      │  │
+                    │  │ after_update│         │ after_update_commit  │  │
+                    │  │ _commit:    │         │ broadcast_refresh_to:│  │
+                    │  │             │         │  • order_{id}        │  │
+                    │  │ broadcast_  │         │  • store_{id}_tables │  │
+                    │  │ refresh_to: │         │  • store_{id}_       │  │
+                    │  │  • order_   │         │    takeouts          │  │
+                    │  │    {id}     │         │                      │  │
+                    │  │  • kitchen  │         └──────────────────────┘  │
+                    │  │  • tables   │                                   │
+                    │  │  • takeouts │                                   │
+                    │  └─────────────┘                                   │
+                    └────────────────────────┬──────────────────────────┘
+                                             │
+                                   ActionCable (WebSocket)
+                                             │
+                    ┌────────────┬────────────┼────────────┬─────────────┐
+                    ▼            ▼            ▼            ▼             ▼
+              ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+              │ /kitchen │ │ /orders/ │ │ /tables  │ │/takeouts │ │ /orders/ │
+              │          │ │  {uuid}  │ │          │ │          │ │  {uuid}  │
+              │ Cocina 1 │ │ Mesero 1 │ │ Mesero 2 │ │ Mesero 3 │ │ Mesero 1 │
+              │          │ │          │ │          │ │          │ │ (phone)  │
+              └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+                   │            │            │            │             │
+                   ▼            ▼            ▼            ▼             ▼
+               MORPH        MORPH        MORPH        MORPH         MORPH
+              (re-render   (re-render   (re-render   (re-render    (re-render
+               full page)   full page)   full page)   full page)    full page)
 ```
 
-## Channels & Subscriptions
+## Turbo Morph (broadcast_refresh_to)
 
-| Channel name                  | Who subscribes                  | What gets broadcast               |
-|-------------------------------|---------------------------------|-----------------------------------|
-| `order_{id}`                  | Order show page (`orders/show`) | Line item partial on item status change. Full order partial on order status change. |
-| `store_{id}_tables`           | Tables index page               | Table card partial on order status change (e.g. cooking → ready updates the table grid). |
+Used for **all real-time state synchronization**. When a model changes, it tells all subscribed pages to refresh themselves. Turbo morphs the DOM (smart diff) instead of replacing it, preserving scroll position, focus, and form state.
 
-## How it works
+### How it works
 
-### 1. View subscribes
-
+**1. View opts in to morph and subscribes to a channel:**
 ```erb
-<%%= turbo_stream_from "order_#{@order.id}" %>
+<%%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+<%%= turbo_stream_from "store_#{Current.store.id}_kitchen" %>
 ```
 
-This creates an ActionCable subscription. Turbo automatically handles incoming stream messages and replaces DOM elements by `id`.
-
-### 2. Model broadcasts on change
-
-**Order** (`app/models/order.rb`):
+**2. Model broadcasts a refresh on change:**
 ```ruby
-after_update_commit :broadcast_order_update, if: :saved_change_to_status?
+after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
+
+def broadcast_refreshes
+  broadcast_refresh_to "order_#{order_id}"
+  broadcast_refresh_to "store_#{order.store_id}_kitchen"
+  broadcast_refresh_to "store_#{order.store_id}_tables"
+  broadcast_refresh_to "store_#{order.store_id}_takeouts"
+end
 ```
 
-Broadcasts to two channels:
-- `order_{id}` → replaces `#order_{id}` (the entire order view)
-- `store_{id}_tables` → replaces `#table_{table_id}` (the table card)
+**3. Each subscribed browser re-fetches its current page and Turbo morphs the diff into the DOM.**
 
-**LineItem** (`app/models/line_item.rb`):
-```ruby
-after_update_commit :broadcast_item_update, if: :saved_change_to_status?
+### Channels
+
+| Channel | Subscribers | Triggers |
+|---------|-------------|----------|
+| `order_{id}` | Order show page | LineItem status change, Order status change |
+| `store_{id}_kitchen` | Kitchen queue | LineItem status change, Order confirm, Order add_item |
+| `store_{id}_tables` | Tables index | LineItem status change, Order status change |
+| `store_{id}_takeouts` | Takeouts index | LineItem status change, Order status change |
+
+### Why morph instead of targeted broadcasts
+
+We started with targeted broadcasts (`broadcast_replace_to` with specific partials and DOM targets) but switched to morph because:
+
+- **70 lines of broadcast code → 4 lines per model**
+- **No stale data** — morph re-renders with fresh server data every time
+- **No DOM target coordination** — no matching partial names, target IDs, or stream actions
+- **Free features** — queue count, empty state, readiness progress all update automatically
+- **Works from any page** — kitchen actions don't need to know about order view DOM structure
+
+See `plans/decisions/26-03-13-keep-targeted-broadcasts.md` for the full decision history.
+
+## Turbo Streams (HTTP responses)
+
+Used for **actions on the requesting page only** — adding items, removing items, updating the product browser. These modify the DOM of the page that made the request.
+
+### When to use Turbo Streams vs Morph
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   User clicks a button                                      │
+│                                                             │
+│   Does the action need to update OTHER connected pages?     │
+│                                                             │
+│   YES → Morph handles it                                    │
+│         (via broadcast_refresh_to in model callbacks)        │
+│         Controller just redirects back.                      │
+│                                                             │
+│   Does the action need to update THIS page's DOM            │
+│   in a way morph can't handle? (add/remove elements,        │
+│   clear forms, close modals)                                │
+│                                                             │
+│   YES → Turbo Stream HTTP response                          │
+│         (controller responds with .turbo_stream.erb)         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Broadcasts to:
-- `order_{order_id}` → replaces `#line_item_{id}` (individual item card)
+### Current Turbo Stream responses
 
-### 3. Partials used for broadcasts
+| Action | Template | What it does |
+|--------|----------|-------------|
+| `LineItems#create` | `create.turbo_stream.erb` | Prepends new item to order list, updates header/summary, clears customization form |
+| `LineItems#destroy` | `destroy.turbo_stream.erb` | Removes item from order list, updates summary |
 
-| Partial                          | DOM target ID        | Used by              |
-|----------------------------------|----------------------|----------------------|
-| `orders/_order.html.erb`         | `order_{id}`         | Order status changes |
-| `line_items/_line_item.html.erb` | `line_item_{id}`     | Item status changes  |
-| `tables/_table.html.erb`         | `table_{table_id}`   | Table grid updates   |
+### Current redirect-only actions (morph handles updates)
 
-## Flow Example: Kitchen marks item ready
+| Action | Controller behavior | Morph updates |
+|--------|-------------------|---------------|
+| `LineItems#ready` | `redirect_back` | Kitchen card, order view, tables, takeouts |
+| `LineItems#deliver` | `redirect_back` | Kitchen card, order view, tables, takeouts |
+| `LineItems#cancel` | `redirect_back` | Kitchen card, order view, tables, takeouts |
+
+## Flow Example: Kitchen marks item "Listo"
 
 ```
-1. Kitchen clicks "Listo" on a line item
-2. PATCH request → LineItemsController#ready
-3. line_item.mark_ready! → status = "ready"
-4. after_update callback:
-   - order.check_ready! (may transition order to "ready")
-5. after_update_commit callback:
-   - broadcast_replace_to "order_{id}" with _line_item partial
-   - If order status also changed: broadcast _order + _table partials
-6. All browsers subscribed to "order_{id}" see the item badge
-   change from orange (Preparando) to green (Listo) instantly
-7. Tables page sees the table card update its status color
+1. Kitchen staff clicks "Listo" on a cappuccino card
+   ┌──────────────────────────────┐
+   │  PATCH /orders/{id}/         │
+   │  line_items/{id}/ready       │
+   └──────────────┬───────────────┘
+                  │
+2. Controller:    ▼
+   line_item.mark_ready!(by: Current.user)
+   redirect_back
+                  │
+3. Model:         ▼
+   LineItem status: cooking → ready
+   after_update callback:
+     order.check_ready! (may transition order to "ready" if all items ready)
+   after_update_commit:
+     broadcast_refresh_to "order_{id}"
+     broadcast_refresh_to "store_{id}_kitchen"
+     broadcast_refresh_to "store_{id}_tables"
+     broadcast_refresh_to "store_{id}_takeouts"
+                  │
+4. Results:       ▼
+   ┌────────────────────────────────────────────────────────┐
+   │ /kitchen     → card changes from "Listo" button to     │
+   │                "Marcar Entregado" button                │
+   │                queue count updates                      │
+   │                                                        │
+   │ /orders/{id} → item badge: orange → green               │
+   │                order status may change to "Listo"       │
+   │                                                        │
+   │ /tables      → table card status updates                │
+   │                "1 de 2 listos" → "2 de 2 listos"       │
+   │                                                        │
+   │ /takeouts    → order card status updates                │
+   │                progress counters update                  │
+   └────────────────────────────────────────────────────────┘
 ```
 
 ## ActionCable Config
@@ -94,9 +181,3 @@ Broadcasts to:
 - **Development:** `async` adapter (in-memory, single process)
 - **Production:** `solid_cable` adapter (database-backed, works across processes)
 - Config: `config/cable.yml`
-
-## Design Note: Why Not Turbo Morph?
-
-Turbo 8 supports page-level morph refreshes (`broadcasts_refreshes` + `<meta name="turbo-refresh-method" content="morph">`), which would simplify broadcast code significantly. We evaluated this for the single-page order flow and decided to keep targeted broadcasts for now because the current approach is already working and tested.
-
-Morph can be adopted per-page later without affecting the rest of the app — it's scoped by meta tags in specific views. See `plans/decisions/26-03-13-keep-targeted-broadcasts.md`.

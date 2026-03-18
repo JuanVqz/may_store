@@ -1,3 +1,4 @@
+<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "order_#{@order.id}" %>
 
 <div id="order_<%= @order.id %>">

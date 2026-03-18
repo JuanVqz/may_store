@@ -7,6 +7,9 @@ class CreateLineItems < ActiveRecord::Migration[8.1]
       t.text :special_notes
       t.integer :base_price_cents, default: 0, null: false
       t.integer :total_price_cents, default: 0, null: false
+      t.references :ready_by, null: true, foreign_key: { to_table: :users }
+      t.references :cancelled_by, null: true, foreign_key: { to_table: :users }
+      t.references :delivered_by, null: true, foreign_key: { to_table: :users }
 
       t.timestamps
     end

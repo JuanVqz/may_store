@@ -29,7 +29,7 @@
 ```mermaid
 erDiagram
     STORE ||--o{ USER : "employs"
-    STORE ||--o{ TABLE : "has"
+    STORE ||--o{ SPOT : "has"
     STORE ||--o{ CATEGORY : "has"
     STORE ||--o{ COMPONENT : "has"
     STORE ||--o{ PRODUCT : "has"
@@ -40,7 +40,7 @@ erDiagram
     USER ||--|| ACCOUNT : "authenticates via"
     USER ||--o{ ORDER : "attends"
     USER ||--o{ CASH_CLOSING : "performs"
-    TABLE ||--o{ ORDER : "hosts"
+    SPOT ||--o{ ORDER : "hosts"
     ORDER ||--o{ LINE_ITEM : "contains"
     ORDER ||--o{ PAYMENT : "has"
     PAYMENT }o--|| PAYMENT_METHOD : "paid with"
@@ -90,10 +90,11 @@ erDiagram
         datetime updated_at
     }
 
-    TABLE {
+    SPOT {
         int id PK
         int store_id FK
         string name
+        string spot_type
         int position
         boolean active
         datetime created_at
@@ -154,7 +155,7 @@ erDiagram
     ORDER {
         uuid id PK
         int store_id FK
-        int table_id FK
+        int spot_id FK
         int user_id FK
         string status
         string code UK
@@ -187,6 +188,9 @@ erDiagram
         text special_notes
         int base_price_cents
         int total_price_cents
+        int ready_by_id FK
+        int cancelled_by_id FK
+        int delivered_by_id FK
         datetime created_at
         datetime updated_at
     }
@@ -289,7 +293,7 @@ ORDERING -> COOKING -> READY -> DELIVERED
 
 ### 3.3 Status Transition Logic
 
-See full model code in sections 10.4 (Order) and 10.5 (LineItem). Key methods:
+See full model code in sections 10.5 (Order) and 10.6 (LineItem). Key methods:
 
 - `Order#confirm!` — transitions order + all items to COOKING
 - `Order#check_ready!` / `#check_delivered!` — SQL-based (`EXISTS`), auto-triggered by LineItem callbacks
@@ -336,7 +340,7 @@ See full model code in sections 10.4 (Order) and 10.5 (LineItem). Key methods:
 
 ```ruby
 class Order < ApplicationRecord
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready?
 
     item = line_items.create!(
@@ -580,7 +584,7 @@ Used throughout the app: `Current.store`, `Current.user`.
 ```ruby
 class Store < ApplicationRecord
   has_many :users
-  has_many :tables
+  has_many :spots
   has_many :categories
   has_many :components
   has_many :products
@@ -650,7 +654,7 @@ end
 # 4. Redirect by role (role = default screen, not permissions)
 def redirect_by_role(user)
   case user.role
-  when "waiter"  then redirect_to tables_path
+  when "waiter"  then redirect_to spots_path
   when "kitchen" then redirect_to kitchen_path
   when "admin"   then redirect_to admin_dashboard_path
   end
@@ -700,13 +704,47 @@ end
 
 ---
 
-### 10.4 Order
+### 10.4 Spot
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | PK |
+| store_id | integer | FK to Store |
+| name | string | Display name (e.g., "Mesa 5", "Para llevar") |
+| spot_type | string | Enum: dine_in, takeout |
+| position | integer | Display order |
+| active | boolean | Active status |
+
+```ruby
+class Spot < ApplicationRecord
+  belongs_to :store
+  has_many :orders
+
+  enum :spot_type, { dine_in: "dine_in", takeout: "takeout" }
+
+  validates :name, presence: true, uniqueness: { scope: :store_id }
+  validates :spot_type, presence: true
+
+  scope :tables, -> { where(spot_type: :dine_in) }
+  scope :takeouts, -> { where(spot_type: :takeout) }
+
+  def self.takeout_for(store)
+    find_or_create_by!(store: store, spot_type: :takeout) do |spot|
+      spot.name = I18n.t("spot_types.takeout")
+    end
+  end
+end
+```
+
+---
+
+### 10.5 Order
 
 | Field | Type | Description |
 |-------|------|-------------|
 | id | uuid | PK (UUID) |
 | store_id | integer | FK to Store |
-| table_id | integer | FK to Table |
+| spot_id | integer | FK to Spot |
 | user_id | integer | FK to User |
 | status | string | Enum: open, cooking, ready, delivered, closed, cancelled |
 | code | string | Human code (e.g., "CFE2601-001") |
@@ -724,7 +762,7 @@ class Order < ApplicationRecord
   include PriceCents
 
   belongs_to :store
-  belongs_to :table
+  belongs_to :spot
   belongs_to :user
   has_many :line_items, dependent: :destroy
   has_many :payments, dependent: :destroy
@@ -794,7 +832,7 @@ class Order < ApplicationRecord
     end
   end
 
-  def add_item!(product:, components_params: [], special_notes: nil)
+  def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready?
 
     item = line_items.create!(
@@ -824,7 +862,7 @@ end
 
 ---
 
-### 10.5 LineItem
+### 10.6 LineItem
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -835,6 +873,9 @@ end
 | special_notes | text | Special instructions |
 | base_price_cents | integer | Product base price (snapshot) |
 | total_price_cents | integer | base + extras |
+| ready_by_id | integer | FK to User — who marked ready (nullable) |
+| cancelled_by_id | integer | FK to User — who cancelled (nullable) |
+| delivered_by_id | integer | FK to User — who delivered (nullable) |
 
 ```ruby
 class LineItem < ApplicationRecord
@@ -909,7 +950,7 @@ end
 
 ---
 
-### 10.6 LineItemComponent
+### 10.7 LineItemComponent
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -954,7 +995,7 @@ end
 
 ---
 
-### 10.7 Product
+### 10.8 Product
 
 ```ruby
 class Product < ApplicationRecord
@@ -977,7 +1018,7 @@ end
 
 ---
 
-### 10.8 ProductComponent
+### 10.9 ProductComponent
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1008,7 +1049,7 @@ end
 
 ---
 
-### 10.9 Component
+### 10.10 Component
 
 ```ruby
 class Component < ApplicationRecord
@@ -1030,7 +1071,7 @@ end
 
 ---
 
-### 10.10 Category
+### 10.11 Category
 
 ```ruby
 class Category < ApplicationRecord
@@ -1047,7 +1088,7 @@ end
 
 ---
 
-### 10.11 Payment
+### 10.12 Payment
 
 ```ruby
 class Payment < ApplicationRecord
@@ -1066,7 +1107,7 @@ Multiple payments per order supported for split payments.
 
 ---
 
-### 10.12 PaymentMethod
+### 10.13 PaymentMethod
 
 ```ruby
 class PaymentMethod < ApplicationRecord
@@ -1081,7 +1122,7 @@ end
 
 ---
 
-### 10.13 CashClosing (Corte de Caja)
+### 10.14 CashClosing (Corte de Caja)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1151,7 +1192,7 @@ end
 
 ---
 
-### 10.14 CashClosingLine
+### 10.15 CashClosingLine
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1200,10 +1241,11 @@ CREATE INDEX idx_users_store ON users(store_id);
 CREATE INDEX idx_users_role ON users(store_id, role);
 CREATE INDEX idx_users_deleted_at ON users(deleted_at);
 
--- Tables
-CREATE UNIQUE INDEX idx_tables_name ON tables(store_id, name);
-CREATE INDEX idx_tables_store ON tables(store_id);
-CREATE INDEX idx_tables_position ON tables(store_id, position);
+-- Spots
+CREATE UNIQUE INDEX idx_spots_name ON spots(store_id, name);
+CREATE INDEX idx_spots_store ON spots(store_id);
+CREATE INDEX idx_spots_spot_type ON spots(store_id, spot_type);
+CREATE INDEX idx_spots_position ON spots(store_id, position);
 
 -- Categories
 CREATE INDEX idx_categories_store ON categories(store_id);
@@ -1227,7 +1269,7 @@ CREATE UNIQUE INDEX idx_product_component ON product_components(product_id, comp
 -- Orders
 CREATE UNIQUE INDEX idx_orders_code ON orders(store_id, code);
 CREATE INDEX idx_orders_store ON orders(store_id);
-CREATE INDEX idx_orders_table ON orders(table_id);
+CREATE INDEX idx_orders_spot ON orders(spot_id);
 CREATE INDEX idx_orders_status ON orders(store_id, status);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
 
@@ -1305,7 +1347,7 @@ crepa_nutella.product_components
 # Order
 order = Order.create!(
   store: Current.store,
-  table: table_5,
+  spot: table_5,
   user: Current.user,
   status: :open
 )

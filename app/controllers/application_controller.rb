@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
 
   def redirect_by_role(user)
     case user.role
-    when "waiter"  then redirect_to tables_path
+    when "waiter"  then redirect_to root_path
     when "kitchen" then redirect_to kitchen_path
     when "admin"   then redirect_to admin_dashboard_path
     end

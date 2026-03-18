@@ -2,9 +2,9 @@ class OrdersController < ApplicationController
   before_action :set_order, only: [:show, :confirm, :cancel]
 
   def create
-    @table = Current.store.tables.find(params[:table_id])
+    @spot = Current.store.spots.find(params[:spot_id])
     @order = Current.store.orders.create!(
-      table: @table,
+      spot: @spot,
       user: Current.user,
       status: :open,
       opened_at: Time.current
@@ -42,7 +42,7 @@ class OrdersController < ApplicationController
 
   def cancel
     @order.cancel!
-    redirect_to tables_path, notice: t("order.table_available", name: @order.table.name)
+    redirect_to tables_path, notice: t("order.table_available", name: @order.spot.name)
   end
 
   private

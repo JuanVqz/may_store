@@ -1,4 +1,6 @@
 class LineItemsController < ApplicationController
+  rescue_from LineItem::InvalidTransition, with: :handle_invalid_transition
+
   before_action :set_order
   before_action :set_line_item, only: [:destroy, :ready, :deliver, :cancel]
 
@@ -12,15 +14,17 @@ class LineItemsController < ApplicationController
 
   def create
     product = Current.store.products.find(line_item_params[:product_id])
+    notes = params[:special_notes].presence
 
     if @order.open?
       @line_item = @order.line_items.create!(
         product: product,
         status: :ordering,
-        base_price_cents: product.base_price_cents
+        base_price_cents: product.base_price_cents,
+        special_notes: notes
       )
     else
-      @line_item = @order.add_item!(product: product)
+      @line_item = @order.add_item!(product: product, special_notes: notes)
     end
 
     build_components(@line_item, product)
@@ -44,23 +48,18 @@ class LineItemsController < ApplicationController
   end
 
   def ready
-    @line_item.mark_ready!
-    redirect_to order_path(@order), notice: t("kitchen.marked_ready")
+    @line_item.mark_ready!(by: Current.user)
+    redirect_back fallback_location: order_path(@order), notice: t("kitchen.marked_ready")
   end
 
   def deliver
-    @line_item.mark_delivered!
-    redirect_to order_path(@order), notice: t("line_item.marked_delivered")
+    @line_item.mark_delivered!(by: Current.user)
+    redirect_back fallback_location: order_path(@order), notice: t("line_item.marked_delivered")
   end
 
   def cancel
-    @line_item.cancel!
-    @order.reload
-
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to order_path(@order), notice: t("kitchen.item_cancelled") }
-    end
+    @line_item.cancel!(by: Current.user)
+    redirect_back fallback_location: order_path(@order), notice: t("kitchen.item_cancelled")
   end
 
   private
@@ -104,5 +103,9 @@ class LineItemsController < ApplicationController
         )
       end
     end
+  end
+
+  def handle_invalid_transition(exception)
+    redirect_back fallback_location: order_path(@order), alert: exception.message
   end
 end

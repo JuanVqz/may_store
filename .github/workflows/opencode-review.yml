@@ -1,0 +1,35 @@
+name: opencode-review
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event.label.name == 'review'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: anomalyco/opencode/github@v1.2.27
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        env:
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: zai-coding-plan/glm-4.7
+          use_github_token: true
+          prompt: |
+            Review this pull request:
+            - Be short and concise.
+            - If there are no code quality issues, potential bugs, or suggestions, a brief summary or no summary is fine.
+            - Only highlight actionable findings.
+
+
