@@ -102,11 +102,10 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user, item.ready_by
   end
 
-  test "ready responds with turbo stream" do
+  test "ready redirects back" do
     item = line_items(:cooking_cappuccino)
-    patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain), as: :turbo_stream
-    assert_response :success
-    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
+    patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    assert_response :redirect
   end
 
   test "deliver marks item as delivered and tracks actor" do
@@ -118,12 +117,11 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user, item.delivered_by
   end
 
-  test "deliver responds with turbo stream" do
+  test "deliver redirects back" do
     item = line_items(:cooking_cappuccino)
     item.mark_ready!
-    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain), as: :turbo_stream
-    assert_response :success
-    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
+    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    assert_response :redirect
   end
 
   test "create saves special_notes from customization form" do

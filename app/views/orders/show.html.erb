@@ -1,3 +1,4 @@
+<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "order_#{@order.id}" %>
 
 <div id="order_<%= @order.id %>">
@@ -13,7 +14,7 @@
     <div class="order-sidebar">
       <%= render "orders/order_header", order: @order %>
 
-      <div id="order_items" class="order-items-list" data-controller="waiter-audio">
+      <div id="order_items" class="order-items-list">
         <% @line_items.each do |item| %>
           <%= render "line_items/line_item", item: item, order: @order %>
         <% end %>

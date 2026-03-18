@@ -1,3 +1,4 @@
+<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "store_#{Current.store.id}_tables" %>
 
 <div class="section-header">

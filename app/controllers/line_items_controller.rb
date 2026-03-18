@@ -49,32 +49,17 @@ class LineItemsController < ApplicationController
 
   def ready
     @line_item.mark_ready!(by: Current.user)
-    @order.reload
-
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to order_path(@order), notice: t("kitchen.marked_ready") }
-    end
+    redirect_back fallback_location: order_path(@order), notice: t("kitchen.marked_ready")
   end
 
   def deliver
     @line_item.mark_delivered!(by: Current.user)
-    @order.reload
-
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to order_path(@order), notice: t("line_item.marked_delivered") }
-    end
+    redirect_back fallback_location: order_path(@order), notice: t("line_item.marked_delivered")
   end
 
   def cancel
     @line_item.cancel!(by: Current.user)
-    @order.reload
-
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to order_path(@order), notice: t("kitchen.item_cancelled") }
-    end
+    redirect_back fallback_location: order_path(@order), notice: t("kitchen.item_cancelled")
   end
 
   private
@@ -121,9 +106,6 @@ class LineItemsController < ApplicationController
   end
 
   def handle_invalid_transition(exception)
-    respond_to do |format|
-      format.turbo_stream { head :unprocessable_entity }
-      format.html { redirect_to order_path(@order), alert: exception.message }
-    end
+    redirect_back fallback_location: order_path(@order), alert: exception.message
   end
 end

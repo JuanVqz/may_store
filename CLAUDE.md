@@ -47,6 +47,18 @@ Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md
 
 Not in production yet — when a migration needs changes, rollback (`rails db:rollback`), edit the existing migration file, and re-run (`rails db:migrate`). Do NOT create a new migration to alter a table that hasn't shipped.
 
+## Reference Codebase
+
+`/Users/juan/code/mine/fizzy` — Production Rails app using Hotwire Native. Use as reference for:
+- Controller concerns pattern (slim ApplicationController, modular concerns)
+- Model concerns by behavior (Closeable, Assignable, etc.)
+- Turbo Morph broadcasts (`broadcasts_refreshes`, `broadcast_refresh_to`)
+- CSS platform separation (`native.css`, `ios.css`, `android.css` with `@layer`)
+- Bridge controllers for Turbo Native (`@hotwired/hotwire-native-bridge`)
+- Test patterns (`Turbo::Broadcastable::TestHelper`, fixture organization)
+
+See `docs/reference-patterns.md` for detailed patterns extracted from this codebase.
+
 ## Key Rules
 
 - Never add co-author lines to commits
