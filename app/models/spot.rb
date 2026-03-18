@@ -11,8 +11,14 @@ class Spot < ApplicationRecord
   scope :takeouts, -> { where(spot_type: :takeout) }
 
   def self.takeout_for(store)
-    find_or_create_by!(store: store, spot_type: :takeout) do |spot|
-      spot.name = I18n.t("spot_types.takeout")
+    retries = 3
+    begin
+      find_or_create_by!(store: store, spot_type: :takeout) do |spot|
+        spot.name = I18n.t("spot_types.takeout")
+      end
+    rescue ActiveRecord::RecordNotUnique
+      retry if (retries -= 1) > 0
+      raise
     end
   end
 end

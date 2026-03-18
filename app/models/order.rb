@@ -129,12 +129,14 @@ class Order < ApplicationRecord
     prefix = store.order_prefix
     year_month = Time.current.strftime("%y%m")
 
+    retries = 3
     begin
       OrderCounter.find_or_create_by!(store_id: store_id, year_month: year_month) do |c|
         c.current_sequence = 0
       end
     rescue ActiveRecord::RecordNotUnique
-      retry
+      retry if (retries -= 1) > 0
+      raise
     end
 
     sql = OrderCounter.sanitize_sql_array([
