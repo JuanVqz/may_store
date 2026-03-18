@@ -43,6 +43,26 @@ Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md
 
 - `plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
 
+## Worktrees
+
+Use git worktrees for all feature work. Worktrees live in `.worktrees/` (repo root, not `.claude/worktrees/`).
+
+Branch naming convention: `{type}/{short_description}` using snake_case:
+- `feature/kitchen_queue` — new functionality
+- `fix/deliver_broadcast_stale_data` — bug fix
+- `chore/update_turbo_rails` — dependency updates, config changes
+- `maintenance/refactor_broadcasts_to_morph` — refactoring, cleanup
+
+Create with:
+```bash
+git worktree add .worktrees/feature/kitchen_queue -b feature/kitchen_queue
+```
+
+Remove when done (after merge):
+```bash
+git worktree remove .worktrees/feature/kitchen_queue
+```
+
 ## Migrations
 
 Not in production yet — when a migration needs changes, rollback (`rails db:rollback`), edit the existing migration file, and re-run (`rails db:migrate`). Do NOT create a new migration to alter a table that hasn't shipped.
