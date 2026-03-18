@@ -43,6 +43,10 @@ Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md
 
 - `plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
 
+## Git Integration
+
+When merging worktree branches into main, use squash merge (`git merge --squash`) or rebase — never regular merge commits. This keeps history linear with one commit per feature.
+
 ## Worktrees
 
 Use git worktrees for all feature work. Worktrees live in `.worktrees/` (repo root, not `.claude/worktrees/`).
