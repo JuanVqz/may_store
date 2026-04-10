@@ -24,7 +24,7 @@
       <%= render "components/sidebar/provider", default_open: sidebar_open?, variant: :inset do %>
         <%= render "components/sidebar", state: sidebar_state, variant: :inset do %>
           <%= render "components/sidebar/header" do %>
-            <span class="font-semibold text-lg"><%= t("app_name") %></span>
+            <span class="font-semibold text-lg truncate"><%= Current.store.name %></span>
           <% end %>
 
           <%= render "components/sidebar/content" do %>
