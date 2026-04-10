@@ -1,6 +1,24 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "order_#{@order.id}" %>
 
+<% content_for :breadcrumbs do %>
+  <%= render "components/breadcrumbs" do %>
+    <%= render "components/breadcrumbs/list" do %>
+      <%= render "components/breadcrumbs/item" do %>
+        <% if @order.spot.takeout? %>
+          <%= render "components/breadcrumbs/link", href: takeouts_path do %><%= t("takeouts.title") %><% end %>
+        <% else %>
+          <%= render "components/breadcrumbs/link", href: tables_path do %><%= t("tables.title") %><% end %>
+        <% end %>
+      <% end %>
+      <%= render "components/breadcrumbs/separator" %>
+      <%= render "components/breadcrumbs/item" do %>
+        <%= render "components/breadcrumbs/page" do %><%= @order.spot.name %> &middot; <%= @order.code %><% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
 <div id="order_<%= @order.id %>">
   <div class="flex flex-col h-[calc(100svh-var(--header-height))] md:flex-row" data-controller="order-page">
     <%# Left: Product browser %>

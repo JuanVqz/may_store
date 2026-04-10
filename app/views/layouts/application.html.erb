@@ -73,8 +73,16 @@
             <%= render "components/sidebar/trigger", icon_name: :left_panel, css_classes: "size-7" %>
             <%= render "components/separator", orientation: :vertical %>
 
-            <% if content_for?(:title) %>
-              <h1 class="text-lg font-semibold"><%= content_for(:title) %></h1>
+            <% if content_for?(:breadcrumbs) %>
+              <%= content_for(:breadcrumbs) %>
+            <% elsif content_for?(:title) %>
+              <%= render "components/breadcrumbs" do %>
+                <%= render "components/breadcrumbs/list" do %>
+                  <%= render "components/breadcrumbs/item" do %>
+                    <%= render "components/breadcrumbs/page" do %><%= content_for(:title) %><% end %>
+                  <% end %>
+                <% end %>
+              <% end %>
             <% end %>
 
             <div class="flex-1"></div>
