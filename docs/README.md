@@ -357,13 +357,13 @@ CashClosingLine
 
 ### Accessing the app
 
-MayStore uses subdomain-based multitenancy. Standard `localhost` does not support subdomains, so use `lvh.me` (which resolves to 127.0.0.1):
+MayStore uses subdomain-based multitenancy. Access stores via subdomain on localhost:
 
 ```
-http://cafe.lvh.me:3000
+http://cafe.localhost:3000
 ```
 
-The `cafe` subdomain matches the store created in `db/seeds.rb`. To start the app with Tailwind CSS watching:
+The `cafe` subdomain matches the store created in `db/seeds.rb`. This works because `config.hosts.clear` and `config.action_dispatch.tld_length = 0` are set in development. To start the app with Tailwind CSS watching:
 
 ```bash
 bin/dev

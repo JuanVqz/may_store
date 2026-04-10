@@ -14,30 +14,30 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="bg-background text-foreground">
     <% if Current.user %>
-      <nav class="navbar">
-        <span class="navbar-brand"><%= link_to t("app_name"), root_path %></span>
-        <div class="navbar-right">
-          <span><%= t("welcome", name: Current.user.name) %></span>
-          <%= button_to t("exit"), logout_path, method: :delete, class: "btn btn-sm btn-outline", style: "color: white; border-color: rgba(255,255,255,0.5);" %>
+      <%= render "components/header" do %>
+        <div class="flex items-center gap-4">
+          <%= link_to t("app_name"), root_path, class: "font-semibold text-lg" %>
         </div>
-      </nav>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-muted-foreground"><%= t("welcome", name: Current.user.name) %></span>
+          <%= button_to t("exit"), logout_path, method: :delete, data: { component: "button", variant: "outline", size: "sm" } %>
+        </div>
+      <% end %>
     <% end %>
 
-    <div class="container">
-      <% if flash[:notice] %>
-        <div class="flash flash-notice" data-controller="flash"><%= flash[:notice] %></div>
-      <% end %>
-      <% if flash[:alert] %>
-        <div class="flash flash-alert" data-controller="flash" data-flash-delay-value="6000"><%= flash[:alert] %></div>
-      <% end %>
-
+    <main class="mx-auto max-w-7xl px-4 py-6">
       <%= yield %>
-    </div>
+    </main>
+
+    <%= render "components/toaster", position: :bottom_right do %>
+      <%= toast_flash_messages %>
+    <% end %>
   </body>
 </html>

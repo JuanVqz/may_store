@@ -32,3 +32,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "maquina-components", "~> 0.4.4", github: "maquina-app/maquina_components"
