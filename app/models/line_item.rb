@@ -2,8 +2,6 @@ class LineItem < ApplicationRecord
   include PriceCents
   include LineItem::Stateful
 
-  class InvalidTransition < StandardError; end
-
   belongs_to :order
   belongs_to :product
   belongs_to :ready_by, class_name: "User", optional: true

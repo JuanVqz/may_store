@@ -23,6 +23,7 @@ module Order::Stateful
   end
 
   def confirm!
+    return unless open?
     raise ActiveRecord::RecordInvalid, self if line_items.empty?
 
     transaction do

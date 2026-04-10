@@ -1,0 +1,16 @@
+{
+  "extraKnownMarketplaces": {
+    "maquina": {
+      "source": {
+        "source": "github",
+        "repo": "maquina-app/rails-claude-code"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "rails-simplifier@maquina": true,
+    "mvp-creator@maquina": true,
+    "maquina-ui-standards@maquina": true
+  }
+}
+

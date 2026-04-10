@@ -1,6 +1,8 @@
 module LineItem::Stateful
   extend ActiveSupport::Concern
 
+  class InvalidTransition < StandardError; end
+
   included do
     after_update :check_order_status, if: :saved_change_to_status?
     after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
@@ -23,17 +25,17 @@ module LineItem::Stateful
   end
 
   def mark_ready!(by: nil)
-    raise LineItem::InvalidTransition, "Can only mark cooking items as ready" unless cooking?
+    raise LineItem::Stateful::InvalidTransition, "Can only mark cooking items as ready" unless cooking?
     update!(status: :ready, ready_by: by)
   end
 
   def mark_delivered!(by: nil)
-    raise LineItem::InvalidTransition, "Can only deliver ready items" unless ready?
+    raise LineItem::Stateful::InvalidTransition, "Can only deliver ready items" unless ready?
     update!(status: :delivered, delivered_by: by)
   end
 
   def cancel!(by: nil)
-    raise LineItem::InvalidTransition, "Cannot cancel #{status} items" if cancelled? || delivered?
+    raise LineItem::Stateful::InvalidTransition, "Cannot cancel #{status} items" if cancelled? || delivered?
     update!(status: :cancelled, cancelled_by: by)
   end
 
