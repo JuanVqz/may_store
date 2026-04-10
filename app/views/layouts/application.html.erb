@@ -19,36 +19,36 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="overflow-hidden bg-background text-foreground">
+  <body class="overflow-hidden bg-background font-sans antialiased">
     <% if Current.user %>
-      <%= render "components/sidebar/provider", default_open: sidebar_open? do %>
-        <%= render "components/sidebar" do %>
+      <%= render "components/sidebar/provider", default_open: sidebar_open?, variant: :inset do %>
+        <%= render "components/sidebar", state: sidebar_state, variant: :inset do %>
           <%= render "components/sidebar/header" do %>
             <span class="font-semibold text-lg"><%= t("app_name") %></span>
           <% end %>
 
           <%= render "components/sidebar/content" do %>
-            <%= render "components/sidebar/group" do %>
+            <%= render "components/sidebar/group", title: "" do %>
               <%= render "components/sidebar/menu" do %>
                 <%= render "components/sidebar/menu_item" do %>
                   <%= render "components/sidebar/menu_button",
                     title: t("home.tables"),
                     url: tables_path,
-                    icon_name: :table,
+                    icon_name: :layout_dashboard,
                     active: controller_name == "tables" %>
                 <% end %>
                 <%= render "components/sidebar/menu_item" do %>
                   <%= render "components/sidebar/menu_button",
                     title: t("home.takeout"),
                     url: takeouts_path,
-                    icon_name: :shopping_bag,
+                    icon_name: :package,
                     active: controller_name == "takeouts" %>
                 <% end %>
                 <%= render "components/sidebar/menu_item" do %>
                   <%= render "components/sidebar/menu_button",
                     title: t("kitchen.title"),
                     url: kitchen_path,
-                    icon_name: :chef_hat,
+                    icon_name: :zap,
                     active: controller_name == "kitchen" %>
                 <% end %>
               <% end %>
@@ -58,10 +58,11 @@
           <%= render "components/sidebar/footer" do %>
             <%= render "components/sidebar/menu" do %>
               <%= render "components/sidebar/menu_item" do %>
-                <div class="flex items-center justify-between w-full px-2">
-                  <span class="text-sm truncate"><%= Current.user.name %></span>
-                  <%= button_to t("exit"), logout_path, method: :delete, data: { component: "button", variant: "ghost", size: "sm" } %>
-                </div>
+                <%= render "components/sidebar/menu_link",
+                  url: "#",
+                  text_icon: Current.user.name.first(2).upcase,
+                  title: Current.user.name,
+                  subtitle: Current.user.role_label %>
               <% end %>
             <% end %>
           <% end %>
@@ -69,15 +70,20 @@
 
         <%= render "components/sidebar/inset" do %>
           <%= render "components/header" do %>
-            <%= render "components/sidebar/trigger", icon_name: :panel_left %>
+            <%= render "components/sidebar/trigger", icon_name: :left_panel, css_classes: "size-7" %>
+            <%= render "components/separator", orientation: :vertical %>
+
             <% if content_for?(:title) %>
               <h1 class="text-lg font-semibold"><%= content_for(:title) %></h1>
             <% end %>
+
+            <div class="flex-1"></div>
+
+            <%= button_to t("exit"), logout_path, method: :delete,
+              data: { component: "button", variant: "ghost", size: "sm" } %>
           <% end %>
 
-          <main class="flex-1 overflow-y-auto p-4">
-            <%= yield %>
-          </main>
+          <div class="flex-1 overflow-y-auto p-4"><%= yield %></div>
         <% end %>
       <% end %>
     <% else %>
@@ -86,8 +92,7 @@
       </main>
     <% end %>
 
-    <%= render "components/toaster", position: :bottom_right do %>
-      <%= toast_flash_messages %>
-    <% end %>
+    <%= render "components/toaster", position: :bottom_right,
+          content: toast_flash_messages %>
   </body>
 </html>
