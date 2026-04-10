@@ -56,8 +56,8 @@
   --warning-foreground: oklch(0.4 0.08 50);
 
   /* Destructive - Error/danger states */
-  --destructive: oklch(0.92 0.05 8);
-  --destructive-foreground: oklch(0.4 0.12 8);
+  --destructive: oklch(0.577 0.245 27);
+  --destructive-foreground: oklch(0.985 0 0);
 
   /* Borders & Inputs */
   --border: oklch(0.922 0 0);
@@ -110,8 +110,8 @@
     --warning: oklch(0.36 0.06 55);
     --warning-foreground: oklch(0.86 0.06 55);
 
-    --destructive: oklch(0.34 0.07 8);
-    --destructive-foreground: oklch(0.88 0.06 8);
+    --destructive: oklch(0.577 0.245 27);
+    --destructive-foreground: oklch(0.985 0 0);
 
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
