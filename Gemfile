@@ -5,6 +5,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "bootsnap", require: false
 gem "importmap-rails"
 gem "kamal", require: false
+gem "maquina-components"
 gem "pg", "~> 1.1"
 gem "propshaft"
 gem "puma", ">= 5.0"
@@ -32,5 +33,3 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
-
-gem "maquina-components", "~> 0.4.4", github: "maquina-app/maquina_components"

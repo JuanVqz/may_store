@@ -1,18 +1,20 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "store_#{Current.store.id}_kitchen" %>
 
-<div class="section-header">
-  <h1 class="section-title"><%= t("kitchen.title") %></h1>
+<% content_for :title, t("kitchen.title") %>
+
+<div class="flex items-center justify-between mb-4">
+  <span class="text-sm text-muted-foreground"><%= t("kitchen.ordered_by") %>: <%= t("kitchen.oldest_first") %></span>
+  <span class="text-sm text-muted-foreground" id="kitchen-queue-count"><%= t("kitchen.queue_count", count: @line_items.size) %></span>
 </div>
 
-<div class="kitchen-subheader">
-  <span><%= t("kitchen.ordered_by") %>: <%= t("kitchen.oldest_first") %></span>
-  <span id="kitchen-queue-count"><%= t("kitchen.queue_count", count: @line_items.size) %></span>
-</div>
-
-<div id="kitchen-queue">
+<div id="kitchen-queue" class="space-y-3">
   <% if @line_items.empty? %>
-    <p class="empty-state"><%= t("kitchen.no_items") %></p>
+    <%= render "components/empty" do %>
+      <%= render "components/empty/header" do %>
+        <%= render "components/empty/title", text: t("kitchen.no_items") %>
+      <% end %>
+    <% end %>
   <% end %>
   <% oldest_cooking_id = @line_items.find(&:cooking?)&.id %>
   <% @line_items.each do |item| %>

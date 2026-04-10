@@ -1,24 +1,22 @@
-<div id="order_summary">
-  <div class="section-header mb-1">
-    <span class="text-muted"><%= t("order.total", count: order.line_items.size) %></span>
-    <span class="product-price"><%= order.formatted_total %></span>
+<div id="order_summary" class="mt-3 space-y-2">
+  <div class="flex items-center justify-between">
+    <span class="text-sm text-muted-foreground"><%= t("order.total", count: order.line_items.size) %></span>
+    <span class="font-bold text-primary"><%= order.formatted_total %></span>
   </div>
 
-  <% if order.open? %>
-    <% if order.line_items.any? %>
-      <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "btn btn-success btn-block btn-lg mb-1" %>
-    <% end %>
+  <% if order.open? && order.line_items.any? %>
+    <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "w-full", data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
 
   <% if order.delivered? %>
-    <%= link_to t("order.request_bill"), "#", class: "btn btn-primary btn-block btn-lg mb-1" %>
+    <%= link_to t("order.request_bill"), "#", class: "w-full", data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
 
   <% unless order.closed? || order.cancelled? %>
     <%= button_to t("order.cancel_order"),
           cancel_order_path(order),
           method: :patch,
-          class: "btn btn-danger btn-block mt-1",
-          data: { turbo_confirm: t("order.cancel_confirm") } %>
+          class: "w-full",
+          data: { component: "button", variant: "destructive", turbo_confirm: t("order.cancel_confirm") } %>
   <% end %>
 </div>

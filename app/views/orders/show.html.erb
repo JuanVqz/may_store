@@ -2,26 +2,26 @@
 <%= turbo_stream_from "order_#{@order.id}" %>
 
 <div id="order_<%= @order.id %>">
-  <div class="order-layout" data-controller="order-page">
+  <div class="flex flex-col h-[calc(100svh-var(--header-height))] md:flex-row" data-controller="order-page">
     <%# Left: Product browser %>
-    <div class="order-products">
+    <div class="flex-1 min-h-0 overflow-y-auto p-4 md:flex-[3] md:border-r md:border-border">
       <% if @categories.present? %>
         <%= render "orders/product_browser", order: @order, categories: @categories, category: @category, products: @products %>
       <% end %>
     </div>
 
     <%# Right: Order summary %>
-    <div class="order-sidebar">
+    <div class="flex flex-col shrink-0 max-h-[40svh] overflow-y-auto p-4 border-t border-border bg-card md:flex-[2] md:max-h-none md:border-t-0">
       <%= render "orders/order_header", order: @order %>
 
-      <div id="order_items" class="order-items-list">
+      <div id="order_items" class="flex-1 overflow-y-auto border border-border rounded-lg bg-card">
         <% @line_items.each do |item| %>
           <%= render "line_items/line_item", item: item, order: @order %>
         <% end %>
       </div>
 
       <% if @line_items.empty? %>
-        <p class="text-center text-muted mt-2" id="no_items_message"><%= t("order.no_items") %></p>
+        <p class="text-center text-muted-foreground mt-4" id="no_items_message"><%= t("order.no_items") %></p>
       <% end %>
 
       <%= render "orders/order_summary", order: @order %>

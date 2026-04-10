@@ -1,19 +1,25 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "store_#{Current.store.id}_takeouts" %>
 
-<div class="section-header">
-  <h1 class="section-title"><%= t("takeouts.title") %></h1>
-  <%= link_to spot_orders_path(@spot), class: "btn btn-primary", data: { turbo_method: :post } do %>
+<% content_for :title, t("takeouts.title") %>
+
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-lg font-bold"><%= t("takeouts.title") %></h2>
+  <%= link_to spot_orders_path(@spot), data: { turbo_method: :post, component: "button", variant: "primary", size: "sm" } do %>
     <%= t("takeouts.new_order") %>
   <% end %>
 </div>
 
 <% if @orders.any? %>
-  <div class="takeout-orders" id="takeout-orders">
+  <div class="flex flex-col gap-3" id="takeout-orders">
     <% @orders.each do |order| %>
       <%= render "takeouts/order_card", order: order %>
     <% end %>
   </div>
 <% else %>
-  <p class="text-muted mt-2"><%= t("takeouts.no_orders") %></p>
+  <%= render "components/empty" do %>
+    <%= render "components/empty/header" do %>
+      <%= render "components/empty/title", text: t("takeouts.no_orders") %>
+    <% end %>
+  <% end %>
 <% end %>

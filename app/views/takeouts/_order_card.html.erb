@@ -1,19 +1,19 @@
 <div id="takeout_order_<%= order.id %>">
-  <%= link_to order_path(order), class: "takeout-order-card card", data: { status: order.status } do %>
-    <span class="takeout-order-code"><%= order.code %></span>
-    <div class="takeout-order-middle">
-      <span class="takeout-order-time">hace <%= time_ago_in_words(order.created_at) %></span>
+  <%= link_to order_path(order), class: "flex items-center gap-4 p-3.5 rounded-lg border bg-card no-underline text-foreground border-l-4 #{order_status_border_class(order.status)} hover:shadow-md transition" do %>
+    <span class="font-bold text-sm whitespace-nowrap"><%= order.code %></span>
+    <div class="flex-1 min-w-0">
+      <span class="text-xs text-muted-foreground">hace <%= time_ago_in_words(order.created_at) %></span>
       <% if order.cooking? || order.ready? || order.delivered? %>
         <% counts = order.readiness_counts %>
         <% if counts[:total] > 0 %>
-          <span class="takeout-order-progress"><%= t("takeouts.items_ready", count: counts[:ready], total: counts[:total]) %></span>
-          <span class="takeout-order-progress"><%= t("takeouts.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
+          <div class="text-xs text-muted-foreground"><%= t("takeouts.items_ready", count: counts[:ready], total: counts[:total]) %></div>
+          <div class="text-xs text-muted-foreground"><%= t("takeouts.items_delivered", count: counts[:delivered], total: counts[:total]) %></div>
         <% end %>
       <% end %>
     </div>
-    <div class="takeout-order-right">
-      <span class="takeout-order-total"><%= order.formatted_total %></span>
-      <span class="status-badge status-<%= order.status %>"><%= order.status_label %></span>
+    <div class="flex flex-col items-end gap-1 shrink-0">
+      <span class="font-bold text-sm"><%= order.formatted_total %></span>
+      <span class="<%= status_badge_classes(order.status) %>"><%= order.status_label %></span>
     </div>
   <% end %>
 </div>

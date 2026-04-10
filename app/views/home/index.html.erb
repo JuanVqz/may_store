@@ -1,11 +1,11 @@
-<div class="home-grid">
-  <%= link_to tables_path, class: "home-card" do %>
-    <span class="home-card-icon">🍽️</span>
-    <span class="home-card-label"><%= t("home.tables") %></span>
+<div class="grid grid-cols-1 gap-4 max-w-lg mx-auto mt-8 sm:grid-cols-2">
+  <%= link_to tables_path, class: "flex flex-col items-center justify-center gap-3 aspect-square rounded-xl border-2 border-border bg-card hover:border-primary hover:shadow-md transition" do %>
+    <span class="text-5xl">&#127869;</span>
+    <span class="text-lg font-bold"><%= t("home.tables") %></span>
   <% end %>
 
-  <%= link_to takeouts_path, class: "home-card" do %>
-    <span class="home-card-icon">🛍️</span>
-    <span class="home-card-label"><%= t("home.takeout") %></span>
+  <%= link_to takeouts_path, class: "flex flex-col items-center justify-center gap-3 aspect-square rounded-xl border-2 border-border bg-card hover:border-primary hover:shadow-md transition" do %>
+    <span class="text-5xl">&#128722;</span>
+    <span class="text-lg font-bold"><%= t("home.takeout") %></span>
   <% end %>
 </div>

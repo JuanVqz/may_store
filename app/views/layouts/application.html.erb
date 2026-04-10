@@ -19,22 +19,72 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-background text-foreground">
+  <body class="overflow-hidden bg-background text-foreground">
     <% if Current.user %>
-      <%= render "components/header" do %>
-        <div class="flex items-center gap-4">
-          <%= link_to t("app_name"), root_path, class: "font-semibold text-lg" %>
-        </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-muted-foreground"><%= t("welcome", name: Current.user.name) %></span>
-          <%= button_to t("exit"), logout_path, method: :delete, data: { component: "button", variant: "outline", size: "sm" } %>
-        </div>
-      <% end %>
-    <% end %>
+      <%= render "components/sidebar/provider", default_open: app_sidebar_open? do %>
+        <%= render "components/sidebar" do %>
+          <%= render "components/sidebar/header" do %>
+            <span class="font-semibold text-lg"><%= t("app_name") %></span>
+          <% end %>
 
-    <main class="mx-auto max-w-7xl px-4 py-6">
-      <%= yield %>
-    </main>
+          <%= render "components/sidebar/content" do %>
+            <%= render "components/sidebar/group" do %>
+              <%= render "components/sidebar/menu" do %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("home.tables"),
+                    url: tables_path,
+                    icon_name: :table,
+                    active: controller_name == "tables" %>
+                <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("home.takeout"),
+                    url: takeouts_path,
+                    icon_name: :shopping_bag,
+                    active: controller_name == "takeouts" %>
+                <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("kitchen.title"),
+                    url: kitchen_path,
+                    icon_name: :chef_hat,
+                    active: controller_name == "kitchen" %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% end %>
+
+          <%= render "components/sidebar/footer" do %>
+            <%= render "components/sidebar/menu" do %>
+              <%= render "components/sidebar/menu_item" do %>
+                <div class="flex items-center justify-between w-full px-2">
+                  <span class="text-sm truncate"><%= Current.user.name %></span>
+                  <%= button_to t("exit"), logout_path, method: :delete, data: { component: "button", variant: "ghost", size: "sm" } %>
+                </div>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <%= render "components/sidebar/inset" do %>
+          <%= render "components/header" do %>
+            <%= render "components/sidebar/trigger", icon_name: :panel_left %>
+            <% if content_for?(:title) %>
+              <h1 class="text-lg font-semibold"><%= content_for(:title) %></h1>
+            <% end %>
+          <% end %>
+
+          <main class="flex-1 overflow-y-auto p-4">
+            <%= yield %>
+          </main>
+        <% end %>
+      <% end %>
+    <% else %>
+      <main class="mx-auto max-w-7xl px-4 py-6">
+        <%= yield %>
+      </main>
+    <% end %>
 
     <%= render "components/toaster", position: :bottom_right do %>
       <%= toast_flash_messages %>

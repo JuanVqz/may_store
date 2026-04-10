@@ -1,27 +1,31 @@
-<div class="customization-inline" data-controller="customization" data-customization-base-price-value="<%= product.base_price_cents %>">
+<div class="p-4 bg-muted border-b border-border" data-controller="customization" data-customization-base-price-value="<%= product.base_price_cents %>">
   <span class="hidden" data-customization-target="totalPrice"></span>
 
   <%= form_with url: order_line_items_path(order), method: :post, data: { turbo_stream: true } do |f| %>
     <%= f.hidden_field "line_item[product_id]", value: product.id %>
 
     <% if ingredients.any? %>
-      <div class="customization-section mb-1">
-        <h3><%= t("customization.ingredients") %></h3>
+      <div class="border-b border-border pb-2 mb-3">
+        <h3 class="text-sm font-semibold mb-2"><%= t("customization.ingredients") %></h3>
 
         <% ingredients.each do |pc| %>
-          <div class="customization-ingredient">
-            <div><strong class="customization-ingredient-name"><%= pc.component.name %></strong></div>
-            <div class="portion-group" data-portion-group>
+          <div class="mb-2">
+            <div><strong class="text-sm"><%= pc.component.name %></strong></div>
+            <div class="flex flex-wrap gap-1 justify-evenly mt-1" data-portion-group>
               <% unless pc.required? %>
-                <label class="btn btn-sm btn-outline" data-action="click->customization#selectPortion">
-                  <input type="radio" name="ingredients[<%= pc.component_id %>]" value="0.0">
-                  <%= t("portions.none") %>
+                <label class="cursor-pointer" data-action="click->customization#selectPortion">
+                  <input type="radio" name="ingredients[<%= pc.component_id %>]" value="0.0" class="hidden peer">
+                  <span data-component="button" data-variant="outline" data-size="sm" class="peer-checked:bg-primary peer-checked:text-primary-foreground">
+                    <%= t("portions.none") %>
+                  </span>
                 </label>
               <% end %>
               <% [[0.25, "portions.quarter"], [0.5, "portions.half"], [0.75, "portions.three_quarters"], [1.0, "portions.full"]].each do |val, key| %>
-                <label class="btn btn-sm <%= val == 1.0 ? 'btn-primary' : 'btn-outline' %>" data-action="click->customization#selectPortion">
-                  <input type="radio" name="ingredients[<%= pc.component_id %>]" value="<%= val %>" <%= 'checked' if val == 1.0 %>>
-                  <%= t(key) %>
+                <label class="cursor-pointer" data-action="click->customization#selectPortion">
+                  <input type="radio" name="ingredients[<%= pc.component_id %>]" value="<%= val %>" <%= 'checked' if val == 1.0 %> class="hidden peer">
+                  <span data-component="button" data-variant="<%= val == 1.0 ? 'primary' : 'outline' %>" data-size="sm">
+                    <%= t(key) %>
+                  </span>
                 </label>
               <% end %>
             </div>
@@ -31,36 +35,37 @@
     <% end %>
 
     <% if extras.any? %>
-      <div class="customization-section mb-1">
-        <h3><%= t("customization.extras") %></h3>
+      <div class="border-b border-border pb-2 mb-3">
+        <h3 class="text-sm font-semibold mb-2"><%= t("customization.extras") %></h3>
 
         <% extras.each do |pc| %>
-          <div class="extra-row" data-extra-row>
+          <div class="flex items-center justify-between py-2 px-1 even:bg-muted rounded-lg" data-extra-row>
             <div>
-              <strong class="extra-row-name"><%= pc.component.name %></strong>
-              <span class="text-muted extra-row-price"><%= pc.component.formatted_price %></span>
+              <strong class="text-sm"><%= pc.component.name %></strong>
+              <span class="text-xs text-muted-foreground ml-1"><%= pc.component.formatted_price %></span>
             </div>
-            <div class="extra-row-controls">
-              <button type="button" class="btn btn-sm btn-outline" data-action="click->customization#decrement">-</button>
+            <div class="flex items-center gap-1">
+              <button type="button" data-action="click->customization#decrement" data-component="button" data-variant="outline" data-size="sm">-</button>
               <input type="number" name="extras[<%= pc.component_id %>]" value="0" min="0" max="10"
-                     class="form-input extra-qty-input"
+                     class="w-12 text-center"
+                     data-component="input"
                      data-customization-target="extraQuantity"
                      data-unit-price="<%= pc.component.price_cents %>"
                      data-action="change->customization#recalculate">
-              <button type="button" class="btn btn-sm btn-outline" data-action="click->customization#increment">+</button>
+              <button type="button" data-action="click->customization#increment" data-component="button" data-variant="outline" data-size="sm">+</button>
             </div>
           </div>
         <% end %>
       </div>
     <% end %>
 
-    <div class="form-group mt-1">
-      <textarea name="special_notes" class="form-input customization-notes" rows="1" placeholder="<%= t('line_item.special_notes') %>"></textarea>
+    <div class="mb-3">
+      <textarea name="special_notes" rows="1" placeholder="<%= t('line_item.special_notes') %>" data-component="textarea" class="text-sm"></textarea>
     </div>
 
-    <div class="customization-actions">
-      <%= f.submit t("products.add_to_order"), class: "btn btn-success btn-submit" %>
-      <button type="button" class="btn btn-gray" data-action="click->order-page#closeCustomization"><%= t("cancel") %></button>
+    <div class="flex gap-2">
+      <%= f.submit t("products.add_to_order"), data: { component: "button", variant: "primary" } %>
+      <button type="button" data-action="click->order-page#closeCustomization" data-component="button" data-variant="secondary"><%= t("cancel") %></button>
     </div>
   <% end %>
 </div>
