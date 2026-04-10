@@ -13,7 +13,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     get new_order_line_item_url(@order, product_id: @product.id, subdomain: @store.subdomain)
     assert_response :success
     assert_match "Espresso Shot", response.body
-    assert_match "customization-inline", response.body
+    assert_match 'data-controller="customization"', response.body
   end
 
   test "create adds item to open order via html" do

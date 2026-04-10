@@ -24,7 +24,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_match order.code, response.body
     # Product browser is visible
     assert_match "product_browser", response.body
-    assert_match "category-tab", response.body
+    assert_match "Bebidas Calientes", response.body
   end
 
   test "show displays product browser with category filter" do
@@ -42,7 +42,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match order.code, response.body
     assert_match "product_browser", response.body
-    assert_match "category-tab", response.body
+    assert_match "Bebidas Calientes", response.body
   end
 
   test "show displays line items with action buttons" do
