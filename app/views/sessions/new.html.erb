@@ -2,7 +2,7 @@
 
 <%= render "components/card", css_classes: "w-full max-w-sm" do %>
   <%= render "components/card/header" do %>
-    <%= render "components/card/title", text: t("app_name") %>
+    <%= render "components/card/title", text: Current.store.name %>
     <%= render "components/card/description", text: t("login.title") %>
   <% end %>
 
