@@ -353,6 +353,34 @@ CashClosingLine
 
 ---
 
+## Local Development
+
+### Accessing the app
+
+MayStore uses subdomain-based multitenancy. Standard `localhost` does not support subdomains, so use `lvh.me` (which resolves to 127.0.0.1):
+
+```
+http://cafe.lvh.me:3000
+```
+
+The `cafe` subdomain matches the store created in `db/seeds.rb`. To start the app with Tailwind CSS watching:
+
+```bash
+bin/dev
+```
+
+This runs both the Rails server and the Tailwind watcher via `Procfile.dev`.
+
+### Seeds
+
+```bash
+bin/rails db:seed
+```
+
+Creates a store with subdomain `cafe`, sample users (waiter, kitchen, admin), products, and components.
+
+---
+
 ## Status: Ready for Development
 
 All documentation finalized at **v5.0**. Ready to begin **Phase 1: Foundation**.
