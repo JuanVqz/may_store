@@ -21,7 +21,7 @@
 
   <body class="overflow-hidden bg-background text-foreground">
     <% if Current.user %>
-      <%= render "components/sidebar/provider", default_open: app_sidebar_open? do %>
+      <%= render "components/sidebar/provider", default_open: sidebar_open? do %>
         <%= render "components/sidebar" do %>
           <%= render "components/sidebar/header" do %>
             <span class="font-semibold text-lg"><%= t("app_name") %></span>
