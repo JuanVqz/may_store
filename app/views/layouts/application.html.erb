@@ -41,14 +41,14 @@
                   <%= render "components/sidebar/menu_button",
                     title: t("home.takeout"),
                     url: takeouts_path,
-                    icon_name: :package,
+                    icon_name: :inbox,
                     active: controller_name == "takeouts" %>
                 <% end %>
                 <%= render "components/sidebar/menu_item" do %>
                   <%= render "components/sidebar/menu_button",
                     title: t("kitchen.title"),
                     url: kitchen_path,
-                    icon_name: :zap,
+                    icon_name: :activity,
                     active: controller_name == "kitchen" %>
                 <% end %>
               <% end %>
