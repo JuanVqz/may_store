@@ -6,10 +6,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
-  <body>
-    <%= yield %>
+  <body class="bg-background text-foreground">
+    <div class="flex min-h-svh items-center justify-center p-4">
+      <%= yield %>
+    </div>
+
+    <%= render "components/toaster", position: :bottom_right do %>
+      <%= toast_flash_messages %>
+    <% end %>
   </body>
 </html>

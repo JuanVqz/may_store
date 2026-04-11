@@ -1,22 +1,22 @@
 <div id="spot_<%= spot.id %>">
   <% if defined?(order) && order && !order.closed? && !order.cancelled? %>
-    <%= link_to order_path(order), class: "table-card", data: { status: order.status } do %>
-      <span class="table-card-name"><%= spot.name %></span>
-      <span class="table-card-status" style="color: <%= order.status_color %>">
+    <%= link_to order_path(order), class: "flex flex-col items-center justify-center p-5 rounded-lg border-2 bg-card min-h-[100px] no-underline text-foreground hover:-translate-y-0.5 hover:shadow-md transition #{order_status_border_class(order.status)}" do %>
+      <span class="font-bold text-sm"><%= spot.name %></span>
+      <span class="text-xs mt-1 font-medium" style="color: <%= order.status_color %>">
         <%= order.status_label %>
       </span>
       <% if order.cooking? || order.ready? || order.delivered? %>
         <% counts = order.readiness_counts %>
         <% if counts[:total] > 0 %>
-          <span class="table-card-progress"><%= t("tables.items_ready", count: counts[:ready], total: counts[:total]) %></span>
-          <span class="table-card-progress"><%= t("tables.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
+          <span class="text-xs text-muted-foreground"><%= t("tables.items_ready", count: counts[:ready], total: counts[:total]) %></span>
+          <span class="text-xs text-muted-foreground"><%= t("tables.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
         <% end %>
       <% end %>
     <% end %>
   <% else %>
-    <%= link_to spot_orders_path(spot), class: "table-card", data: { turbo_method: :post, turbo_prefetch: false } do %>
-      <span class="table-card-name"><%= spot.name %></span>
-      <span class="table-card-status text-muted"><%= t("tables.available") %></span>
+    <%= link_to spot_orders_path(spot), class: "flex flex-col items-center justify-center p-5 rounded-lg border-2 border-border bg-card min-h-[100px] no-underline text-foreground hover:-translate-y-0.5 hover:shadow-md transition", data: { turbo_method: :post, turbo_prefetch: false } do %>
+      <span class="font-bold text-sm"><%= spot.name %></span>
+      <span class="text-xs mt-1 text-muted-foreground"><%= t("tables.available") %></span>
     <% end %>
   <% end %>
 </div>

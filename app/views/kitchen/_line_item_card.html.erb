@@ -3,24 +3,31 @@
   is_oldest = local_assigns[:oldest_cooking_id] == item.id && item.cooking?
   spot = item.order.spot
   spot_label = spot.takeout? ? t("spot_types.takeout").upcase : spot.name.upcase
+  border_class = if is_oldest
+    "border-l-4 border-l-destructive"
+  elsif item.ready?
+    "border-l-4 border-l-green-500"
+  else
+    ""
+  end
 %>
 
-<div id="kitchen_line_item_<%= item.id %>" class="kitchen-card <%= 'kitchen-card--oldest' if is_oldest %> <%= 'kitchen-card--ready' if item.ready? %>">
-  <div class="kitchen-card-header">
+<%= render "components/card", css_classes: "overflow-hidden #{border_class}" do %>
+  <div class="px-4 pt-3">
     <% if is_oldest %>
-      <div class="kitchen-card-banner kitchen-card-banner--oldest">
+      <div class="text-sm font-semibold text-destructive-foreground mb-1">
         <%= t("kitchen.oldest").upcase %> - <%= t("kitchen.waiting", minutes: wait_minutes) %>
       </div>
     <% elsif item.ready? %>
-      <div class="kitchen-card-banner kitchen-card-banner--ready">
+      <div class="text-sm font-semibold text-green-700 mb-1">
         <%= t("kitchen.waiting_for_waiter") %>
       </div>
     <% else %>
-      <div class="kitchen-card-banner">
+      <div class="text-sm font-semibold text-muted-foreground mb-1">
         <%= t("kitchen.waiting", minutes: wait_minutes) %>
       </div>
     <% end %>
-    <div class="kitchen-card-meta">
+    <div class="text-sm text-muted-foreground">
       <strong><%= spot_label %></strong> |
       <%= item.order.code %> |
       <%= l(item.order.opened_at || item.order.created_at, format: :time_only) %> |
@@ -28,21 +35,19 @@
     </div>
   </div>
 
-  <div class="kitchen-card-body">
-    <div class="kitchen-card-product"><%= item.product.name.upcase %></div>
+  <%= render "components/card/content" do %>
+    <div class="font-bold text-lg mb-1"><%= item.product.name.upcase %></div>
 
     <% ingredients = item.line_item_components.select(&:ingredient?) %>
     <% extras = item.line_item_components.select(&:extra?) %>
 
     <% if ingredients.any? %>
       <% modified = ingredients.select { |c| c.portion.to_f != 1.0 } %>
-      <div class="kitchen-card-details">
+      <div class="text-sm text-muted-foreground">
         <% if modified.any? %>
-
           <% modified.each do |c| %>
             <div><%= c.component.name %>: <%= c.portion_label %> *</div>
           <% end %>
-
         <% else %>
           <%= t("line_item.standard_preparation") %>
         <% end %>
@@ -50,7 +55,7 @@
     <% end %>
 
     <% if extras.any? %>
-      <div class="kitchen-card-details">
+      <div class="text-sm text-muted-foreground">
         <% extras.group_by(&:component_id).each do |_, group| %>
           <div>+ <%= group.first.component.name %> x<%= group.size %></div>
         <% end %>
@@ -58,31 +63,35 @@
     <% end %>
 
     <% if item.special_notes.present? %>
-      <div class="kitchen-card-notes"><em><%= item.special_notes %></em></div>
+      <div class="text-sm text-orange-600 mt-1"><em><%= item.special_notes %></em></div>
     <% end %>
-  </div>
+  <% end %>
 
-  <div class="kitchen-card-actions">
-    <% if item.cooking? %>
-      <%= button_to t("kitchen.ready"),
-            ready_order_line_item_path(item.order, item),
-            method: :patch,
-            class: "btn btn-primary" %>
-      <%= button_to t("kitchen.cancel"),
-            cancel_order_line_item_path(item.order, item),
-            method: :patch,
-            class: "btn btn-danger",
-            data: { turbo_confirm: t("kitchen.cancel_confirm") } %>
-    <% elsif item.ready? %>
-      <%= button_to t("line_item.mark_delivered"),
-            deliver_order_line_item_path(item.order, item),
-            method: :patch,
-            class: "btn btn-primary" %>
-      <%= button_to t("kitchen.cancel"),
-            cancel_order_line_item_path(item.order, item),
-            method: :patch,
-            class: "btn btn-danger",
-            data: { turbo_confirm: t("kitchen.cancel_confirm") } %>
-    <% end %>
-  </div>
-</div>
+  <%= render "components/card/footer" do %>
+    <div class="flex gap-2 w-full">
+      <% if item.cooking? %>
+        <%= button_to t("kitchen.ready"),
+              ready_order_line_item_path(item.order, item),
+              method: :patch,
+              class: "flex-1",
+              data: { component: "button", variant: "primary", size: "lg" } %>
+        <%= button_to t("kitchen.cancel"),
+              cancel_order_line_item_path(item.order, item),
+              method: :patch,
+              class: "flex-1",
+              data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+      <% elsif item.ready? %>
+        <%= button_to t("line_item.mark_delivered"),
+              deliver_order_line_item_path(item.order, item),
+              method: :patch,
+              class: "flex-1",
+              data: { component: "button", variant: "primary", size: "lg" } %>
+        <%= button_to t("kitchen.cancel"),
+              cancel_order_line_item_path(item.order, item),
+              method: :patch,
+              class: "flex-1",
+              data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

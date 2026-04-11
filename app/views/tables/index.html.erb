@@ -1,32 +1,30 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_stream_from "store_#{Current.store.id}_tables" %>
 
-<div class="section-header">
-  <h1 class="section-title"><%= t("tables.title") %></h1>
-</div>
+<% content_for :title, t("tables.title") %>
 
-<div class="tables-grid">
+<div class="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
   <% @spots.each do |spot| %>
     <% order = @active_orders[spot.id] %>
     <%= render "tables/table", spot: spot, order: order %>
   <% end %>
 </div>
 
-<div class="legend mt-2">
-  <div class="legend-item">
-    <span class="legend-dot" style="background: var(--color-border)"></span>
+<div class="flex flex-wrap gap-4 py-3 text-sm text-muted-foreground mt-2">
+  <div class="flex items-center gap-1.5">
+    <span class="size-3 rounded-full bg-border"></span>
     <%= t("tables.available") %>
   </div>
-  <div class="legend-item">
-    <span class="legend-dot" style="background: var(--color-warning)"></span>
+  <div class="flex items-center gap-1.5">
+    <span class="size-3 rounded-full bg-[oklch(0.7_0.15_55)]"></span>
     <%= t("order_statuses.cooking") %>
   </div>
-  <div class="legend-item">
-    <span class="legend-dot" style="background: var(--color-success)"></span>
+  <div class="flex items-center gap-1.5">
+    <span class="size-3 rounded-full bg-[oklch(0.6_0.2_145)]"></span>
     <%= t("order_statuses.ready") %>
   </div>
-  <div class="legend-item">
-    <span class="legend-dot" style="background: var(--color-purple)"></span>
+  <div class="flex items-center gap-1.5">
+    <span class="size-3 rounded-full bg-[oklch(0.6_0.2_300)]"></span>
     <%= t("order_statuses.delivered") %>
   </div>
 </div>

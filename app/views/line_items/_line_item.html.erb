@@ -1,53 +1,52 @@
-<div id="line_item_<%= item.id %>" class="product-card" data-status="<%= item.status %>"
+<div id="line_item_<%= item.id %>" class="flex flex-wrap gap-2 p-4 border-b border-border last:border-b-0" data-status="<%= item.status %>"
   <%= 'data-controller="highlight"' if local_assigns[:highlight] %>>
-  <div class="product-info">
-    <div class="product-name">
+  <div class="flex-1 min-w-0">
+    <div class="font-semibold text-sm">
       <%= item.product.name %>
-      <span class="status-badge status-<%= item.status %>"><%= item.status_label %></span>
+      <span class="<%= status_badge_classes(item.status) %>"><%= item.status_label %></span>
     </div>
     <% ingredients = item.line_item_components.select(&:ingredient?) %>
     <% extras = item.line_item_components.select(&:extra?) %>
     <% if ingredients.any? %>
-      <div class="product-desc">
+      <div class="text-sm text-muted-foreground mt-0.5">
         <%= ingredients.map { |c| "#{c.component.name}: #{c.portion_label}" }.join(", ") %>
       </div>
     <% end %>
     <% if extras.any? %>
-      <div class="product-desc">
+      <div class="text-sm text-muted-foreground">
         <% extras.group_by(&:component_id).each do |_, group| %>
           + <%= group.first.component.name %> x<%= group.size %>
         <% end %>
       </div>
     <% end %>
     <% if item.special_notes.present? %>
-      <div class="product-desc"><em><%= item.special_notes %></em></div>
+      <div class="text-sm text-muted-foreground"><em><%= item.special_notes %></em></div>
     <% end %>
   </div>
-  <div class="product-footer">
-    <span class="product-price"><%= item.formatted_total_price %></span>
-    <div class="btn-group">
+  <div class="flex w-full md:w-auto items-center justify-between md:flex-col md:items-end gap-1">
+    <span class="font-bold text-primary"><%= item.formatted_total_price %></span>
+    <div class="flex gap-1">
       <% if item.ordering? %>
         <%= button_to t("delete"),
               order_line_item_path(order, item),
               method: :delete,
-              class: "btn btn-danger" %>
+              data: { component: "button", variant: "destructive", size: "sm" } %>
       <% end %>
       <% if item.cooking? %>
         <%= button_to t("kitchen.ready"),
               ready_order_line_item_path(order, item),
               method: :patch,
-              class: "btn btn-primary" %>
+              data: { component: "button", variant: "primary", size: "sm" } %>
         <%= button_to t("kitchen.cancel"),
               cancel_order_line_item_path(order, item),
               method: :patch,
-              class: "btn btn-danger",
-              data: { turbo_confirm: t("kitchen.cancel_confirm") } %>
+              data: { component: "button", variant: "destructive", size: "sm", turbo_confirm: t("kitchen.cancel_confirm") } %>
       <% end %>
       <% if item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
               deliver_order_line_item_path(order, item),
               method: :patch,
-              class: "btn btn-primary" %>
+              data: { component: "button", variant: "primary", size: "sm" } %>
       <% end %>
     </div>
   </div>

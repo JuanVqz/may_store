@@ -14,30 +14,92 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="overflow-hidden bg-background font-sans antialiased">
     <% if Current.user %>
-      <nav class="navbar">
-        <span class="navbar-brand"><%= link_to t("app_name"), root_path %></span>
-        <div class="navbar-right">
-          <span><%= t("welcome", name: Current.user.name) %></span>
-          <%= button_to t("exit"), logout_path, method: :delete, class: "btn btn-sm btn-outline", style: "color: white; border-color: rgba(255,255,255,0.5);" %>
-        </div>
-      </nav>
+      <%= render "components/sidebar/provider", default_open: sidebar_open?, variant: :inset do %>
+        <%= render "components/sidebar", state: sidebar_state, variant: :inset do %>
+          <%= render "components/sidebar/header" do %>
+            <span class="font-semibold text-lg truncate"><%= Current.store.name %></span>
+          <% end %>
+
+          <%= render "components/sidebar/content" do %>
+            <%= render "components/sidebar/group", title: "" do %>
+              <%= render "components/sidebar/menu" do %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("home.tables"),
+                    url: tables_path,
+                    icon_name: :grid,
+                    active: controller_name == "tables" %>
+                <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("home.takeout"),
+                    url: takeouts_path,
+                    icon_name: :inbox,
+                    active: controller_name == "takeouts" %>
+                <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("kitchen.title"),
+                    url: kitchen_path,
+                    icon_name: :activity,
+                    active: controller_name == "kitchen" %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% end %>
+
+          <%= render "components/sidebar/footer" do %>
+            <%= render "components/sidebar/menu" do %>
+              <%= render "components/sidebar/menu_item" do %>
+                <%= render "components/sidebar/menu_link",
+                  url: "#",
+                  text_icon: Current.user.name.first(2).upcase,
+                  title: Current.user.name,
+                  subtitle: Current.user.role_label %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <%= render "components/sidebar/inset" do %>
+          <%= render "components/header" do %>
+            <%= render "components/sidebar/trigger", icon_name: :left_panel, css_classes: "size-7" %>
+            <%= render "components/separator", orientation: :vertical %>
+
+            <% if content_for?(:breadcrumbs) %>
+              <%= content_for(:breadcrumbs) %>
+            <% elsif content_for?(:title) %>
+              <%= render "components/breadcrumbs" do %>
+                <%= render "components/breadcrumbs/list" do %>
+                  <%= render "components/breadcrumbs/item" do %>
+                    <%= render "components/breadcrumbs/page" do %><%= content_for(:title) %><% end %>
+                  <% end %>
+                <% end %>
+              <% end %>
+            <% end %>
+
+            <div class="flex-1"></div>
+
+            <%= button_to t("exit"), logout_path, method: :delete,
+              data: { component: "button", variant: "ghost", size: "sm" } %>
+          <% end %>
+
+          <div class="flex-1 overflow-y-auto p-4"><%= yield %></div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <main class="mx-auto max-w-7xl px-4 py-6">
+        <%= yield %>
+      </main>
     <% end %>
 
-    <div class="container">
-      <% if flash[:notice] %>
-        <div class="flash flash-notice" data-controller="flash"><%= flash[:notice] %></div>
-      <% end %>
-      <% if flash[:alert] %>
-        <div class="flash flash-alert" data-controller="flash" data-flash-delay-value="6000"><%= flash[:alert] %></div>
-      <% end %>
-
-      <%= yield %>
-    </div>
+    <%= render "components/toaster", position: :bottom_right,
+          content: toast_flash_messages %>
   </body>
 </html>

@@ -353,6 +353,34 @@ CashClosingLine
 
 ---
 
+## Local Development
+
+### Accessing the app
+
+MayStore uses subdomain-based multitenancy. Access stores via subdomain on localhost:
+
+```
+http://cafe.localhost:3000
+```
+
+The `cafe` subdomain matches the store created in `db/seeds.rb`. This works because `config.hosts.clear` and `config.action_dispatch.tld_length = 0` are set in development. To start the app with Tailwind CSS watching:
+
+```bash
+bin/dev
+```
+
+This runs both the Rails server and the Tailwind watcher via `Procfile.dev`.
+
+### Seeds
+
+```bash
+bin/rails db:seed
+```
+
+Creates a store with subdomain `cafe`, sample users (waiter, kitchen, admin), products, and components.
+
+---
+
 ## Status: Ready for Development
 
 All documentation finalized at **v5.0**. Ready to begin **Phase 1: Foundation**.

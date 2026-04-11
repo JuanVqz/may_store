@@ -10,20 +10,19 @@ export default class extends Controller {
   }
 
   selectPortion(event) {
-    const button = event.currentTarget
-    const group = button.closest("[data-portion-group]")
+    const label = event.currentTarget
+    const group = label.closest("[data-portion-group]")
 
     // Update radio
-    const radio = button.querySelector("input[type=radio]")
+    const radio = label.querySelector("input[type=radio]")
     radio.checked = true
 
-    // Update visual state
-    group.querySelectorAll("label.btn").forEach(label => {
-      label.classList.remove("btn-primary")
-      label.classList.add("btn-outline")
+    // Update visual state: reset all to outline, set selected to primary
+    group.querySelectorAll("label span[data-component='button']").forEach(span => {
+      span.dataset.variant = "outline"
     })
-    button.classList.remove("btn-outline")
-    button.classList.add("btn-primary")
+    const span = label.querySelector("span[data-component='button']")
+    if (span) span.dataset.variant = "primary"
   }
 
   increment(event) {

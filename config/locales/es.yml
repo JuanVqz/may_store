@@ -35,9 +35,9 @@ es:
   login:
     title: "Sistema de Gestion de Ordenes"
     employee_number: "Numero de empleado"
-    password: "Contrasena"
+    password: "Contraseña"
     submit: "Iniciar sesion"
-    error: "Numero de empleado o contrasena incorrectos"
+    error: "Numero de empleado o contraseña incorrectos"
     logout: "Cerrar sesion"
     logged_out: "Sesion cerrada exitosamente"
 
@@ -325,8 +325,8 @@ es:
         active: "Activo"
       account:
         employee_number: "Numero de empleado"
-        password: "Contrasena"
-        password_confirmation: "Confirmar contrasena"
+        password: "Contraseña"
+        password_confirmation: "Confirmar contraseña"
       spot:
         name: "Nombre"
         spot_type: "Tipo"

@@ -1,11 +1,8 @@
-<div class="home-grid">
-  <%= link_to tables_path, class: "home-card" do %>
-    <span class="home-card-icon">🍽️</span>
-    <span class="home-card-label"><%= t("home.tables") %></span>
-  <% end %>
+<% content_for :title, t("app_name") %>
 
-  <%= link_to takeouts_path, class: "home-card" do %>
-    <span class="home-card-icon">🛍️</span>
-    <span class="home-card-label"><%= t("home.takeout") %></span>
-  <% end %>
+<div class="flex items-center justify-center h-full">
+  <div class="text-center">
+    <h2 class="text-2xl font-bold"><%= Current.store.name %></h2>
+    <p class="text-muted-foreground mt-2"><%= t("login.subtitle") %></p>
+  </div>
 </div>

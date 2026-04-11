@@ -1,10 +1,11 @@
 source "https://rubygems.org"
 
+# gem "image_processing", "~> 1.2"
 gem "bcrypt", "~> 3.1.7"
 gem "bootsnap", require: false
-# gem "image_processing", "~> 1.2"
 gem "importmap-rails"
 gem "kamal", require: false
+gem "maquina-components"
 gem "pg", "~> 1.1"
 gem "propshaft"
 gem "puma", ">= 5.0"
@@ -12,6 +13,7 @@ gem "rails", "~> 8.1.2"
 gem "solid_cache"
 gem "solid_queue"
 gem "stimulus-rails"
+gem "tailwindcss-rails", "~> 4.4"
 gem "thruster", require: false
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
