@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # gem "image_processing", "~> 1.2"
-gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", require: false
 gem "importmap-rails"
 gem "kamal", require: false
