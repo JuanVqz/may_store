@@ -7,6 +7,11 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/service-worker")
+      }
+    </script>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
