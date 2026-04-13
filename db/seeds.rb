@@ -551,3 +551,15 @@ puts "  Items: #{order.line_items.count}"
 puts "  Total: $#{'%.2f' % order.total}"
 puts "=" * 50
 puts "\nSeed complete! Ready for development."
+
+# ============================================
+# SECOND STORE (for multi-tenant PWA demo)
+# ============================================
+store2 = Store.create!(
+  name: "Pizzeria Don Mario",
+  subdomain: "pizza",
+  order_prefix: "PIZ",
+  logo_url: "https://example.com/pizza-logo.png",
+  active: true
+)
+puts "\nCreated second store: #{store2.name} (#{store2.subdomain})"
