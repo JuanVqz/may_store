@@ -1,4 +1,5 @@
-const CACHE_NAME = "may-store-v1"
+// Cache nombrado por store para facilitar debugging
+const CACHE_NAME = "may-store-<%= current_store&.subdomain || 'public' %>-v1"
 
 // 1. Install: pre-cachear la pagina offline
 self.addEventListener("install", (event) => {
