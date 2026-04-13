@@ -1,14 +1,15 @@
+<%# Personalizado por store %>
 {
-  "name": "May Store",
-  "short_name": "MayStore",
+  "name": "<%= current_store&.name || 'May Store' %>",
+  "short_name": "<%= current_store&.name&.truncate(12) || 'MayStore' %>",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "<%= current_store&.logo_url || '/icon.png' %>",
       "type": "image/png",
       "sizes": "512x512"
     },
     {
-      "src": "/icon.png",
+      "src": "<%= current_store&.logo_url || '/icon.png' %>",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"

@@ -1,4 +1,10 @@
 module ApplicationHelper
+  # Disponible en todas las vistas, incluyendo las de Rails::PwaController
+  # que NO hereda de nuestro ApplicationController.
+  def current_store
+    Current.store || Store.find_by(subdomain: request.subdomain)
+  end
+
   def order_status_border_class(status)
     case status.to_s
     when "open" then "border-amber-300"
