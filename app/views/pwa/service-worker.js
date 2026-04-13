@@ -22,12 +22,32 @@ self.addEventListener("activate", (event) => {
   self.clients.claim()
 })
 
-// 3. Fetch: si falla una navegacion, mostrar offline.html
+// 3. Fetch: estrategia mixta
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url)
+
+  // Assets estaticos: Cache First (instantaneo)
+  if (url.pathname.match(/\.(css|js|png|jpg|svg|woff2)$/)) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached
+        return fetch(event.request).then((response) => {
+          const clone = response.clone()
+          caches.open(CACHE_NAME)
+            .then((cache) => cache.put(event.request, clone))
+          return response
+        })
+      })
+    )
+    return
+  }
+
+  // Navegacion HTML: Network First con fallback offline
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
         .catch(() => caches.match("/offline.html"))
     )
+    return
   }
 })
