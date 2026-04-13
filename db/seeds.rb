@@ -48,7 +48,6 @@ store = Store.create!(
   name: "Cafe Delicias",
   subdomain: "cafe",
   order_prefix: "CFE",
-  logo_url: "https://example.com/logo.png",
   active: true
 )
 puts "Created store: #{store.name} (#{store.subdomain}.store.com)"
@@ -559,7 +558,6 @@ store2 = Store.create!(
   name: "Pizzeria Don Mario",
   subdomain: "pizza",
   order_prefix: "PIZ",
-  logo_url: "https://example.com/pizza-logo.png",
   active: true
 )
 puts "\nCreated second store: #{store2.name} (#{store2.subdomain})"
