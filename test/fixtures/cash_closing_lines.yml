@@ -5,9 +5,9 @@ efectivo_line:
   actual_cents: 9500
   difference_cents: -500
 
-tarjeta_line:
+mercado_pago_line:
   cash_closing: open_closing
-  payment_method: tarjeta
+  payment_method: mercado_pago
   expected_cents: 5000
   actual_cents: 5000
   difference_cents: 0

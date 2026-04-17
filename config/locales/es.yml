@@ -135,6 +135,9 @@ es:
     created: "Orden creada exitosamente"
     confirmed: "Orden enviada a cocina"
     item_added: "Producto agregado a la orden"
+    closed: "Orden cerrada exitosamente"
+    back_to_tables: "Volver a Mesas"
+    table_now_available: "%{name} ahora esta disponible"
 
   # ============================================
   # Line Items
@@ -219,6 +222,9 @@ es:
     confirm_payment: "Confirmar Pago"
     payment_confirmed: "Pago confirmado, orden cerrada"
     not_charged: "No cobrado"
+    cancelled: "CANCELADO"
+    print: "Imprimir"
+    total: "TOTAL"
 
   # ============================================
   # Split Payment

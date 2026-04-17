@@ -67,11 +67,21 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal 8000, order.total_cents
   end
 
-  test "close sets closed status" do
+  test "close sets closed status when fully paid" do
     order = orders(:cooking_order)
+    order.update_columns(total_cents: 5000)
+    Payment.create!(order: order, payment_method: payment_methods(:efectivo), amount_cents: 5000, paid_at: Time.current)
+
     order.close!
     assert_equal "closed", order.status
     assert_not_nil order.closed_at
+  end
+
+  test "close raises when not fully paid" do
+    order = orders(:cooking_order)
+    order.update_columns(total_cents: 5000)
+
+    assert_raises(ActiveRecord::RecordInvalid) { order.close! }
   end
 
   test "add_item to ready order sets it back to cooking" do
@@ -93,7 +103,7 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal 3000, order.remaining_cents
     assert_not order.fully_paid?
 
-    Payment.create!(order: order, payment_method: payment_methods(:tarjeta), amount_cents: 3000, paid_at: Time.current)
+    Payment.create!(order: order, payment_method: payment_methods(:mercado_pago), amount_cents: 3000, paid_at: Time.current)
     assert order.fully_paid?
   end
 

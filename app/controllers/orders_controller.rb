@@ -1,5 +1,5 @@
 class OrdersController < ApplicationController
-  before_action :set_order, only: [:show, :confirm, :cancel]
+  before_action :set_order, only: [:show, :confirm, :cancel, :bill]
 
   def create
     @spot = Current.store.spots.find(params[:spot_id])
@@ -43,6 +43,13 @@ class OrdersController < ApplicationController
   def cancel
     @order.cancel!
     redirect_to tables_path, notice: t("order.table_available", name: @order.spot.name)
+  end
+
+  def bill
+    @line_items = @order.line_items
+                       .includes(:product, line_item_components: :component)
+                       .order(created_at: :asc)
+    @payment_methods = Current.store.payment_methods.active.order(:name)
   end
 
   private

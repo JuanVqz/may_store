@@ -51,6 +51,7 @@ module Order::Stateful
   end
 
   def close!
+    raise ActiveRecord::RecordInvalid, self unless fully_paid?
     update!(status: :closed, closed_at: Time.current)
   end
 

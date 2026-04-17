@@ -188,3 +188,12 @@
   100% { background: transparent; }
 }
 .item-added { animation: item-added 1.5s ease-out; }
+
+@media print {
+  [data-component="sidebar"],
+  [data-sidebar="sidebar"],
+  [data-component="header"],
+  header {
+    display: none !important;
+  }
+}

@@ -3,7 +3,12 @@ efectivo:
   name: Efectivo
   active: true
 
-tarjeta:
+mercado_pago:
   store: cafe_delicias
-  name: Tarjeta
+  name: Mercado Pago
+  active: true
+
+transferencia:
+  store: cafe_delicias
+  name: Transferencia
   active: true

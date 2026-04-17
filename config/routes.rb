@@ -17,7 +17,10 @@ Rails.application.routes.draw do
     member do
       patch :confirm
       patch :cancel
+      get :bill
     end
+
+    resources :payments, only: [:create]
 
     resources :line_items, only: [:new, :create, :destroy] do
       member do

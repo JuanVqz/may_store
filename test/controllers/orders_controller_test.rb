@@ -17,6 +17,36 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
 
+  test "bill shows bill page with items and payment methods" do
+    order = orders(:delivered_order)
+    get bill_order_url(order, subdomain: @store.subdomain)
+    assert_response :success
+    assert_match "Cuenta", response.body
+    assert_match "Efectivo", response.body
+    assert_match "Mercado Pago", response.body
+    assert_match "Transferencia", response.body
+  end
+
+  test "bill shows cancelled items as cancelado" do
+    order = orders(:cooking_order)
+    line_items(:cooking_cappuccino).cancel!
+    get bill_order_url(order, subdomain: @store.subdomain)
+    assert_response :success
+    assert_match "CANCELADO", response.body
+  end
+
+  test "show displays closed view when order is closed" do
+    order = orders(:delivered_order)
+    order.update_columns(total_cents: 5000)
+    Payment.create!(order: order, payment_method: payment_methods(:efectivo), amount_cents: 5000, paid_at: Time.current)
+    order.close!
+
+    get order_url(order, subdomain: @store.subdomain)
+    assert_response :success
+    assert_match "Orden Cerrada", response.body
+    assert_match "Volver a Mesas", response.body
+  end
+
   test "show displays product browser for open order" do
     order = orders(:open_order)
     get order_url(order, subdomain: @store.subdomain)
