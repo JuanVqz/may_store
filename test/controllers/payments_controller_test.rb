@@ -22,4 +22,16 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert order.fully_paid?
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
+
+  test "create redirects without creating payment when order already fully paid" do
+    order = orders(:delivered_order)
+    order.update_columns(total_cents: 4500)
+    assert order.reload.fully_paid?
+
+    assert_no_difference "Payment.count" do
+      post order_payments_url(order, subdomain: @store.subdomain),
+           params: { payment_method_id: payment_methods(:efectivo).id }
+    end
+    assert_redirected_to order_url(order, subdomain: @store.subdomain)
+  end
 end

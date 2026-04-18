@@ -46,6 +46,10 @@ class OrdersController < ApplicationController
   end
 
   def bill
+    if @order.closed? || @order.fully_paid?
+      redirect_to order_path(@order) and return
+    end
+
     @line_items = @order.line_items
                        .includes(:product, line_item_components: :component)
                        .order(created_at: :asc)

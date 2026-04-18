@@ -19,6 +19,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
 
   test "bill shows bill page with items and payment methods" do
     order = orders(:delivered_order)
+    order.payments.destroy_all
     get bill_order_url(order, subdomain: @store.subdomain)
     assert_response :success
     assert_match "Cuenta", response.body
@@ -33,6 +34,15 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     get bill_order_url(order, subdomain: @store.subdomain)
     assert_response :success
     assert_match "CANCELADO", response.body
+  end
+
+  test "bill redirects to order when already fully paid" do
+    order = orders(:delivered_order)
+    order.update_columns(total_cents: 4500)
+    assert order.reload.fully_paid?
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+    assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
 
   test "show displays closed view when order is closed" do
