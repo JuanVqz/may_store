@@ -1,6 +1,10 @@
 class OrdersController < ApplicationController
   before_action :set_order, only: [:show, :confirm, :cancel, :bill]
 
+  def index
+    @orders = Current.store.orders.today.includes(:spot, :user, :line_items).order(created_at: :desc)
+  end
+
   def create
     @spot = Current.store.spots.find(params[:spot_id])
     @order = Current.store.orders.create!(

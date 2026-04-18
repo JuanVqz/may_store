@@ -332,8 +332,11 @@ See full model code in sections 10.5 (Order) and 10.6 (LineItem). Key methods:
 7. When ALL items are DELIVERED or CANCELLED:
    +-- Order -> DELIVERED
 
-8. Payment recorded:
+8. Payment recorded (when fully_paid?):
    +-- Order -> CLOSED
+   Note: If payment happens before all items delivered, order closes immediately.
+   Kitchen continues preparing items. Use "Today's Orders" list to track these
+   "ghost" orders.
 ```
 
 ### 3.5 Adding Items to a Cooking/Ready Order
@@ -821,6 +824,7 @@ class Order < ApplicationRecord
   end
 
   def close!
+    raise ActiveRecord::RecordInvalid, self unless fully_paid?
     update!(status: :closed, closed_at: Time.current)
   end
 
@@ -1097,13 +1101,22 @@ class Payment < ApplicationRecord
   belongs_to :order
   belongs_to :payment_method
 
-  price_in_cents :amount
+  price_in_cents :amount, :received
 
   validates :amount_cents, numericality: { greater_than: 0 }
+  validates :received_cents, presence: true,
+            numericality: { greater_than_or_equal_to: :amount_cents }
+
+  def change_cents
+    received_cents - amount_cents
+  end
 end
 ```
 
 Multiple payments per order supported for split payments.
+
+**received_cents**: Always required. For cash payments, waiter enters amount received.
+For non-cash (card, transfer), auto-fills to amount_cents (no change).
 
 ---
 

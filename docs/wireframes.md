@@ -1,6 +1,6 @@
 # MayStore - Wireframes
 
-**Version:** 5.1
+**Version:** 5.3
 **Last Updated:** April 2026
 
 ---
@@ -519,6 +519,11 @@ See Screen 3 — mixed item statuses are handled in the same single-page layout.
 |  +----------------+ +----------------+ +----------------+         |
 |  |   Efectivo     | |  Mercado Pago  | |  Transferencia |         |
 |  +----------------+ +----------------+ +----------------+         |
+|                                                                    |
+|  Recibido (requerido, auto-llena para no efectivo):                 |
+|  +--------------+   Cambio: $75.00                                 |
+|  | $100.00      |                                                  |
+|  +--------------+                                                  |
 |                                                                    |
 |  +--------------+                        +-------------------+    |
 |  | Imprimir     |                        | Confirmar Pago    |    |

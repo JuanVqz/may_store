@@ -48,7 +48,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   test "show displays closed view when order is closed" do
     order = orders(:delivered_order)
     order.update_columns(total_cents: 5000)
-    Payment.create!(order: order, payment_method: payment_methods(:efectivo), amount_cents: 5000, paid_at: Time.current)
+    Payment.create!(order: order, payment_method: payment_methods(:efectivo), amount_cents: 5000, received_cents: 5000, paid_at: Time.current)
     order.close!
 
     get order_url(order, subdomain: @store.subdomain)
@@ -113,5 +113,22 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     patch cancel_order_url(order, subdomain: @store.subdomain)
     assert_equal "cancelled", order.reload.status
     assert_redirected_to tables_url(subdomain: @store.subdomain)
+  end
+
+  test "index shows today's orders" do
+    order = orders(:cooking_order)
+    order.update_columns(created_at: Time.current)
+    get orders_url(subdomain: @store.subdomain)
+    assert_response :success
+    assert_match order.code, response.body
+    assert_match "Ordenes del Dia", response.body
+  end
+
+  test "index excludes orders from other days" do
+    order = orders(:cooking_order)
+    order.update_columns(created_at: 1.day.ago)
+    get orders_url(subdomain: @store.subdomain)
+    assert_response :success
+    assert_no_match order.code, response.body
   end
 end

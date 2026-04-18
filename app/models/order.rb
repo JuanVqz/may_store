@@ -9,6 +9,8 @@ class Order < ApplicationRecord
   has_many :line_items, dependent: :destroy
   has_many :payments, dependent: :destroy
 
+  scope :today, -> { where(created_at: Time.current.beginning_of_day..Time.current.end_of_day) }
+
   enum :status, {
     open: "open",
     cooking: "cooking",

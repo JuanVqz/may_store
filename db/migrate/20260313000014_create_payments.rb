@@ -4,6 +4,7 @@ class CreatePayments < ActiveRecord::Migration[8.1]
       t.references :order, null: false, foreign_key: true, type: :uuid
       t.references :payment_method, null: false, foreign_key: true
       t.integer :amount_cents, null: false
+      t.integer :received_cents, default: 0, null: false
       t.text :notes
       t.datetime :paid_at
 

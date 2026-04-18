@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto p-8 text-center space-y-6 mt-12">
+<div class="max-w-md mx-auto p-8 text-center space-y-6 mt-12" data-controller="print">
   <h1 class="text-2xl font-bold"><%= t("order.closed_title") %></h1>
 
   <dl class="space-y-2 text-sm">
@@ -13,7 +13,12 @@
     <p class="text-muted-foreground"><%= t("order.table_now_available", name: order.spot.name) %></p>
   </dl>
 
-  <%= link_to t("order.back_to_tables"), tables_path,
-        class: "inline-block",
-        data: { component: "button", variant: "primary", size: "lg" } %>
+  <div class="grid grid-cols-2 gap-2">
+    <%= link_to t("bill.print"), "#",
+          class: "text-center",
+          data: { component: "button", variant: "outline", size: "lg", action: "print#print" } %>
+    <%= link_to t("order.back_to_tables"), tables_path,
+          class: "text-center",
+          data: { component: "button", variant: "primary", size: "lg" } %>
+  </div>
 </div>

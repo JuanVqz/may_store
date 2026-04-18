@@ -14,13 +14,38 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference "order.payments.count", 1 do
       post order_payments_url(order, subdomain: @store.subdomain),
-           params: { payment_method_id: payment_methods(:efectivo).id }
+           params: { payment_method_id: payment_methods(:efectivo).id, received: "45.00" }
     end
 
     order.reload
     assert_equal "closed", order.status
     assert order.fully_paid?
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
+  end
+
+  test "create stores received_cents for cash payment" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    order.update_columns(total_cents: 4500)
+
+    post order_payments_url(order, subdomain: @store.subdomain),
+         params: { payment_method_id: payment_methods(:efectivo).id, received: "100.00" }
+
+    payment = order.reload.payments.last
+    assert_equal 10000, payment.received_cents
+    assert_equal 5500, payment.change_cents
+  end
+
+  test "create redirects back to bill when received less than amount" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    order.update_columns(total_cents: 4500)
+
+    assert_no_difference "Payment.count" do
+      post order_payments_url(order, subdomain: @store.subdomain),
+           params: { payment_method_id: payment_methods(:efectivo).id, received: "20.00" }
+    end
+    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
   end
 
   test "create redirects without creating payment when order already fully paid" do
