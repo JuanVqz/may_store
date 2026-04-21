@@ -150,6 +150,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
 
   create_table "payment_methods", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.boolean "cash", default: false, null: false
     t.datetime "created_at", null: false
     t.string "description"
     t.string "name", null: false

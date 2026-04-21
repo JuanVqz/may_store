@@ -48,6 +48,45 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
   end
 
+  test "create with blank received for cash payment fails validation" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    order.update_columns(total_cents: 4500)
+
+    assert_no_difference "Payment.count" do
+      post order_payments_url(order, subdomain: @store.subdomain),
+           params: { payment_method_id: payment_methods(:efectivo).id, received: "" }
+    end
+    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
+  end
+
+  test "create with 0 received for cash payment fails validation" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    order.update_columns(total_cents: 4500)
+
+    assert_no_difference "Payment.count" do
+      post order_payments_url(order, subdomain: @store.subdomain),
+           params: { payment_method_id: payment_methods(:efectivo).id, received: "0" }
+    end
+    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
+  end
+
+  test "create auto-fills received_cents for non-cash payment when blank" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    order.update_columns(total_cents: 4500)
+
+    assert_difference "order.payments.count", 1 do
+      post order_payments_url(order, subdomain: @store.subdomain),
+           params: { payment_method_id: payment_methods(:mercado_pago).id, received: "" }
+    end
+
+    payment = order.reload.payments.last
+    assert_equal 4500, payment.received_cents
+    assert_equal "closed", order.status
+  end
+
   test "create redirects without creating payment when order already fully paid" do
     order = orders(:delivered_order)
     order.update_columns(total_cents: 4500)

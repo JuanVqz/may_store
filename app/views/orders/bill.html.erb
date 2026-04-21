@@ -81,7 +81,7 @@
                   data: {
                     payment_form_target: "method",
                     action: "change->payment-form#update",
-                    cash: (pm.name == "Efectivo").to_s
+                    cash: pm.cash?.to_s
                   } %>
             <div class="text-center py-3 px-4 rounded-md border border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
               <%= pm.name %>

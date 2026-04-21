@@ -2,6 +2,7 @@ efectivo:
   store: cafe_delicias
   name: Efectivo
   active: true
+  cash: true
 
 mercado_pago:
   store: cafe_delicias

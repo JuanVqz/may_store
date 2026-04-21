@@ -9,13 +9,12 @@ class PaymentsController < ApplicationController
     payment_method = Current.store.payment_methods.find(params[:payment_method_id])
     received_cents = parse_cents(params[:received])
 
-    # Auto-fill received_cents for non-cash payments
-    is_cash = payment_method.name.downcase == "efectivo"
-    if received_cents.nil? || received_cents == 0
-      received_cents = @order.remaining_cents unless is_cash
-    end
-
     Payment.transaction do
+      @order.lock!
+      if received_cents.nil? || received_cents == 0
+        received_cents = @order.remaining_cents unless payment_method.cash?
+      end
+
       @order.payments.create!(
         payment_method: payment_method,
         amount_cents: @order.remaining_cents,
