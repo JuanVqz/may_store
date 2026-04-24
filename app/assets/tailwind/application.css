@@ -189,6 +189,26 @@
 }
 .item-added { animation: item-added 1.5s ease-out; }
 
+/* Kitchen view: larger font for readability at distance */
+[data-view="kitchen"] {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+[data-view="kitchen"] .kitchen-product-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+[data-view="kitchen"] .kitchen-order-header {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+[data-view="kitchen"] .text-sm {
+  font-size: 1rem !important;
+}
+
 @media print {
   body {
     overflow: visible !important;
@@ -208,5 +228,48 @@
     max-height: none !important;
     overflow: visible !important;
     box-shadow: none !important;
+  }
+
+  /* Hide all order groups except the one being printed */
+  [data-kitchen-order]:not([data-printing]) {
+    display: none !important;
+  }
+
+  /* Hide non-content elements when printing */
+  [data-view="kitchen"] > *:not(#kitchen-queue),
+  .kitchen-print-btn,
+  [data-component="button"] {
+    display: none !important;
+  }
+
+  /* Thermal receipt format: 80mm wide, clean text */
+  [data-kitchen-order][data-printing] {
+    width: 72mm;
+    max-width: 72mm;
+    font-size: 14pt;
+    font-family: monospace;
+    color: black !important;
+    background: white !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4mm;
+  }
+
+  [data-kitchen-order][data-printing] .kitchen-product-name {
+    font-size: 18pt;
+    font-weight: bold;
+  }
+
+  [data-kitchen-order][data-printing] .kitchen-order-header {
+    font-size: 16pt;
+    font-weight: bold;
+    border-bottom: 1px solid black;
+    padding-bottom: 2mm;
+    margin-bottom: 2mm;
+  }
+
+  [data-kitchen-order][data-printing] .kitchen-print-btn,
+  [data-kitchen-order][data-printing] [data-component="button"] {
+    display: none !important;
   }
 }

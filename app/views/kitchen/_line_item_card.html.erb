@@ -36,7 +36,7 @@
   </div>
 
   <%= render "components/card/content" do %>
-    <div class="font-bold text-lg mb-1"><%= item.product.name.upcase %></div>
+    <div class="font-bold text-lg mb-1 kitchen-product-name"><%= item.product.name.upcase %></div>
 
     <% ingredients = item.line_item_components.select(&:ingredient?) %>
     <% extras = item.line_item_components.select(&:extra?) %>
