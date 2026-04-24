@@ -18,3 +18,10 @@ cooking_americano:
   status: cooking
   base_price_cents: 3500
   total_price_cents: 3500
+
+delivered_latte:
+  order: delivered_order
+  product: latte
+  status: delivered
+  base_price_cents: 4500
+  total_price_cents: 4500

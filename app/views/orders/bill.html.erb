@@ -1,0 +1,123 @@
+<% content_for :breadcrumbs do %>
+  <%= render "components/breadcrumbs" do %>
+    <%= render "components/breadcrumbs/list" do %>
+      <%= render "components/breadcrumbs/item" do %>
+        <%= render "components/breadcrumbs/link", href: order_path(@order) do %><%= @order.spot.name %><% end %>
+      <% end %>
+      <%= render "components/breadcrumbs/separator" %>
+      <%= render "components/breadcrumbs/item" do %>
+        <%= render "components/breadcrumbs/page" do %><%= t("bill.title") %> &middot; <%= @order.code %><% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<div class="max-w-2xl mx-auto p-4 space-y-4" data-controller="print">
+  <div data-print-target="area">
+    <%= render "components/card" do %>
+      <%= render "components/card/header" do %>
+        <%= render "components/card/title" do %><%= t("bill.title") %><% end %>
+      <% end %>
+      <%= render "components/card/content" do %>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm mb-4">
+          <dt class="text-muted-foreground"><%= t("bill.table") %>:</dt>
+          <dd><%= @order.spot.name %></dd>
+          <dt class="text-muted-foreground"><%= t("bill.order") %>:</dt>
+          <dd><%= @order.code %></dd>
+          <dt class="text-muted-foreground"><%= t("bill.date") %>:</dt>
+          <dd><%= l(@order.created_at.to_date) %></dd>
+          <dt class="text-muted-foreground"><%= t("bill.server") %>:</dt>
+          <dd><%= @order.user.name %></dd>
+        </dl>
+
+        <div class="border-t border-border pt-3 space-y-3">
+          <% @line_items.each_with_index do |item, idx| %>
+            <div class="flex justify-between items-start text-sm <%= "line-through text-muted-foreground" if item.cancelled? %>">
+              <div class="flex-1">
+                <div class="font-medium">#<%= idx + 1 %>&nbsp;&nbsp;<%= item.product.name %></div>
+                <% item.line_item_components.each do |lic| %>
+                  <div class="text-xs text-muted-foreground ml-6">
+                    <% if lic.extra? %>
+                      + <%= lic.component.name %> x<%= lic.quantity %>
+                    <% else %>
+                      <%= lic.component.name %>: <%= lic.portion_label %>
+                    <% end %>
+                  </div>
+                <% end %>
+                <% if item.special_notes.present? %>
+                  <div class="text-xs text-muted-foreground ml-6 italic"><%= item.special_notes %></div>
+                <% end %>
+              </div>
+              <div class="text-right whitespace-nowrap">
+                <% if item.cancelled? %>
+                  <span><%= t("bill.cancelled") %></span>
+                <% else %>
+                  <%= item.formatted_total_price %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="border-t border-border mt-4 pt-3 flex justify-between font-bold">
+          <span><%= t("bill.total") %></span>
+          <span><%= @order.formatted_total %></span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="space-y-3 print:hidden">
+    <p class="text-sm text-muted-foreground"><%= t("bill.payment_method") %></p>
+
+    <%= form_with url: order_payments_path(@order), method: :post,
+          data: { controller: "payment-form", payment_form_total_value: @order.total_cents / 100.0 } do |f| %>
+      <div class="grid grid-cols-3 gap-2">
+        <% @payment_methods.each_with_index do |pm, idx| %>
+          <label class="cursor-pointer">
+            <%= f.radio_button :payment_method_id, pm.id,
+                  checked: idx.zero?,
+                  class: "sr-only peer",
+                  data: {
+                    payment_form_target: "method",
+                    action: "change->payment-form#update",
+                    cash: pm.cash?.to_s
+                  } %>
+            <div class="text-center py-3 px-4 rounded-md border border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
+              <%= pm.name %>
+            </div>
+          </label>
+        <% end %>
+      </div>
+
+      <div class="mt-4" data-payment-form-target="received">
+        <div class="grid grid-cols-2 gap-2 items-end">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="received"><%= t("bill.received") %></label>
+            <input type="number" step="0.01" min="0" name="received" id="received"
+                   class="w-full py-2 px-3 rounded-md border border-border"
+                   value="0.00"
+                   autofocus
+                   data-payment-form-target="receivedInput"
+                   data-action="input->payment-form#recalc"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"><%= t("bill.change") %></label>
+            <div class="w-full py-2 px-3 rounded-md border border-border bg-muted font-bold min-h-[2.5rem]"
+                 data-payment-form-target="change"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <%= link_to t("bill.print"), "#",
+              class: "text-center",
+              data: { component: "button", variant: "outline", size: "lg", action: "print#print" } %>
+        <%= f.submit t("bill.confirm_payment"),
+              class: "cursor-pointer",
+              data: { component: "button", variant: "primary", size: "lg" } %>
+      </div>
+    <% end %>
+  </div>
+</div>

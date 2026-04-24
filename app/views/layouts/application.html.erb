@@ -45,6 +45,13 @@
                 <% end %>
                 <%= render "components/sidebar/menu_item" do %>
                   <%= render "components/sidebar/menu_button",
+                    title: t("orders_today.title"),
+                    url: orders_path,
+                    icon_name: :calendar,
+                    active: controller_name == "orders" && action_name == "index" %>
+                <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
                     title: t("kitchen.title"),
                     url: kitchen_path,
                     icon_name: :activity,
@@ -99,7 +106,7 @@
       </main>
     <% end %>
 
-    <%= render "components/toaster", position: :bottom_right,
+    <%= render "components/toaster", position: :bottom_left,
           content: toast_flash_messages %>
   </body>
 </html>

@@ -86,6 +86,7 @@ See `docs/reference-patterns.md` for detailed patterns extracted from this codeb
 ## Key Rules
 
 - Never add co-author lines to commits
+- No commits or PRs on weekends — all git operations paused Saturday/Sunday
 - Role = default screen, not permissions. All roles can perform all item actions.
 - No unique index on `line_item_components(line_item_id, component_id)` — duplicates allowed for multiple extras
 - Order codes use `OrderCounter` table for atomic sequence generation

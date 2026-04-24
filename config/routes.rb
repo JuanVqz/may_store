@@ -13,11 +13,14 @@ Rails.application.routes.draw do
     resources :orders, only: [:create]
   end
 
-  resources :orders, only: [:show] do
+  resources :orders, only: [:index, :show] do
     member do
       patch :confirm
       patch :cancel
+      get :bill
     end
+
+    resources :payments, only: [:create]
 
     resources :line_items, only: [:new, :create, :destroy] do
       member do

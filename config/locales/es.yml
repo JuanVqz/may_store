@@ -65,6 +65,15 @@ es:
     takeout: "Para Llevar"
 
   # ============================================
+  # Today's Orders
+  # ============================================
+  orders_today:
+    title: "Ordenes del Dia"
+    no_orders: "No hay ordenes hoy"
+    items_count: "%{count} items"
+    partial_delivery: "%{delivered} de %{total} entregados"
+
+  # ============================================
   # Takeouts
   # ============================================
   takeouts:
@@ -135,6 +144,9 @@ es:
     created: "Orden creada exitosamente"
     confirmed: "Orden enviada a cocina"
     item_added: "Producto agregado a la orden"
+    closed: "Orden cerrada exitosamente"
+    back_to_tables: "Volver a Mesas"
+    table_now_available: "%{name} ahora esta disponible"
 
   # ============================================
   # Line Items
@@ -219,6 +231,13 @@ es:
     confirm_payment: "Confirmar Pago"
     payment_confirmed: "Pago confirmado, orden cerrada"
     not_charged: "No cobrado"
+    cancelled: "CANCELADO"
+    print: "Imprimir"
+    total: "TOTAL"
+    received: "Recibido"
+    change: "Cambio"
+    received_required: "Ingrese el monto recibido"
+    received_too_low: "El monto recibido debe ser mayor o igual al total"
 
   # ============================================
   # Split Payment
@@ -367,6 +386,9 @@ es:
         period_end: "Fin del periodo"
         notes: "Notas"
     errors:
+      messages:
+        record_invalid: "Validación falló: %{errors}"
+        greater_than_or_equal_to: "debe ser mayor o igual a %{count}"
       models:
         account:
           attributes:

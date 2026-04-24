@@ -188,3 +188,25 @@
   100% { background: transparent; }
 }
 .item-added { animation: item-added 1.5s ease-out; }
+
+@media print {
+  body {
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  aside,
+  [data-sidebar-target="sidebar"],
+  [data-component="header"] {
+    display: none !important;
+  }
+
+  [data-sidebar-part="inset"],
+  [data-sidebar-part="inset"] * {
+    margin: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+}

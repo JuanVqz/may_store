@@ -150,6 +150,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
 
   create_table "payment_methods", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.boolean "cash", default: false, null: false
     t.datetime "created_at", null: false
     t.string "description"
     t.string "name", null: false
@@ -165,6 +166,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.uuid "order_id", null: false
     t.datetime "paid_at"
     t.bigint "payment_method_id", null: false
+    t.integer "received_cents", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_payments_on_order_id"
     t.index ["payment_method_id", "paid_at"], name: "index_payments_on_payment_method_id_and_paid_at"

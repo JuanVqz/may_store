@@ -2,4 +2,5 @@ pago_efectivo:
   order: delivered_order
   payment_method: efectivo
   amount_cents: 4500
+  received_cents: 5000
   paid_at: <%= 5.minutes.ago %>

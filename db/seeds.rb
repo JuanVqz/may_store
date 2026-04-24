@@ -401,8 +401,7 @@ puts "Created #{postres.count} desserts"
 # PAYMENT METHODS
 # ============================================
 payment_methods_data = [
-  { name: "Efectivo", description: "Cash payment" },
-  { name: "Tarjeta", description: "Credit or debit card" },
+  { name: "Efectivo", description: "Cash payment", cash: true },
   { name: "Mercado Pago", description: "Mercado Pago QR or app" },
   { name: "Transferencia", description: "Bank transfer" }
 ]

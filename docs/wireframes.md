@@ -1,7 +1,7 @@
 # MayStore - Wireframes
 
-**Version:** 5.0
-**Last Updated:** March 2026
+**Version:** 5.3
+**Last Updated:** April 2026
 
 ---
 
@@ -51,9 +51,9 @@ ORDERING -> COOKING -> READY -> DELIVERED
 | 7 | Kitchen Queue | P0 | Kitchen |
 | 8 | (Merged into Screen 3) | — | — |
 | 9 | Bill & Payment | P0 | Waiter |
-| 10 | Split Payment | P0 | Waiter |
+| 10 | Split Payment | P1 (deferred) | Waiter |
 | 11 | Order Closed | P0 | Waiter |
-| 12 | Order Cancelled | P0 | Waiter |
+| 12 | (Replaced by redirect to Tables with flash) | — | — |
 | 13 | Admin Dashboard | P0 | Admin |
 | 14 | Cash Closing (Corte de Caja) | P0 | Admin |
 
@@ -517,12 +517,19 @@ See Screen 3 — mixed item statuses are handled in the same single-page layout.
 |  Metodo de pago                                                    |
 |                                                                    |
 |  +----------------+ +----------------+ +----------------+         |
-|  |   Efectivo     | |   Tarjeta      | |  Mercado Pago  |         |
+|  |   Efectivo     | |  Mercado Pago  | |  Transferencia |         |
 |  +----------------+ +----------------+ +----------------+         |
 |                                                                    |
-|  +--------------+  +------------------+  +-------------------+    |
-|  | Imprimir     |  | Pago Dividido    |  | Confirmar Pago    |    |
-|  +--------------+  +------------------+  +-------------------+    |
+|  Recibido (requerido, auto-llena para no efectivo):                 |
+|  +--------------+   Cambio: $75.00                                 |
+|  | $100.00      |                                                  |
+|  +--------------+                                                  |
+|                                                                    |
+|  +--------------+                        +-------------------+    |
+|  | Imprimir     |                        | Confirmar Pago    |    |
+|  +--------------+                        +-------------------+    |
+|                                                                    |
+|  (Pago Dividido: Screen 10, deferred)                              |
 |                                                                    |
 +--------------------------------------------------------------------+
 ```
@@ -601,22 +608,9 @@ See Screen 3 — mixed item statuses are handled in the same single-page layout.
 
 ---
 
-## Screen 12: Order Cancelled
+## Screen 12: (Replaced by redirect)
 
-```
-+--------------------------------------------------------------------+
-|                                                                    |
-|                     ORDEN CANCELADA                                |
-|                                                                    |
-|                    Orden: CFE2601-009                               |
-|                    Mesa 5 ahora esta disponible                    |
-|                                                                    |
-|              +----------------------------+                        |
-|              |       Volver a Mesas        |                        |
-|              +----------------------------+                        |
-|                                                                    |
-+--------------------------------------------------------------------+
-```
+Cancelling an order redirects directly to the Tables screen with a flash message "Mesa X ahora esta disponible". No dedicated confirmation page — one fewer tap and the flash conveys the same info.
 
 ---
 
