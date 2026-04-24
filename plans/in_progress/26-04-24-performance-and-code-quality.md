@@ -26,7 +26,7 @@
 
 `readiness_counts` checks `line_items.loaded?` and uses a GROUP BY if not — so each order fires one extra query. With `includes(:line_items)` it uses in-memory data, zero extra queries.
 
-- [ ] **Step 1: Fix TablesController**
+- [x] **Step 1: Fix TablesController**
 
 ```ruby
 # app/controllers/tables_controller.rb
@@ -39,7 +39,7 @@ def index
 end
 ```
 
-- [ ] **Step 2: Fix TakeoutsController**
+- [x] **Step 2: Fix TakeoutsController**
 
 ```ruby
 # app/controllers/takeouts_controller.rb
@@ -52,13 +52,13 @@ def index
 end
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 ```bash
 bin/rails test
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -66,7 +66,7 @@ bin/rails test
 
 `includes(:product_components)` doesn't load the `component` record inside each `product_component`, causing N+1 in `_customization_form.html.erb`.
 
-- [ ] **Step 1: Fix eager load chain**
+- [x] **Step 1: Fix eager load chain**
 
 ```ruby
 # app/controllers/orders_controller.rb — inside show, replace:
@@ -75,9 +75,9 @@ bin/rails test
 @products = @category&.products&.active&.available&.includes(product_components: :component) || Product.none
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -85,7 +85,7 @@ bin/rails test
 
 Two problems: `to_unsafe_h` bypasses Strong Params; `special_notes` pulled raw from `params` instead of going through `line_item_params`.
 
-- [ ] **Step 1: Update `line_item_params` and add dedicated param methods**
+- [x] **Step 1: Update `line_item_params` and add dedicated param methods**
 
 ```ruby
 # app/controllers/line_items_controller.rb
@@ -103,7 +103,7 @@ def extra_quantities
 end
 ```
 
-- [ ] **Step 2: Update `create` to use `line_item_params[:special_notes]`**
+- [x] **Step 2: Update `create` to use `line_item_params[:special_notes]`**
 
 ```ruby
 def create
@@ -113,7 +113,7 @@ def create
 end
 ```
 
-- [ ] **Step 3: Update `build_components` to use new param methods and product's own components**
+- [x] **Step 3: Update `build_components` to use new param methods and product's own components**
 
 ```ruby
 def build_components(line_item, product)
@@ -151,9 +151,9 @@ end
 
 This also fixes the N+1 from task 4 — extras now come from product's own components (already scoped), not a second store-wide query.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -161,7 +161,7 @@ This also fixes the N+1 from task 4 — extras now come from product's own compo
 
 Controller has inline `if @order.open? || @order.cooking? || @order.ready? || @order.delivered?` — business logic belongs on the model.
 
-- [ ] **Step 1: Add predicate to Order**
+- [x] **Step 1: Add predicate to Order**
 
 ```ruby
 # app/models/order.rb
@@ -170,7 +170,7 @@ def allows_item_addition?
 end
 ```
 
-- [ ] **Step 2: Update OrdersController#show**
+- [x] **Step 2: Update OrdersController#show**
 
 ```ruby
 if @order.allows_item_addition?
@@ -179,9 +179,9 @@ if @order.allows_item_addition?
 end
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -191,7 +191,7 @@ end
 
 **Decision:** Keep the manual broadcast in `add_item!` but document why. Alternatively, change `LineItem::Stateful` to use `after_save_commit` to cover both create and update, then remove the manual broadcast.
 
-- [ ] **Step 1: Change `after_update_commit` to `after_save_commit` in `LineItem::Stateful`**
+- [x] **Step 1: Change `after_update_commit` to `after_save_commit` in `LineItem::Stateful`**
 
 ```ruby
 # app/models/line_item/stateful.rb
@@ -201,7 +201,7 @@ included do
 end
 ```
 
-- [ ] **Step 2: Remove manual broadcast from `Order#add_item!`**
+- [x] **Step 2: Remove manual broadcast from `Order#add_item!`**
 
 ```ruby
 def add_item!(product:, special_notes: nil)
@@ -218,9 +218,9 @@ def add_item!(product:, special_notes: nil)
 end
 ```
 
-- [ ] **Step 3: Run tests — verify kitchen broadcasts still fire**
+- [x] **Step 3: Run tests — verify kitchen broadcasts still fire**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -228,7 +228,7 @@ end
 
 Same pattern duplicated in `_line_item.html.erb` (lines 9–22) and `kitchen/_line_item_card.html.erb` (lines 41–63).
 
-- [ ] **Step 1: Create `app/views/line_items/_components.html.erb`**
+- [x] **Step 1: Create `app/views/line_items/_components.html.erb`**
 
 ```erb
 <%# locals: (item:, modified_only: false) %>
@@ -262,36 +262,36 @@ Same pattern duplicated in `_line_item.html.erb` (lines 9–22) and `kitchen/_li
 <% end %>
 ```
 
-- [ ] **Step 2: Replace duplicated code in `_line_item.html.erb`**
+- [x] **Step 2: Replace duplicated code in `_line_item.html.erb`**
 
 Replace the ingredients/extras block with:
 ```erb
 <%= render "line_items/components", item: item %>
 ```
 
-- [ ] **Step 3: Replace duplicated code in `kitchen/_line_item_card.html.erb`**
+- [x] **Step 3: Replace duplicated code in `kitchen/_line_item_card.html.erb`**
 
 Replace the ingredients/extras block with:
 ```erb
 <%= render "line_items/components", item: item, modified_only: true %>
 ```
 
-- [ ] **Step 4: Run tests + visual check**
+- [x] **Step 4: Run tests + visual check**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
 ## Task 7: Add missing validations
 
-- [ ] **Step 1: Add to `ProductComponent`**
+- [x] **Step 1: Add to `ProductComponent`**
 
 ```ruby
 # app/models/product_component.rb
 validates :product_id, :component_id, :component_type, presence: true
 ```
 
-- [ ] **Step 2: Add to `LineItemComponent`**
+- [x] **Step 2: Add to `LineItemComponent`**
 
 ```ruby
 # app/models/line_item_component.rb
@@ -299,9 +299,9 @@ validates :line_item_id, :component_id, :component_type, presence: true
 validates :unit_price_cents, numericality: { greater_than_or_equal_to: 0 }
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
