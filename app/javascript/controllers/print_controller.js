@@ -11,7 +11,13 @@ export default class extends Controller {
     const order = event.target.closest("[data-kitchen-order]")
     if (!order) return
     order.setAttribute("data-printing", "")
+
+    const afterPrint = () => {
+      order.removeAttribute("data-printing")
+      window.removeEventListener("afterprint", afterPrint)
+    }
+
+    window.addEventListener("afterprint", afterPrint)
     window.print()
-    order.removeAttribute("data-printing")
   }
 }
