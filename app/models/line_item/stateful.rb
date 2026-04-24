@@ -4,8 +4,8 @@ module LineItem::Stateful
   class InvalidTransition < StandardError; end
 
   included do
-    after_update :check_order_status, if: :saved_change_to_status?
-    after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
+    after_save :check_order_status, if: :saved_change_to_status?
+    after_save_commit :broadcast_refreshes, if: :saved_change_to_status?
   end
 
   STATUS_COLORS = {

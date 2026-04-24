@@ -396,6 +396,10 @@ es:
               taken: "ya esta en uso en esta tienda"
             password:
               blank: "no puede estar en blanco"
+        payment:
+          attributes:
+            received_cents:
+              insufficient: "debe ser mayor o igual a %{amount}"
 
   # ============================================
   # Date/Time formats

@@ -22,7 +22,7 @@ class OrdersController < ApplicationController
                        .includes(:product, line_item_components: :component)
                        .order(created_at: :desc)
 
-    if @order.open? || @order.cooking? || @order.ready? || @order.delivered?
+    if @order.allows_item_addition?
       @categories = Current.store.categories.active.ordered
       @category =
         if params[:category_id]
@@ -30,7 +30,7 @@ class OrdersController < ApplicationController
         else
           @categories.first
         end
-      @products = @category&.products&.active&.available&.includes(:product_components) || Product.none
+      @products = @category&.products&.active&.available&.includes(product_components: :component) || Product.none
     end
   end
 

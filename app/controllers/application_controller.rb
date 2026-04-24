@@ -25,7 +25,7 @@ class ApplicationController < ActionController::Base
     case user.role
     when "waiter"  then redirect_to root_path
     when "kitchen" then redirect_to kitchen_path
-    when "admin"   then redirect_to admin_dashboard_path
+    when "admin"   then redirect_to root_path
     end
   end
 end
