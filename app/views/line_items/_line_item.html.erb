@@ -5,20 +5,7 @@
       <%= item.product.name %>
       <span class="<%= status_badge_classes(item.status) %>"><%= item.status_label %></span>
     </div>
-    <% ingredients = item.line_item_components.select(&:ingredient?) %>
-    <% extras = item.line_item_components.select(&:extra?) %>
-    <% if ingredients.any? %>
-      <div class="text-sm text-muted-foreground mt-0.5">
-        <%= ingredients.map { |c| "#{c.component.name}: #{c.portion_label}" }.join(", ") %>
-      </div>
-    <% end %>
-    <% if extras.any? %>
-      <div class="text-sm text-muted-foreground">
-        <% extras.group_by(&:component_id).each do |_, group| %>
-          + <%= group.first.component.name %> x<%= group.size %>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render "line_items/components", item: item %>
     <% if item.special_notes.present? %>
       <div class="text-sm text-muted-foreground"><em><%= item.special_notes %></em></div>
     <% end %>

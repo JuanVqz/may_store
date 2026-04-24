@@ -38,29 +38,7 @@
   <%= render "components/card/content" do %>
     <div class="font-bold text-lg mb-1"><%= item.product.name.upcase %></div>
 
-    <% ingredients = item.line_item_components.select(&:ingredient?) %>
-    <% extras = item.line_item_components.select(&:extra?) %>
-
-    <% if ingredients.any? %>
-      <% modified = ingredients.select { |c| c.portion.to_f != 1.0 } %>
-      <div class="text-sm text-muted-foreground">
-        <% if modified.any? %>
-          <% modified.each do |c| %>
-            <div><%= c.component.name %>: <%= c.portion_label %> *</div>
-          <% end %>
-        <% else %>
-          <%= t("line_item.standard_preparation") %>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% if extras.any? %>
-      <div class="text-sm text-muted-foreground">
-        <% extras.group_by(&:component_id).each do |_, group| %>
-          <div>+ <%= group.first.component.name %> x<%= group.size %></div>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render "line_items/components", item: item, modified_only: true %>
 
     <% if item.special_notes.present? %>
       <div class="text-sm text-orange-600 mt-1"><em><%= item.special_notes %></em></div>

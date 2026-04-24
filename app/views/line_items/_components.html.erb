@@ -1,0 +1,32 @@
+<%# locals: (item:, modified_only: false) %>
+<% ingredients = item.line_item_components.select(&:ingredient?) %>
+<% extras = item.line_item_components.select(&:extra?) %>
+
+<% if ingredients.any? %>
+  <% to_show = modified_only ? ingredients.select { |c| c.portion.to_f != 1.0 } : ingredients %>
+  <% if to_show.any? %>
+    <div class="text-sm text-muted-foreground mt-0.5">
+      <% if modified_only %>
+        <% to_show.each do |c| %>
+          <div><%= c.component.name %>: <%= c.portion_label %> *</div>
+        <% end %>
+      <% else %>
+        <%= to_show.map { |c| "#{c.component.name}: #{c.portion_label}" }.join(", ") %>
+      <% end %>
+    </div>
+  <% elsif modified_only %>
+    <div class="text-sm text-muted-foreground"><%= t("line_item.standard_preparation") %></div>
+  <% end %>
+<% end %>
+
+<% if extras.any? %>
+  <div class="text-sm text-muted-foreground">
+    <% extras.group_by(&:component_id).each do |_, group| %>
+      <% if modified_only %>
+        <div>+ <%= group.first.component.name %> x<%= group.size %></div>
+      <% else %>
+        + <%= group.first.component.name %> x<%= group.size %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

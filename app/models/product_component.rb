@@ -7,5 +7,7 @@ class ProductComponent < ApplicationRecord
     extra: "extra"
   }
 
+  validates :product_id, :component_id, :component_type, presence: true
+
   scope :ordered, -> { order(:position) }
 end

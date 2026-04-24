@@ -19,6 +19,8 @@ class LineItemComponent < ApplicationRecord
     1.0 => "portions.full"
   }.freeze
 
+  validates :line_item_id, :component_id, :component_type, presence: true
+  validates :unit_price_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :portion, inclusion: { in: [0.0, 0.25, 0.5, 0.75, 1.0] }
 
   def portion_label

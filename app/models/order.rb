@@ -26,6 +26,10 @@ class Order < ApplicationRecord
     update_columns(total_cents: line_items.reload.where.not(status: :cancelled).sum(:total_price_cents))
   end
 
+  def allows_item_addition?
+    open? || cooking? || ready? || delivered?
+  end
+
   def add_item!(product:, special_notes: nil)
     update!(status: :cooking) if ready? || delivered?
 
@@ -36,7 +40,6 @@ class Order < ApplicationRecord
       special_notes: special_notes
     )
     item.calculate_total!
-    broadcast_refresh_to "store_#{store_id}_kitchen"
     item
   end
 

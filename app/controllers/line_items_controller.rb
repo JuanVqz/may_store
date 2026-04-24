@@ -14,7 +14,7 @@ class LineItemsController < ApplicationController
 
   def create
     product = Current.store.products.find(line_item_params[:product_id])
-    notes = params[:special_notes].presence
+    notes = special_notes_param
 
     if @order.open?
       @line_item = @order.line_items.create!(
@@ -76,9 +76,21 @@ class LineItemsController < ApplicationController
     params.require(:line_item).permit(:product_id)
   end
 
+  def special_notes_param
+    params.permit(:special_notes)[:special_notes].presence
+  end
+
+  def ingredient_portions
+    params.permit(ingredients: {}).to_h.fetch("ingredients", {})
+  end
+
+  def extra_quantities
+    params.permit(extras: {}).to_h.fetch("extras", {}).select { |_, qty| qty.to_i > 0 }
+  end
+
   def build_components(line_item, product)
     product.product_components.ingredient.includes(:component).each do |pc|
-      portion = params.dig(:ingredients, pc.component_id.to_s).presence || 1.0
+      portion = ingredient_portions[pc.component_id.to_s].presence || 1.0
       LineItemComponent.create!(
         line_item: line_item,
         component: pc.component,
@@ -88,22 +100,20 @@ class LineItemsController < ApplicationController
       )
     end
 
-    extra_params = (params[:extras]&.to_unsafe_h || {}).select { |_, qty| qty.to_i > 0 }
-    if extra_params.any?
-      component_ids = extra_params.keys.map(&:to_i)
-      components_by_id = Current.store.components.where(id: component_ids).index_by(&:id)
+    if extra_quantities.any?
+      extras_by_component_id = product.product_components.extra.includes(:component).index_by(&:component_id)
 
-      extra_params.each do |component_id, quantity|
-        component = components_by_id[component_id.to_i]
-        next unless component
+      extra_quantities.each do |component_id, quantity|
+        pc = extras_by_component_id[component_id.to_i]
+        next unless pc
 
         quantity.to_i.times do
           LineItemComponent.create!(
             line_item: line_item,
-            component: component,
+            component: pc.component,
             component_type: :extra,
             portion: 1.0,
-            unit_price_cents: component.price_cents
+            unit_price_cents: pc.component.price_cents
           )
         end
       end
