@@ -23,6 +23,6 @@ class Payment < ApplicationRecord
     errors.add(:received_cents, :blank) if received_cents.nil?
     return if received_cents.nil? || received_cents >= amount_cents
 
-    errors.add(:received_cents, "debe ser mayor o igual a #{formatted_amount}")
+    errors.add(:received_cents, :insufficient, amount: formatted_amount)
   end
 end

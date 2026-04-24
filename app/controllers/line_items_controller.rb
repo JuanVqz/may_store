@@ -88,19 +88,24 @@ class LineItemsController < ApplicationController
       )
     end
 
-    (params[:extras] || {}).each do |component_id, quantity|
-      qty = quantity.to_i
-      next if qty <= 0
+    extra_params = (params[:extras]&.to_unsafe_h || {}).select { |_, qty| qty.to_i > 0 }
+    if extra_params.any?
+      component_ids = extra_params.keys.map(&:to_i)
+      components_by_id = Current.store.components.where(id: component_ids).index_by(&:id)
 
-      component = Current.store.components.find(component_id)
-      qty.times do
-        LineItemComponent.create!(
-          line_item: line_item,
-          component: component,
-          component_type: :extra,
-          portion: 1.0,
-          unit_price_cents: component.price_cents
-        )
+      extra_params.each do |component_id, quantity|
+        component = components_by_id[component_id.to_i]
+        next unless component
+
+        quantity.to_i.times do
+          LineItemComponent.create!(
+            line_item: line_item,
+            component: component,
+            component_type: :extra,
+            portion: 1.0,
+            unit_price_cents: component.price_cents
+          )
+        end
       end
     end
   end

@@ -33,7 +33,5 @@ Rails.application.routes.draw do
 
   get "kitchen", to: "kitchen#index", as: :kitchen
 
-  get "admin", to: "admin/dashboard#index", as: :admin_dashboard
-
   get "up" => "rails/health#show", as: :rails_health_check
 end

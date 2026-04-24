@@ -53,10 +53,19 @@ class Order < ApplicationRecord
   end
 
   def readiness_counts
-    active = line_items.where.not(status: :cancelled)
-    total_count = active.count
-    ready_count = active.where(status: [:ready, :delivered]).count
-    delivered_count = active.where(status: :delivered).count
+    if line_items.loaded?
+      active = line_items.reject(&:cancelled?)
+      total_count = active.size
+      ready_count = active.count { |li| li.ready? || li.delivered? }
+      delivered_count = active.count(&:delivered?)
+    else
+      rows = line_items.where.not(status: :cancelled)
+                       .group(:status)
+                       .count
+      total_count = rows.values.sum
+      ready_count = (rows["ready"] || 0) + (rows["delivered"] || 0)
+      delivered_count = rows["delivered"] || 0
+    end
     { ready: ready_count, delivered: delivered_count, total: total_count }
   end
 end
