@@ -81,14 +81,11 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: may_store_production
-    username: may_store
-    password: <%= ENV["MAY_STORE_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: may_store_production_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: may_store_production_queue
-    migrations_paths: db/queue_migrate
+    url: <%= ENV["DATABASE_URL"] %>
+  # TODO: restore when Solid Cache/Queue are enabled with dedicated DB connections
+  # cache:
+  #   <<: *primary_production
+  #   migrations_paths: db/cache_migrate
+  # queue:
+  #   <<: *primary_production
+  #   migrations_paths: db/queue_migrate
