@@ -82,10 +82,12 @@ production:
   primary: &primary_production
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
-  # TODO: restore when Solid Cache/Queue are enabled with dedicated DB connections
-  # cache:
-  #   <<: *primary_production
-  #   migrations_paths: db/cache_migrate
-  # queue:
-  #   <<: *primary_production
-  #   migrations_paths: db/queue_migrate
+  # Solid Cache/Queue gems require these connections to be defined even when
+  # their adapters are disabled in production.rb. Both point to the primary DB
+  # until dedicated connections are provisioned.
+  cache:
+    <<: *primary_production
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    migrations_paths: db/queue_migrate
