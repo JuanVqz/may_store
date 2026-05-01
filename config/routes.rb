@@ -33,5 +33,14 @@ Rails.application.routes.draw do
 
   get "kitchen", to: "kitchen#index", as: :kitchen
 
+  namespace :admin do
+    root "categories#index"
+    resources :categories
+    resources :components
+    resources :products
+    resources :spots
+    resources :payment_methods
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

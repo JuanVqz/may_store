@@ -1,0 +1,28 @@
+<%# locals: (payment_method:) %>
+<%= form_with model: [:admin, payment_method], class: "space-y-4" do |f| %>
+  <% if payment_method.errors.any? %>
+    <%= render "components/alert", variant: :destructive do %>
+      <ul class="list-disc list-inside text-sm">
+        <% payment_method.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <div>
+    <%= f.label :name, t("admin.payment_methods.attributes.name"), class: "block text-sm font-medium mb-1" %>
+    <%= f.text_field :name, class: "w-full", data: { component: "input" } %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, data: { component: "checkbox" } %>
+    <%= f.label :active, t("admin.payment_methods.attributes.active"), class: "text-sm font-medium" %>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit t("save"), data: { component: "button", variant: "default" } %>
+    <%= link_to t("cancel"), admin_payment_methods_path,
+      data: { component: "button", variant: "outline" } %>
+  </div>
+<% end %>

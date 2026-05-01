@@ -1,0 +1,24 @@
+<% content_for :title, t("admin.products.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold"><%= t("admin.products.title") %></h1>
+  <%= link_to t("admin.products.new"), new_admin_product_path,
+    data: { component: "button", variant: "default", size: "sm" } %>
+</div>
+
+<%= render "components/card" do %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @products,
+      empty_message: t("no_results"),
+      columns: [
+        { key: :name, label: t("admin.products.attributes.name") },
+        { key: ->(p) { p.category.name }, label: t("admin.products.attributes.category") },
+        { key: ->(p) { p.formatted_base_price }, label: t("admin.products.attributes.base_price") },
+        { key: ->(p) { render "admin/products/available_badge", product: p }, label: t("admin.products.attributes.available") },
+        { key: ->(p) { render "admin/products/actions", product: p }, label: "" }
+      ] %>
+  <% end %>
+<% end %>

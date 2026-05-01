@@ -1,0 +1,35 @@
+<%# locals: (spot:) %>
+<%= form_with model: [:admin, spot], class: "space-y-4" do |f| %>
+  <% if spot.errors.any? %>
+    <%= render "components/alert", variant: :destructive do %>
+      <ul class="list-disc list-inside text-sm">
+        <% spot.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <div>
+    <%= f.label :name, t("admin.spots.attributes.name"), class: "block text-sm font-medium mb-1" %>
+    <%= f.text_field :name, class: "w-full", data: { component: "input" } %>
+  </div>
+
+  <div>
+    <%= f.label :spot_type, t("admin.spots.attributes.spot_type"), class: "block text-sm font-medium mb-1" %>
+    <%= f.select :spot_type, Spot.spot_types.keys.map { |k| [t("spot_types.#{k}"), k] },
+      {},
+      { data: { component: "select" }, class: "w-full" } %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, data: { component: "checkbox" } %>
+    <%= f.label :active, t("admin.spots.attributes.active"), class: "text-sm font-medium" %>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit t("save"), data: { component: "button", variant: "default" } %>
+    <%= link_to t("cancel"), admin_spots_path,
+      data: { component: "button", variant: "outline" } %>
+  </div>
+<% end %>

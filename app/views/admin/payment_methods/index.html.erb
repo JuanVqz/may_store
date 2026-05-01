@@ -1,0 +1,22 @@
+<% content_for :title, t("admin.payment_methods.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold"><%= t("admin.payment_methods.title") %></h1>
+  <%= link_to t("admin.payment_methods.new"), new_admin_payment_method_path,
+    data: { component: "button", variant: "default", size: "sm" } %>
+</div>
+
+<%= render "components/card" do %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @payment_methods,
+      empty_message: t("no_results"),
+      columns: [
+        { key: :name, label: t("admin.payment_methods.attributes.name") },
+        { key: ->(pm) { render "admin/payment_methods/active_badge", payment_method: pm }, label: t("admin.payment_methods.attributes.active") },
+        { key: ->(pm) { render "admin/payment_methods/actions", payment_method: pm }, label: "" }
+      ] %>
+  <% end %>
+<% end %>

@@ -1,0 +1,13 @@
+<% content_for :title, t("admin.products.new") %>
+
+<%= render "admin/shared/nav" %>
+
+<div class="mb-4">
+  <h1 class="text-xl font-semibold"><%= t("admin.products.new") %></h1>
+</div>
+
+<%= render "components/card" do %>
+  <%= render "components/card/content" do %>
+    <%= render "form", product: @product %>
+  <% end %>
+<% end %>

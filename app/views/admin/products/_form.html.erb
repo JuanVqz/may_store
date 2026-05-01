@@ -1,0 +1,66 @@
+<%# locals: (product:) %>
+<% store_components = Current.store.components.active.order(:name) %>
+
+<%= form_with model: [:admin, product], class: "space-y-4",
+  data: { controller: "product-components" } do |f| %>
+  <% if product.errors.any? %>
+    <%= render "components/alert", variant: :destructive do %>
+      <ul class="list-disc list-inside text-sm">
+        <% product.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <div>
+    <%= f.label :name, t("admin.products.attributes.name"), class: "block text-sm font-medium mb-1" %>
+    <%= f.text_field :name, class: "w-full", data: { component: "input" } %>
+  </div>
+
+  <div>
+    <%= f.label :base_price, t("admin.products.attributes.base_price"), class: "block text-sm font-medium mb-1" %>
+    <%= f.number_field :base_price, step: 0.01, min: 0, class: "w-full", data: { component: "input" } %>
+  </div>
+
+  <div>
+    <%= f.label :category_id, t("admin.products.attributes.category"), class: "block text-sm font-medium mb-1" %>
+    <%= f.collection_select :category_id, Current.store.categories.active.ordered, :id, :name,
+      { include_blank: t("admin.products.select_category") },
+      { data: { component: "select" }, class: "w-full" } %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :available, data: { component: "checkbox" } %>
+    <%= f.label :available, t("admin.products.attributes.available"), class: "text-sm font-medium" %>
+  </div>
+
+  <div>
+    <div class="flex items-center justify-between mb-2">
+      <label class="block text-sm font-medium"><%= t("admin.products.components_label") %></label>
+      <button type="button"
+        data-action="product-components#add"
+        class="text-sm text-primary hover:underline">
+        + <%= t("admin.products.add_component") %>
+      </button>
+    </div>
+
+    <template data-product-components-target="template">
+      <%= f.fields_for :product_components, ProductComponent.new, child_index: "NEW_RECORD" do |pf| %>
+        <%= render "product_component_fields", f: pf, store_components: store_components %>
+      <% end %>
+    </template>
+
+    <div class="space-y-2" data-product-components-target="container">
+      <%= f.fields_for :product_components do |pf| %>
+        <%= render "product_component_fields", f: pf, store_components: store_components %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit t("save"), data: { component: "button", variant: "default" } %>
+    <%= link_to t("cancel"), admin_products_path,
+      data: { component: "button", variant: "outline" } %>
+  </div>
+<% end %>

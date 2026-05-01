@@ -501,3 +501,87 @@ es:
       default: "%d de %B de %Y %H:%M"
       short: "%d %b %H:%M"
       time_only: "%H:%M"
+
+  # ============================================
+  # Admin
+  # ============================================
+  admin:
+    confirm_delete: "¿Estás seguro? Esta acción no se puede deshacer."
+    available: "Disponible"
+    unavailable: "No disponible"
+    active: "Activo"
+    inactive: "Inactivo"
+
+    nav:
+      title: "Administración"
+      categories: "Categorías"
+      components: "Ingredientes"
+      products: "Productos"
+      spots: "Mesas y Lugares"
+      payment_methods: "Métodos de Pago"
+
+    component_types:
+      ingredient: "Ingrediente"
+      extra: "Extra"
+
+    categories:
+      title: "Categorías"
+      new: "Nueva Categoría"
+      edit: "Editar Categoría"
+      created: "Categoría creada exitosamente."
+      updated: "Categoría actualizada exitosamente."
+      deleted: "Categoría eliminada exitosamente."
+      attributes:
+        name: "Nombre"
+
+    components:
+      title: "Ingredientes y Extras"
+      new: "Nuevo Ingrediente"
+      edit: "Editar Ingrediente"
+      created: "Ingrediente creado exitosamente."
+      updated: "Ingrediente actualizado exitosamente."
+      deleted: "Ingrediente eliminado exitosamente."
+      attributes:
+        name: "Nombre"
+        price: "Precio extra"
+        available: "Disponible"
+
+    products:
+      title: "Productos"
+      new: "Nuevo Producto"
+      edit: "Editar Producto"
+      created: "Producto creado exitosamente."
+      updated: "Producto actualizado exitosamente."
+      deleted: "Producto eliminado exitosamente."
+      components_label: "Ingredientes y Extras"
+      add_component: "Agregar ingrediente"
+      select_component: "Seleccionar ingrediente..."
+      select_category: "Seleccionar categoría..."
+      attributes:
+        name: "Nombre"
+        base_price: "Precio base"
+        category: "Categoría"
+        available: "Disponible"
+
+    spots:
+      title: "Mesas y Lugares"
+      new: "Nuevo Lugar"
+      edit: "Editar Lugar"
+      created: "Lugar creado exitosamente."
+      updated: "Lugar actualizado exitosamente."
+      deleted: "Lugar eliminado exitosamente."
+      attributes:
+        name: "Nombre"
+        spot_type: "Tipo"
+        active: "Activo"
+
+    payment_methods:
+      title: "Métodos de Pago"
+      new: "Nuevo Método de Pago"
+      edit: "Editar Método de Pago"
+      created: "Método de pago creado exitosamente."
+      updated: "Método de pago actualizado exitosamente."
+      deleted: "Método de pago eliminado exitosamente."
+      attributes:
+        name: "Nombre"
+        active: "Activo"

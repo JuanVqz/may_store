@@ -1,0 +1,23 @@
+<% content_for :title, t("admin.components.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold"><%= t("admin.components.title") %></h1>
+  <%= link_to t("admin.components.new"), new_admin_component_path,
+    data: { component: "button", variant: "default", size: "sm" } %>
+</div>
+
+<%= render "components/card" do %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @components,
+      empty_message: t("no_results"),
+      columns: [
+        { key: :name, label: t("admin.components.attributes.name") },
+        { key: ->(c) { c.formatted_price }, label: t("admin.components.attributes.price") },
+        { key: ->(c) { render "admin/components/available_badge", component: c }, label: t("admin.components.attributes.available") },
+        { key: ->(c) { render "admin/components/actions", component: c }, label: "" }
+      ] %>
+  <% end %>
+<% end %>

@@ -1,0 +1,20 @@
+<%# locals: (f:, store_components:) %>
+<div class="flex items-center gap-2 p-2 border rounded-md" data-product-components-target="row">
+  <div class="flex-1">
+    <%= f.collection_select :component_id, store_components, :id, :name,
+      { include_blank: t("admin.products.select_component") },
+      { data: { component: "select" }, class: "w-full" } %>
+  </div>
+  <div class="w-32">
+    <%= f.select :component_type, ProductComponent.component_types.keys.map { |k| [t("admin.component_types.#{k}"), k] },
+      {},
+      { data: { component: "select" } } %>
+  </div>
+  <%= f.hidden_field :_destroy, data: { product_components_target: "destroy" } %>
+  <button type="button"
+    data-action="product-components#remove"
+    data-product-components-target="removeBtn"
+    class="text-muted-foreground hover:text-destructive">
+    &times;
+  </button>
+</div>
