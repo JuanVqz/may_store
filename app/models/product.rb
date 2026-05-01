@@ -6,7 +6,7 @@ class Product < ApplicationRecord
   belongs_to :category
   has_many :product_components, dependent: :destroy
   has_many :components, through: :product_components
-  accepts_nested_attributes_for :product_components, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :product_components, allow_destroy: true, reject_if: ->(attrs) { attrs["component_id"].blank? }
 
   price_in_cents :base_price
 

@@ -362,6 +362,13 @@ es:
         base_price_cents: "Precio base"
         available: "Disponible"
         allows_customization: "Permite personalizacion"
+        category: "Categoría"
+        product_components: "Ingredientes"
+      product_component:
+        component: "Ingrediente"
+        component_id: "Ingrediente"
+        product_id: "Producto"
+        component_type: "Tipo"
       component:
         name: "Nombre"
         description: "Descripcion"
@@ -388,7 +395,14 @@ es:
     errors:
       messages:
         record_invalid: "Validación falló: %{errors}"
+        blank: "no puede estar en blanco"
+        required: "debe existir"
+        taken: "ya está en uso"
         greater_than_or_equal_to: "debe ser mayor o igual a %{count}"
+        greater_than: "debe ser mayor que %{count}"
+        less_than: "debe ser menor que %{count}"
+        not_a_number: "no es un número"
+        inclusion: "no está incluido en la lista"
       models:
         account:
           attributes:
