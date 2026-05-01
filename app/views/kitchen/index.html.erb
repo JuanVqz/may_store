@@ -3,21 +3,40 @@
 
 <% content_for :title, t("kitchen.title") %>
 
-<div class="flex items-center justify-between mb-4">
-  <span class="text-sm text-muted-foreground"><%= t("kitchen.ordered_by") %>: <%= t("kitchen.oldest_first") %></span>
-  <span class="text-sm text-muted-foreground" id="kitchen-queue-count"><%= t("kitchen.queue_count", count: @line_items.size) %></span>
-</div>
+<div data-view="kitchen">
+  <div class="flex items-center justify-between mb-4">
+    <span class="text-sm text-muted-foreground"><%= t("kitchen.ordered_by") %>: <%= t("kitchen.oldest_first") %></span>
+    <span class="text-sm text-muted-foreground" id="kitchen-queue-count"><%= t("kitchen.queue_count", count: @line_items.size) %></span>
+  </div>
 
-<div id="kitchen-queue" class="space-y-3">
-  <% if @line_items.empty? %>
-    <%= render "components/empty" do %>
-      <%= render "components/empty/header" do %>
-        <%= render "components/empty/title", text: t("kitchen.no_items") %>
+  <div id="kitchen-queue" class="space-y-6">
+    <% if @line_items.empty? %>
+      <%= render "components/empty" do %>
+        <%= render "components/empty/header" do %>
+          <%= render "components/empty/title", text: t("kitchen.no_items") %>
+        <% end %>
       <% end %>
     <% end %>
-  <% end %>
-  <% oldest_cooking_id = @line_items.find(&:cooking?)&.id %>
-  <% @line_items.each do |item| %>
-    <%= render "kitchen/line_item_card", item: item, oldest_cooking_id: oldest_cooking_id %>
-  <% end %>
+    <% oldest_cooking_id = @line_items.find(&:cooking?)&.id %>
+    <% @line_items.group_by(&:order).each do |order, items| %>
+      <% spot = order.spot %>
+      <% spot_label = spot.takeout? ? t("spot_types.takeout") : spot.name %>
+      <div class="border-2 border-border rounded-lg overflow-hidden"
+           data-kitchen-order="<%= order.id %>"
+           data-controller="print">
+        <div class="flex items-center justify-between bg-muted px-4 py-3 border-b border-border kitchen-order-header">
+          <span><%= order.code %> &middot; <%= spot_label %></span>
+          <button class="kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer"
+                  data-action="click->print#printOrder">
+            <%= t("print") %>
+          </button>
+        </div>
+        <div class="space-y-3 p-3">
+          <% items.each do |item| %>
+            <%= render "kitchen/line_item_card", item: item, oldest_cooking_id: oldest_cooking_id %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
 </div>
