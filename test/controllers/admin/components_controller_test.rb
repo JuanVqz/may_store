@@ -57,6 +57,12 @@ class Admin::ComponentsControllerTest < ActionDispatch::IntegrationTest
     assert_predicate @component.reload, :deleted?
   end
 
+  test "unauthenticated request redirects to login" do
+    delete logout_url(subdomain: @store.subdomain)
+    get admin_components_url(subdomain: @store.subdomain)
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
   test "cannot access other store component" do
     other = Component.create!(store: @other_store, name: "Other", price_cents: 0, available: true)
     get edit_admin_component_url(other, subdomain: @store.subdomain)

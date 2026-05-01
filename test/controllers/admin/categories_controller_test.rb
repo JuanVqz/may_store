@@ -61,6 +61,12 @@ class Admin::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_predicate @category.reload, :deleted?
   end
 
+  test "unauthenticated request redirects to login" do
+    delete logout_url(subdomain: @store.subdomain)
+    get admin_categories_url(subdomain: @store.subdomain)
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
   test "cannot access other store category" do
     other = Category.create!(store: @other_store, name: "Other", position: 1)
     get edit_admin_category_url(other, subdomain: @store.subdomain)

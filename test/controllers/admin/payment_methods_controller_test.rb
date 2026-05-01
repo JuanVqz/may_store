@@ -56,6 +56,12 @@ class Admin::PaymentMethodsControllerTest < ActionDispatch::IntegrationTest
     assert_raises(ActiveRecord::RecordNotFound) { pm.reload }
   end
 
+  test "unauthenticated request redirects to login" do
+    delete logout_url(subdomain: @store.subdomain)
+    get admin_payment_methods_url(subdomain: @store.subdomain)
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
   test "cannot access other store payment method" do
     other = PaymentMethod.create!(store: @other_store, name: "Other", active: true)
     get edit_admin_payment_method_url(other, subdomain: @store.subdomain)

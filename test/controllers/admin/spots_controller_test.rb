@@ -56,6 +56,12 @@ class Admin::SpotsControllerTest < ActionDispatch::IntegrationTest
     assert_raises(ActiveRecord::RecordNotFound) { spot.reload }
   end
 
+  test "unauthenticated request redirects to login" do
+    delete logout_url(subdomain: @store.subdomain)
+    get admin_spots_url(subdomain: @store.subdomain)
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
   test "cannot access other store spot" do
     other = Spot.create!(store: @other_store, name: "Mesa Y", spot_type: :dine_in)
     get edit_admin_spot_url(other, subdomain: @store.subdomain)

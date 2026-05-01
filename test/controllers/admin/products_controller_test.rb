@@ -65,4 +65,33 @@ class Admin::ProductsControllerTest < ActionDispatch::IntegrationTest
     get edit_admin_product_url(other, subdomain: @store.subdomain)
     assert_response :not_found
   end
+
+  test "unauthenticated request redirects to login" do
+    delete logout_url(subdomain: @store.subdomain)
+    get admin_products_url(subdomain: @store.subdomain)
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
+  test "create with nested product components saves them" do
+    component = components(:espresso_shot)
+    assert_difference "ProductComponent.count", 1 do
+      post admin_products_url(subdomain: @store.subdomain),
+        params: { product: {
+          name: "Latte", base_price: "50.00", category_id: @category.id, available: "1",
+          product_components_attributes: { "0" => { component_id: component.id, component_type: "ingredient" } }
+        } }
+    end
+    assert_equal component, Product.last.product_components.first.component
+  end
+
+  test "create with empty nested component row does not create component" do
+    assert_difference "ProductComponent.count", 0 do
+      post admin_products_url(subdomain: @store.subdomain),
+        params: { product: {
+          name: "Plain", base_price: "30.00", category_id: @category.id, available: "1",
+          product_components_attributes: { "0" => { component_id: "", component_type: "ingredient" } }
+        } }
+    end
+    assert_response :redirect
+  end
 end
