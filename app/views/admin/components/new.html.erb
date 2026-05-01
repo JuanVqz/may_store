@@ -2,11 +2,10 @@
 
 <%= render "admin/shared/nav" %>
 
-<div class="mb-4">
-  <h1 class="text-xl font-semibold"><%= t("admin.components.new") %></h1>
-</div>
-
 <%= render "components/card" do %>
+  <%= render "components/card/header" do %>
+    <%= render "components/card/title", text: t("admin.components.new") %>
+  <% end %>
   <%= render "components/card/content" do %>
     <%= render "form", component: @component %>
   <% end %>

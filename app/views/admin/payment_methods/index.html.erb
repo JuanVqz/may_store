@@ -2,13 +2,16 @@
 
 <%= render "admin/shared/nav" %>
 
-<div class="flex items-center justify-between mb-4">
-  <h1 class="text-xl font-semibold"><%= t("admin.payment_methods.title") %></h1>
-  <%= link_to t("admin.payment_methods.new"), new_admin_payment_method_path,
-    data: { component: "button", variant: "default", size: "sm" } %>
-</div>
-
 <%= render "components/card" do %>
+  <%= render "components/card/header", layout: :row do %>
+    <div>
+      <%= render "components/card/title", text: t("admin.payment_methods.title") %>
+    </div>
+    <%= render "components/card/action" do %>
+      <%= link_to t("admin.payment_methods.new"), new_admin_payment_method_path,
+        data: { component: "button", variant: "default", size: "sm" } %>
+    <% end %>
+  <% end %>
   <%= render "components/card/content", spacing: :full do %>
     <%= render "components/simple_table",
       collection: @payment_methods,
