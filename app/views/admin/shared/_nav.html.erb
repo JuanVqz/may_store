@@ -1,12 +1,12 @@
 <nav class="flex gap-1 mb-6 border-b pb-3 flex-wrap">
-  <%= link_to t("admin.nav.categories"), admin_categories_path,
-    class: "rounded-md px-3 py-1.5 text-sm font-medium transition-colors #{controller_name == 'categories' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}" %>
-  <%= link_to t("admin.nav.components"), admin_components_path,
-    class: "rounded-md px-3 py-1.5 text-sm font-medium transition-colors #{controller_name == 'components' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}" %>
-  <%= link_to t("admin.nav.products"), admin_products_path,
-    class: "rounded-md px-3 py-1.5 text-sm font-medium transition-colors #{controller_name == 'products' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}" %>
-  <%= link_to t("admin.nav.spots"), admin_spots_path,
-    class: "rounded-md px-3 py-1.5 text-sm font-medium transition-colors #{controller_name == 'spots' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}" %>
-  <%= link_to t("admin.nav.payment_methods"), admin_payment_methods_path,
-    class: "rounded-md px-3 py-1.5 text-sm font-medium transition-colors #{controller_name == 'payment_methods' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}" %>
+  <% [
+    [t("admin.nav.categories"),      admin_categories_path,      "categories"],
+    [t("admin.nav.components"),      admin_components_path,      "components"],
+    [t("admin.nav.products"),        admin_products_path,        "products"],
+    [t("admin.nav.spots"),           admin_spots_path,           "spots"],
+    [t("admin.nav.payment_methods"), admin_payment_methods_path, "payment_methods"]
+  ].each do |label, path, ctrl| %>
+    <%= link_to label, path,
+      data: { component: "button", variant: ctrl == controller_name ? "secondary" : "ghost", size: "sm" } %>
+  <% end %>
 </nav>
