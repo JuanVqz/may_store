@@ -1,0 +1,32 @@
+<% content_for :title, t("admin.payment_methods.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header", layout: :row do %>
+    <div>
+      <%= render "components/card/title", text: t("admin.payment_methods.title") %>
+    </div>
+    <%= render "components/card/action" do %>
+      <%= link_to t("admin.payment_methods.new"), new_admin_payment_method_path,
+        data: { component: "button", variant: "default", size: "sm" } %>
+    <% end %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_payment_methods_path,
+      placeholder: t("admin.payment_methods.search_placeholder") %>
+  <% end %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @payment_methods,
+      empty_message: t("no_results"),
+      columns: [
+        { key: :name, label: t("admin.payment_methods.attributes.name") },
+        { key: ->(pm) { render "admin/payment_methods/active_badge", payment_method: pm }, label: t("admin.payment_methods.attributes.active") },
+        { key: ->(pm) { render "admin/payment_methods/actions", payment_method: pm }, label: "" }
+      ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
+  <% end %>
+<% end %>

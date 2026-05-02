@@ -1,0 +1,12 @@
+<% content_for :title, t("admin.payment_methods.new") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header" do %>
+    <%= render "components/card/title", text: t("admin.payment_methods.new") %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "form", payment_method: @payment_method %>
+  <% end %>
+<% end %>

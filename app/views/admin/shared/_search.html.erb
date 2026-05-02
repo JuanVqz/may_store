@@ -1,0 +1,13 @@
+<%# locals: (url:, placeholder: nil) %>
+<%= form_with url: url, method: :get, data: { turbo_frame: "_top" } do |f| %>
+  <div class="flex gap-2">
+    <%= f.search_field :q, value: params[:q],
+      placeholder: placeholder || t("admin.search_placeholder"),
+      data: { component: "input" },
+      class: "flex-1" %>
+    <%= f.submit t("admin.search"), data: { component: "button", variant: "secondary", size: "sm" } %>
+    <% if params[:q].present? %>
+      <%= link_to t("admin.clear"), url, data: { component: "button", variant: "ghost", size: "sm" } %>
+    <% end %>
+  </div>
+<% end %>

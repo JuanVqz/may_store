@@ -1,0 +1,6 @@
+<%# locals: (payment_method:) %>
+<% if payment_method.active? %>
+  <%= render "components/badge", variant: :default do %><%= t("admin.active") %><% end %>
+<% else %>
+  <%= render "components/badge", variant: :secondary do %><%= t("admin.inactive") %><% end %>
+<% end %>

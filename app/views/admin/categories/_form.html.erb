@@ -1,0 +1,23 @@
+<%# locals: (category:) %>
+<%= form_with model: [:admin, category], class: "space-y-4" do |f| %>
+  <% if category.errors.any? %>
+    <%= render "components/alert", variant: :destructive do %>
+      <ul class="list-disc list-inside text-sm">
+        <% category.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <div>
+    <%= f.label :name, t("admin.categories.attributes.name"), class: "block text-sm font-medium mb-1" %>
+    <%= f.text_field :name, class: "w-full", data: { component: "input" } %>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit t("save"), data: { component: "button", variant: "default" } %>
+    <%= link_to t("cancel"), admin_categories_path,
+      data: { component: "button", variant: "outline" } %>
+  </div>
+<% end %>

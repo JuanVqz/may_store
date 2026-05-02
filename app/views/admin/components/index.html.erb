@@ -1,0 +1,33 @@
+<% content_for :title, t("admin.components.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header", layout: :row do %>
+    <div>
+      <%= render "components/card/title", text: t("admin.components.title") %>
+    </div>
+    <%= render "components/card/action" do %>
+      <%= link_to t("admin.components.new"), new_admin_component_path,
+        data: { component: "button", variant: "default", size: "sm" } %>
+    <% end %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_components_path,
+      placeholder: t("admin.components.search_placeholder") %>
+  <% end %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @components,
+      empty_message: t("no_results"),
+      columns: [
+        { key: :name, label: t("admin.components.attributes.name") },
+        { key: ->(c) { c.formatted_price }, label: t("admin.components.attributes.price") },
+        { key: ->(c) { render "admin/components/available_badge", component: c }, label: t("admin.components.attributes.available") },
+        { key: ->(c) { render "admin/components/actions", component: c }, label: "" }
+      ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
+  <% end %>
+<% end %>

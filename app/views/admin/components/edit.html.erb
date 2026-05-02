@@ -1,0 +1,12 @@
+<% content_for :title, t("admin.components.edit") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header" do %>
+    <%= render "components/card/title", text: t("admin.components.edit") %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "form", component: @component %>
+  <% end %>
+<% end %>

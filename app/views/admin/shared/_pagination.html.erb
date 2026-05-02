@@ -1,0 +1,34 @@
+<%# locals: (pagy:) %>
+<% return unless pagy.pages > 1 %>
+
+<%= render "components/pagination" do %>
+  <%= render "components/pagination/content" do %>
+    <%= render "components/pagination/item" do %>
+      <%= render "components/pagination/previous",
+        href: pagy.prev ? pagy_url_for(pagy, pagy.prev) : nil,
+        label: t("admin.pagination.previous"),
+        disabled: pagy.prev.nil? %>
+    <% end %>
+
+    <% pagy.series.each do |item| %>
+      <%= render "components/pagination/item" do %>
+        <% if item == :gap %>
+          <%= render "components/pagination/ellipsis" %>
+        <% else %>
+          <%= render "components/pagination/link",
+            href: pagy_url_for(pagy, item),
+            active: item == pagy.page do %>
+            <%= item %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= render "components/pagination/item" do %>
+      <%= render "components/pagination/next",
+        href: pagy.next ? pagy_url_for(pagy, pagy.next) : nil,
+        label: t("admin.pagination.next"),
+        disabled: pagy.next.nil? %>
+    <% end %>
+  <% end %>
+<% end %>
