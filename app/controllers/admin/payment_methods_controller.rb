@@ -2,7 +2,9 @@ class Admin::PaymentMethodsController < Admin::BaseController
   before_action :set_payment_method, only: [:edit, :update, :destroy]
 
   def index
-    @payment_methods = Current.store.payment_methods.order(:name)
+    scope = Current.store.payment_methods.order(:name)
+    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    @pagy, @payment_methods = pagy(scope)
   end
 
   def new

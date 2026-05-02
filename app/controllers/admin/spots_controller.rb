@@ -2,7 +2,11 @@ class Admin::SpotsController < Admin::BaseController
   before_action :set_spot, only: [:edit, :update, :destroy]
 
   def index
-    @spots = Current.store.spots.order(:spot_type, :name)
+    scope = Current.store.spots.order(:spot_type, :name)
+    if params[:q].present?
+      scope = scope.where("name ILIKE ?", "%#{params[:q]}%")
+    end
+    @pagy, @spots = pagy(scope)
   end
 
   def new

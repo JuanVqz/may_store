@@ -12,6 +12,10 @@
         data: { component: "button", variant: "default", size: "sm" } %>
     <% end %>
   <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_payment_methods_path,
+      placeholder: t("admin.payment_methods.search_placeholder") %>
+  <% end %>
   <%= render "components/card/content", spacing: :full do %>
     <%= render "components/simple_table",
       collection: @payment_methods,
@@ -21,5 +25,8 @@
         { key: ->(pm) { render "admin/payment_methods/active_badge", payment_method: pm }, label: t("admin.payment_methods.attributes.active") },
         { key: ->(pm) { render "admin/payment_methods/actions", payment_method: pm }, label: "" }
       ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
   <% end %>
 <% end %>

@@ -12,6 +12,10 @@
         data: { component: "button", variant: "default", size: "sm" } %>
     <% end %>
   <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_spots_path,
+      placeholder: t("admin.spots.search_placeholder") %>
+  <% end %>
   <%= render "components/card/content", spacing: :full do %>
     <%= render "components/simple_table",
       collection: @spots,
@@ -22,5 +26,8 @@
         { key: ->(s) { render "admin/spots/active_badge", spot: s }, label: t("admin.spots.attributes.active") },
         { key: ->(s) { render "admin/spots/actions", spot: s }, label: "" }
       ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
   <% end %>
 <% end %>

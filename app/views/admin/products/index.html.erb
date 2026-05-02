@@ -12,6 +12,10 @@
         data: { component: "button", variant: "default", size: "sm" } %>
     <% end %>
   <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_products_path,
+      placeholder: t("admin.products.search_placeholder") %>
+  <% end %>
   <%= render "components/card/content", spacing: :full do %>
     <%= render "components/simple_table",
       collection: @products,
@@ -23,5 +27,8 @@
         { key: ->(p) { render "admin/products/available_badge", product: p }, label: t("admin.products.attributes.available") },
         { key: ->(p) { render "admin/products/actions", product: p }, label: "" }
       ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
   <% end %>
 <% end %>

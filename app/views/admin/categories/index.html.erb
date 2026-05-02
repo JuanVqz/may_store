@@ -12,6 +12,10 @@
         data: { component: "button", variant: "default", size: "sm" } %>
     <% end %>
   <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/search", url: admin_categories_path,
+      placeholder: t("admin.categories.search_placeholder") %>
+  <% end %>
   <%= render "components/card/content", spacing: :full do %>
     <%= render "components/simple_table",
       collection: @categories,
@@ -20,5 +24,8 @@
         { key: :name, label: t("admin.categories.attributes.name") },
         { key: ->(c) { render "admin/categories/actions", category: c }, label: "" }
       ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
   <% end %>
 <% end %>

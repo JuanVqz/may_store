@@ -525,6 +525,13 @@ es:
     unavailable: "No disponible"
     active: "Activo"
     inactive: "Inactivo"
+    search: "Buscar"
+    search_placeholder: "Buscar..."
+    clear: "Limpiar"
+
+    pagination:
+      previous: "Anterior"
+      next: "Siguiente"
 
     nav:
       title: "Administración"
@@ -545,6 +552,7 @@ es:
       created: "Categoría creada exitosamente."
       updated: "Categoría actualizada exitosamente."
       deleted: "Categoría eliminada exitosamente."
+      search_placeholder: "Buscar por nombre..."
       attributes:
         name: "Nombre"
 
@@ -555,6 +563,7 @@ es:
       created: "Ingrediente creado exitosamente."
       updated: "Ingrediente actualizado exitosamente."
       deleted: "Ingrediente eliminado exitosamente."
+      search_placeholder: "Buscar por nombre..."
       attributes:
         name: "Nombre"
         price: "Precio extra"
@@ -567,6 +576,7 @@ es:
       created: "Producto creado exitosamente."
       updated: "Producto actualizado exitosamente."
       deleted: "Producto eliminado exitosamente."
+      search_placeholder: "Buscar por nombre o categoría..."
       components_label: "Ingredientes y Extras"
       add_component: "Agregar ingrediente"
       select_component: "Seleccionar ingrediente..."
@@ -584,6 +594,7 @@ es:
       created: "Lugar creado exitosamente."
       updated: "Lugar actualizado exitosamente."
       deleted: "Lugar eliminado exitosamente."
+      search_placeholder: "Buscar por nombre..."
       attributes:
         name: "Nombre"
         spot_type: "Tipo"
@@ -596,6 +607,7 @@ es:
       created: "Método de pago creado exitosamente."
       updated: "Método de pago actualizado exitosamente."
       deleted: "Método de pago eliminado exitosamente."
+      search_placeholder: "Buscar por nombre..."
       attributes:
         name: "Nombre"
         active: "Activo"

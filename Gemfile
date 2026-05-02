@@ -6,6 +6,7 @@ gem "bootsnap", require: false
 gem "importmap-rails"
 gem "kamal", require: false
 gem "maquina-components"
+gem "pagy", "~> 9.3"
 gem "pg", "~> 1.1"
 gem "propshaft"
 gem "puma", ">= 5.0"

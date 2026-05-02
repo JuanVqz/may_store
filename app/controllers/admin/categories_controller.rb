@@ -2,7 +2,9 @@ class Admin::CategoriesController < Admin::BaseController
   before_action :set_category, only: [:edit, :update, :destroy]
 
   def index
-    @categories = Current.store.categories.active.ordered
+    scope = Current.store.categories.active.ordered
+    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    @pagy, @categories = pagy(scope)
   end
 
   def new

@@ -2,7 +2,12 @@ class Admin::ProductsController < Admin::BaseController
   before_action :set_product, only: [:show, :edit, :update, :destroy]
 
   def index
-    @products = Current.store.products.active.includes(:category).order(:name)
+    scope = Current.store.products.active.joins(:category).includes(:category).order(:name)
+    if params[:q].present?
+      q = "%#{params[:q]}%"
+      scope = scope.where("products.name ILIKE ? OR categories.name ILIKE ?", q, q)
+    end
+    @pagy, @products = pagy(scope)
   end
 
   def show

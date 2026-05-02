@@ -2,7 +2,9 @@ class Admin::ComponentsController < Admin::BaseController
   before_action :set_component, only: [:edit, :update, :destroy]
 
   def index
-    @components = Current.store.components.active.order(:name)
+    scope = Current.store.components.active.order(:name)
+    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    @pagy, @components = pagy(scope)
   end
 
   def new
