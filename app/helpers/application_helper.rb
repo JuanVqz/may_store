@@ -1,6 +1,4 @@
 module ApplicationHelper
-  include Pagy::Frontend
-
   def order_status_border_class(status)
     case status.to_s
     when "open" then "border-amber-300"

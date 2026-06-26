@@ -5,19 +5,19 @@
   <%= render "components/pagination/content" do %>
     <%= render "components/pagination/item" do %>
       <%= render "components/pagination/previous",
-        href: pagy.prev ? pagy_url_for(pagy, pagy.prev) : nil,
+        href: pagy.previous ? pagy.page_url(pagy.previous) : nil,
         label: t("admin.pagination.previous"),
-        disabled: pagy.prev.nil? %>
+        disabled: pagy.previous.nil? %>
     <% end %>
 
-    <% pagy.series.each do |item| %>
+    <% pagy.data_hash(data_keys: [:series])[:series].each do |item| %>
       <%= render "components/pagination/item" do %>
         <% if item == :gap %>
           <%= render "components/pagination/ellipsis" %>
         <% else %>
           <%= render "components/pagination/link",
-            href: pagy_url_for(pagy, item),
-            active: item == pagy.page do %>
+            href: pagy.page_url(item.to_i),
+            active: item.to_s == pagy.page.to_s do %>
             <%= item %>
           <% end %>
         <% end %>
@@ -26,7 +26,7 @@
 
     <%= render "components/pagination/item" do %>
       <%= render "components/pagination/next",
-        href: pagy.next ? pagy_url_for(pagy, pagy.next) : nil,
+        href: pagy.next ? pagy.page_url(pagy.next) : nil,
         label: t("admin.pagination.next"),
         disabled: pagy.next.nil? %>
     <% end %>
