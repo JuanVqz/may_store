@@ -84,6 +84,31 @@ class Admin::ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_equal component, Product.last.product_components.first.component
   end
 
+  test "update changes existing nested product component" do
+    product_component = product_components(:americano_espresso)
+    other_component = components(:steamed_milk)
+    patch admin_product_url(@product, subdomain: @store.subdomain),
+      params: { product: {
+        product_components_attributes: {
+          "0" => { id: product_component.id, component_id: other_component.id, component_type: "extra" }
+        }
+      } }
+    assert_redirected_to admin_products_url(subdomain: @store.subdomain)
+    product_component.reload
+    assert_equal other_component, product_component.component
+    assert_equal "extra", product_component.component_type
+  end
+
+  test "update destroys nested product component marked for destruction" do
+    product_component = product_components(:americano_espresso)
+    assert_difference "ProductComponent.count", -1 do
+      patch admin_product_url(@product, subdomain: @store.subdomain),
+        params: { product: {
+          product_components_attributes: { "0" => { id: product_component.id, _destroy: "1" } }
+        } }
+    end
+  end
+
   test "create with empty nested component row does not create component" do
     assert_difference "ProductComponent.count", 0 do
       post admin_products_url(subdomain: @store.subdomain),
