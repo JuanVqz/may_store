@@ -1,0 +1,12 @@
+<% content_for :title, t("admin.categories.new") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header" do %>
+    <%= render "components/card/title", text: t("admin.categories.new") %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "form", category: @category %>
+  <% end %>
+<% end %>

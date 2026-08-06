@@ -1,0 +1,8 @@
+<%# locals: (component:) %>
+<div class="flex items-center justify-end gap-2">
+  <%= link_to t("edit"), edit_admin_component_path(component),
+    data: { component: "button", variant: "ghost", size: "sm" } %>
+  <%= button_to t("delete"), admin_component_path(component), method: :delete,
+    data: { component: "button", variant: "ghost", size: "sm",
+            turbo_confirm: t("admin.confirm_delete") } %>
+</div>

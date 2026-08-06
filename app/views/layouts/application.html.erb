@@ -57,6 +57,13 @@
                     icon_name: :activity,
                     active: controller_name == "kitchen" %>
                 <% end %>
+                <%= render "components/sidebar/menu_item" do %>
+                  <%= render "components/sidebar/menu_button",
+                    title: t("admin.nav.title"),
+                    url: admin_root_path,
+                    icon_name: :settings,
+                    active: controller.class.name.start_with?("Admin::") %>
+                <% end %>
               <% end %>
             <% end %>
           <% end %>
