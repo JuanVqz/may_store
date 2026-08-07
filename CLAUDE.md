@@ -47,9 +47,22 @@ http://pizza.localhost:3000   # Pizzeria Don Mario
 
 Seeded logins use an employee number, not an email. Password is `password123` for all of them: `EMP-001` (waiter), `KIT-001` (kitchen), `ADM-001` (admin).
 
-## Testing Gaps
+## Testing
 
-`test/system/` is empty, so nothing exercises rendered views end to end. Controller tests use fixtures that often lack the interesting rows (for example, no fixture order has an `extra` line item component, which is why a crash in the bill view went unnoticed). When touching a view, either boot the app and load the page or add fixtures that cover the branch.
+Three layers, and the rule is to test at the lowest level that can actually catch the bug:
+
+- **Model tests** for business rules.
+- **Integration tests** (`test/controllers/`, `test/integration/`) for status codes, redirects, server-rendered HTML, auth boundaries, and tenant scoping. Fast and deterministic, but blind to JavaScript.
+- **System tests** (`test/system/`) for anything needing a real browser: Stimulus, Turbo Streams, confirm dialogs, multi-screen flows.
+
+System tests browse a subdomain host, because the store resolves from the subdomain. `ApplicationSystemTestCase` starts Chrome with `--host-resolver-rules=MAP * 127.0.0.1` so `cafe-delicias.example.com` reaches the Capybara server on any machine. Use the `visit_store` and `sign_in_waiter` / `sign_in_kitchen` / `sign_in_admin` helpers.
+
+Two traps worth knowing:
+
+- **Do not assert flash text in a system test.** Flash renders through the toaster component, which auto-dismisses after five seconds, so the assertion is racy under parallel load. Assert flash content in an integration test instead.
+- **Wait for the UI before asserting the database.** After clicking, assert on visible text first, then check the record. Asserting `record.reload.status` straight after a click races the request.
+
+Fixtures deliberately keep `mesa_2` free of orders so tests have a genuinely available table.
 
 ## Plans
 

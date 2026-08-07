@@ -1,6 +1,6 @@
 class Spot < ApplicationRecord
   belongs_to :store
-  has_many :orders
+  has_many :orders, dependent: :restrict_with_error
 
   enum :spot_type, { dine_in: "dine_in", takeout: "takeout" }
 

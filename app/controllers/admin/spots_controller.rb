@@ -34,8 +34,11 @@ class Admin::SpotsController < Admin::BaseController
   end
 
   def destroy
-    @spot.destroy
-    redirect_to admin_spots_path, notice: t("admin.spots.deleted")
+    if @spot.destroy
+      redirect_to admin_spots_path, notice: t("admin.spots.deleted")
+    else
+      redirect_to admin_spots_path, alert: @spot.errors.full_messages.to_sentence
+    end
   end
 
   private
