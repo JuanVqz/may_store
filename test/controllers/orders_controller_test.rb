@@ -28,6 +28,27 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_match "Transferencia", response.body
   end
 
+  test "bill renders extras grouped with a quantity" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+    item = line_items(:delivered_latte)
+    2.times do
+      LineItemComponent.create!(
+        line_item: item,
+        component: components(:extra_strawberries),
+        component_type: :extra,
+        portion: 1.0,
+        unit_price_cents: components(:extra_strawberries).price_cents
+      )
+    end
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match "Extra Strawberries", response.body
+    assert_match "x2", response.body
+  end
+
   test "bill shows cancelled items as cancelado" do
     order = orders(:cooking_order)
     line_items(:cooking_cappuccino).cancel!
