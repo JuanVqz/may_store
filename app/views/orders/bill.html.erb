@@ -85,9 +85,9 @@
                     action: "change->payment-form#update",
                     cash: pm.cash?.to_s
                   } %>
-            <div class="text-center py-3 px-4 rounded-md border border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
+            <span class="block text-center py-3 px-4 rounded-md border border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
               <%= pm.name %>
-            </div>
+            </span>
           </label>
         <% end %>
       </div>
@@ -96,6 +96,9 @@
         <div class="grid grid-cols-2 gap-2 items-end">
           <div>
             <label class="block text-sm font-medium mb-1" for="received"><%= t("bill.received") %></label>
+            <%# autofocus is deliberate here: this is the cashier's register screen and
+                the cash amount is the only thing typed on it. a11y-no-autofocus-attribute
+                is excluded for this file in .herb.yml. %>
             <input type="number" step="0.01" min="0" name="received" id="received"
                    autocomplete="off"
                    class="w-full py-2 px-3 rounded-md border border-border"

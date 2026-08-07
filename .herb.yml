@@ -45,7 +45,31 @@ linter:
   # exclude:
   #   - 'app/views/admin/**/*'
 
-  # rules:
+  # Rules Herb ships disabled by default that we opt into.
+  rules:
+    # Every <nav> needs a unique accessible name.
+    html-navigation-has-label:
+      enabled: true
+
+    # <div> inside <label> and friends: invalid content model, breaks
+    # label/control association in some assistive tech.
+    html-no-block-inside-inline:
+      enabled: true
+
+    # autofocus yanks screen reader and keyboard users to a field without
+    # context. Enabled so any new autofocus has to be argued for. The bill view
+    # is the cashier's register screen: the cash amount is the only thing typed
+    # on it, so focusing it on load is the point of the screen.
+    a11y-no-autofocus-attribute:
+      enabled: true
+      exclude:
+        - "app/views/orders/bill.html.erb"
+
+    # Partials that already declare strict locals must keep the blank line
+    # after the declaration.
+    actionview-strict-locals-first-line:
+      enabled: true
+
   #   erb-no-extra-newline:
   #     enabled: false
   #

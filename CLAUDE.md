@@ -71,12 +71,19 @@ Fixtures deliberately keep `mesa_2` free of orders so tests have a genuinely ava
 Lint templates before pushing:
 
 ```
-bundle exec herb lint          # 85 rules, ~1s over 55 files
+bundle exec herb lint          # 89 rules, ~1s over 56 files
 bundle exec herb lint --fix    # autocorrect what it can
+bundle exec herb lint --all-rules  # preview the 11 rules we have not opted into
 bundle exec herb format <file> # formatter is disabled by default in .herb.yml
 ```
 
 The linter runs in CI as the `lint_views` job. It shells out to `npx @herb-tools/linter`, so Node is required.
+
+Four rules Herb ships disabled are opted into under `linter.rules` in `.herb.yml`: `html-navigation-has-label`, `html-no-block-inside-inline`, `a11y-no-autofocus-attribute` (excluded for `orders/bill.html.erb`, the cashier register screen), and `actionview-strict-locals-first-line`.
+
+`herb:disable` comments are **line-scoped**: they only suppress offenses reported on their own line, and a multi-line tag anchors its offense to the line the tag opens on. When the offending element spans lines, scope the exception with a rule-level `exclude:` in `.herb.yml` instead, where it stays reviewable.
+
+Still not enabled: `erb-strict-locals-required` (11 partials lack a `<%# locals: %>` declaration). See `docs/plans/backlog/`.
 
 ## Plans
 

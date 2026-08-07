@@ -1,4 +1,5 @@
 <%# locals: (f:, store_components:) %>
+
 <div class="flex items-center gap-2 p-2 border rounded-md" data-product-components-target="row">
   <div class="flex-1">
     <%= f.collection_select :component_id, store_components, :id, :name,

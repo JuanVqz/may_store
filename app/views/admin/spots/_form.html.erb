@@ -1,4 +1,5 @@
 <%# locals: (spot:) %>
+
 <%= form_with model: [:admin, spot], class: "space-y-4" do |f| %>
   <% if spot.errors.any? %>
     <%= render "components/alert", variant: :destructive do %>

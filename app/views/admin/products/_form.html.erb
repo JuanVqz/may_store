@@ -1,4 +1,5 @@
 <%# locals: (product:) %>
+
 <% store_components = Current.store.components.active.order(:name) %>
 
 <%= form_with model: [:admin, product], class: "space-y-4",

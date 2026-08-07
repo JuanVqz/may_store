@@ -1,4 +1,5 @@
 <%# locals: (spot:) %>
+
 <% if spot.active? %>
   <%= render "components/badge", variant: :default do %><%= t("admin.active") %><% end %>
 <% else %>
