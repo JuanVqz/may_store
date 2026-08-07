@@ -75,6 +75,33 @@ linter:
     actionview-strict-locals-first-line:
       enabled: true
 
+    # The remaining default-off rules. None of them have anything to flag
+    # today, so they are on as guardrails for new markup rather than as a
+    # cleanup task.
+    a11y-avoid-generic-link-text:
+      enabled: true
+    a11y-disabled-attribute:
+      enabled: true
+    a11y-nested-interactive-elements:
+      enabled: true
+    a11y-no-accesskey-attribute:
+      enabled: true
+    a11y-no-aria-label-misuse:
+      enabled: true
+    a11y-no-aria-unsupported-elements:
+      enabled: true
+    a11y-no-redundant-image-alt:
+      enabled: true
+    a11y-svg-has-accessible-text:
+      enabled: true
+    html-no-title-attribute:
+      enabled: true
+
+    # Allows control flow, assignments and side-effect calls, so it only
+    # catches bare method calls in `<% %>` that belong in a helper.
+    erb-no-silent-statement:
+      enabled: true
+
   #   erb-no-extra-newline:
   #     enabled: false
   #

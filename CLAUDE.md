@@ -71,15 +71,14 @@ Fixtures deliberately keep `mesa_2` free of orders so tests have a genuinely ava
 Lint templates before pushing:
 
 ```
-bundle exec herb lint          # 90 rules, ~1s over 56 files
+bundle exec herb lint          # all 100 rules, ~1s over 56 files
 bundle exec herb lint --fix    # autocorrect what it can
-bundle exec herb lint --all-rules  # preview the 10 rules we have not opted into
 bundle exec herb format <file> # formatter is disabled by default in .herb.yml
 ```
 
 The linter runs in CI as the `lint_views` job. It shells out to `npx @herb-tools/linter`, so Node is required.
 
-Five rules Herb ships disabled are opted into under `linter.rules` in `.herb.yml`: `html-navigation-has-label`, `html-no-block-inside-inline`, `a11y-no-autofocus-attribute` (excluded for `orders/bill.html.erb`, the cashier register screen), `erb-strict-locals-required`, and `actionview-strict-locals-first-line`.
+**All 100 rules are on**, including the 15 Herb ships disabled, listed explicitly under `linter.rules` in `.herb.yml`. The only exception is `a11y-no-autofocus-attribute`, excluded for `orders/bill.html.erb` (the cashier register screen). When Herb adds rules, `herb lint --upgrade` bumps `version:` and disables the new ones, so review them and turn them on deliberately.
 
 **Every partial declares strict locals.** A new partial needs a `<%# locals: (...) %>` line followed by a blank line, or `<%# locals: () %>` when it takes none. Optional locals get a default (`highlight: false`) instead of a `local_assigns[:highlight]` lookup. Missing and undeclared locals both raise at render time, including under `Herb::Engine`.
 
