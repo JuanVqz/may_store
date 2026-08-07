@@ -1,7 +1,7 @@
 # MayStore - Project Documentation
 
 **Version:** 5.0
-**Last Updated:** March 2026
+**Last Updated:** August 2026
 
 ---
 
@@ -9,10 +9,13 @@
 
 | File | Description |
 |------|-------------|
-| [models.md](./models.md) | ER diagram, all models, status flows |
-| [wireframes.md](./wireframes.md) | UI mockups for all screens |
-| [seeds.rb](./seeds.rb) | Database seed file with products |
-| [locales.yml](./locales.yml) | Spanish locale file (default) |
+| [references/models.md](./references/models.md) | ER diagram, all models, status flows |
+| [references/wireframes.md](./references/wireframes.md) | UI mockups for all screens |
+| [references/turbo-streams.md](./references/turbo-streams.md) | Broadcast channels and Turbo Stream architecture |
+| [references/reference-patterns.md](./references/reference-patterns.md) | Patterns extracted from the Fizzy codebase |
+| [plans/](./plans/) | Kanban-style implementation plans and design decisions |
+| [../db/seeds.rb](../db/seeds.rb) | Database seed file with products |
+| [../config/locales/es.yml](../config/locales/es.yml) | Spanish locale file (default) |
 
 ---
 

@@ -92,7 +92,7 @@ We started with targeted broadcasts (`broadcast_replace_to` with specific partia
 - **Free features** — queue count, empty state, readiness progress all update automatically
 - **Works from any page** — kitchen actions don't need to know about order view DOM structure
 
-See `plans/decisions/26-03-13-keep-targeted-broadcasts.md` for the full decision history.
+See `docs/plans/decisions/26-03-13-keep-targeted-broadcasts.md` for the full decision history.
 
 ## Turbo Streams (HTTP responses)
 

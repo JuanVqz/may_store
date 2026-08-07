@@ -11,6 +11,7 @@ Component.delete_all
 Product.delete_all
 Category.delete_all
 Spot.delete_all
+OrderCounter.delete_all
 Account.delete_all
 User.delete_all
 Store.delete_all

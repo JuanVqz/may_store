@@ -8,15 +8,18 @@ Multitenant order management system for food/beverage businesses (cafes, restaur
 
 All specs live in `docs/`. Read these before making architectural decisions:
 
-- `README.md` — Overview, tech stack, key design decisions
-- `models.md` — ER diagram, all models, status flows, code examples
-- `wireframes.md` — All 14 screens with ASCII wireframes
+- `docs/README.md` — Overview, tech stack, key design decisions
+- `docs/references/models.md` — ER diagram, all models, status flows, code examples
+- `docs/references/wireframes.md` — All 14 screens with ASCII wireframes
+- `docs/references/turbo-streams.md` — Broadcast channels and Turbo Stream architecture
+- `docs/references/reference-patterns.md` — Patterns extracted from the Fizzy codebase
+- Root `README.md` — What the app does, with screenshots. Public-facing.
 - Seed data: `db/seeds.rb`
 - Spanish locale: `config/locales/es.yml`
 
 ## Tech Stack
 
-- Ruby 3.4 / Rails 8.1
+- Ruby 4.0 / Rails 8.1
 - PostgreSQL
 - Hotwire (Turbo + Stimulus)
 - Minitest (default)
@@ -31,17 +34,34 @@ All specs live in `docs/`. Read these before making architectural decisions:
 - **Enums**: String-backed Rails enums, no lookup tables
 - **Tests**: Minitest + fixtures. Test models, critical flows, and edge cases.
 
+## Running the App Locally
+
+The store is resolved from the subdomain, so plain `localhost:3000` returns "store not found". Use a subdomain host:
+
+```
+http://cafe.localhost:3000    # Cafe Delicias
+http://pizza.localhost:3000   # Pizzeria Don Mario
+```
+
+`lvh.me` does NOT work: Rails' default `tld_length` of 1 parses `cafe.lvh.me` as the subdomain `cafe.lvh`, which matches no store.
+
+Seeded logins use an employee number, not an email. Password is `password123` for all of them: `EMP-001` (waiter), `KIT-001` (kitchen), `ADM-001` (admin).
+
+## Testing Gaps
+
+`test/system/` is empty, so nothing exercises rendered views end to end. Controller tests use fixtures that often lack the interesting rows (for example, no fixture order has an `extra` line item component, which is why a crash in the bill view went unnoticed). When touching a view, either boot the app and load the page or add fixtures that cover the branch.
+
 ## Plans
 
-Implementation plans live in `plans/` with a kanban-style structure:
+Implementation plans live in `docs/plans/` with a kanban-style structure:
 
-- `plans/backlog/` — Planned work, not yet started
-- `plans/in_progress/` — Currently being worked on
-- `plans/done/` — Completed plans (kept for reference)
+- `docs/plans/backlog/` — Planned work, not yet started
+- `docs/plans/in_progress/` — Currently being worked on
+- `docs/plans/done/` — Completed plans (kept for reference)
 
-Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md`). Before starting a task, check `plans/in_progress/` for active plans. Move plans between folders as work progresses.
+Plan files are named `YY-MM-DD-plan-description.md` (e.g., `26-03-13-add-auth.md`). Before starting a task, check `docs/plans/in_progress/` for active plans. Move plans between folders as work progresses.
 
-- `plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
+- `docs/plans/decisions/` — Architecture and design decisions with rationale (`YY-MM-DD-decision-description.md`). Decisions explain *why* we chose X over Y and remain relevant after plans are done.
 
 ## Git Integration
 
@@ -81,7 +101,11 @@ Not in production yet — when a migration needs changes, rollback (`rails db:ro
 - Bridge controllers for Turbo Native (`@hotwired/hotwire-native-bridge`)
 - Test patterns (`Turbo::Broadcastable::TestHelper`, fixture organization)
 
-See `docs/reference-patterns.md` for detailed patterns extracted from this codebase.
+See `docs/references/reference-patterns.md` for detailed patterns extracted from this codebase.
+
+## Dependencies
+
+Dependabot runs weekly on Monday and groups bumps into one PR per ecosystem (bundler minor/patch, and all github-actions). Major bundler bumps still arrive as individual PRs so they get a real review.
 
 ## Key Rules
 

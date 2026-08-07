@@ -35,13 +35,15 @@
             <div class="flex justify-between items-start text-sm <%= "line-through text-muted-foreground" if item.cancelled? %>">
               <div class="flex-1">
                 <div class="font-medium">#<%= idx + 1 %>&nbsp;&nbsp;<%= item.product.name %></div>
-                <% item.line_item_components.each do |lic| %>
+                <% ingredients, extras = item.line_item_components.partition(&:ingredient?) %>
+                <% ingredients.each do |lic| %>
                   <div class="text-xs text-muted-foreground ml-6">
-                    <% if lic.extra? %>
-                      + <%= lic.component.name %> x<%= lic.quantity %>
-                    <% else %>
-                      <%= lic.component.name %>: <%= lic.portion_label %>
-                    <% end %>
+                    <%= lic.component.name %>: <%= lic.portion_label %>
+                  </div>
+                <% end %>
+                <% extras.group_by(&:component_id).each_value do |group| %>
+                  <div class="text-xs text-muted-foreground ml-6">
+                    + <%= group.first.component.name %> x<%= group.size %>
                   </div>
                 <% end %>
                 <% if item.special_notes.present? %>
