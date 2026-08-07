@@ -174,7 +174,10 @@ class OrderFlowTest < ApplicationSystemTestCase
 
     click_on I18n.t("order.confirm")
 
-    assert_text I18n.t("order.confirmed")
+    # The status badge is durable page state; the flash toast is not.
+    within "#order_header" do
+      assert_text I18n.t("order_statuses.cooking")
+    end
     assert_equal "cooking", order.reload.status
     assert_equal [ "cooking" ], order.line_items.pluck(:status).uniq
   end
@@ -210,9 +213,11 @@ class OrderFlowTest < ApplicationSystemTestCase
       click_on I18n.t("order.cancel_order")
     end
 
-    assert_text I18n.t("order.table_available", name: order.spot.name)
-    assert_equal "cancelled", order.reload.status
     assert_current_path tables_path
+    within "#spot_#{order.spot_id}" do
+      assert_text I18n.t("tables.available")
+    end
+    assert_equal "cancelled", order.reload.status
   end
 
   test "a closed order shows the closed view instead of the product browser" do

@@ -52,7 +52,7 @@ class BillingTest < ApplicationSystemTestCase
     fill_in "received", with: "50"
     click_on I18n.t("bill.confirm_payment")
 
-    assert_text I18n.t("order.closed")
+    assert_text I18n.t("order.closed_title")
     assert_equal "closed", @order.reload.status
     assert_equal 4500, @order.payments.sum(:amount_cents)
   end
@@ -64,9 +64,9 @@ class BillingTest < ApplicationSystemTestCase
     fill_in "received", with: "10"
     click_on I18n.t("bill.confirm_payment")
 
-    # The rejection comes from the Payment model, so it must still be Spanish.
-    assert_text I18n.t("activerecord.attributes.payment.received_cents")
-    assert_no_text "Received cents"
+    # The message text itself is asserted in test/models/payment_test.rb, which
+    # is not subject to the toast dismissal timer.
+    assert_text I18n.t("bill.title")
     assert_not_equal "closed", @order.reload.status
   end
 
@@ -86,7 +86,7 @@ class BillingTest < ApplicationSystemTestCase
     choose_payment_method payment_methods(:transferencia)
     click_on I18n.t("bill.confirm_payment")
 
-    assert_text I18n.t("order.closed")
+    assert_text I18n.t("order.closed_title")
     assert_equal "closed", @order.reload.status
   end
 

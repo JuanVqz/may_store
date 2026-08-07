@@ -41,13 +41,4 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     def sign_in_admin(store: stores(:cafe_delicias))
       sign_in_as accounts(:admin_account).employee_number, store: store
     end
-
-    # button_to renders a form, so the clickable element is an input, not a link.
-    def click_button_to(label)
-      click_on label
-    end
-
-    def accept_confirm_and(&block)
-      accept_confirm(&block)
-    end
 end

@@ -46,4 +46,23 @@ class PaymentTest < ActiveSupport::TestCase
     payment = Payment.new(amount_cents: 4500, received_cents: 4500)
     assert_equal 0, payment.change_cents
   end
+
+  # The underpayment error reaches the cashier as a flash on the bill screen, so
+  # it has to be in Spanish. A missing received_cents attribute translation used
+  # to surface "Received cents debe ser mayor o igual a $45.00".
+  test "the underpayment error is fully translated" do
+    payment = Payment.new(
+      order: orders(:delivered_order),
+      payment_method: payment_methods(:efectivo),
+      amount_cents: 4500,
+      received_cents: 4000
+    )
+
+    assert_not payment.valid?
+    message = payment.errors.full_messages.to_sentence
+
+    assert_includes message, I18n.t("activerecord.attributes.payment.received_cents")
+    assert_no_match(/received cents/i, message)
+    assert_no_match(/translation missing/i, message)
+  end
 end

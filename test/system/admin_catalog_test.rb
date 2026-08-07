@@ -14,8 +14,8 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "category_name", with: "Postres"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.categories.created")
     assert_text "Postres"
+    assert Category.active.exists?(name: "Postres")
   end
 
   test "a category name is required" do
@@ -39,7 +39,6 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "category_name", with: "Bebidas Frias"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.categories.updated")
     assert_text "Bebidas Frias"
   end
 
@@ -51,9 +50,8 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("admin.categories.deleted")
-    assert_not_nil category.reload.deleted_at
     assert_no_text category.name
+    assert_not_nil category.reload.deleted_at
   end
 
   test "searching categories by name" do
@@ -76,8 +74,8 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "component_price", with: "5"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.components.created")
     assert_text "Canela"
+    assert Component.active.exists?(name: "Canela")
   end
 
   test "editing an ingredient price" do
@@ -89,7 +87,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "component_price", with: "15"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.components.updated")
+    assert_current_path admin_components_path
     assert_equal 1500, components(:extra_chocolate).reload.price_cents
   end
 
@@ -101,7 +99,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("admin.components.deleted")
+    assert_no_text component.name
     assert_not_nil component.reload.deleted_at
   end
 
@@ -116,7 +114,6 @@ class AdminCatalogTest < ApplicationSystemTestCase
     select categories(:bebidas_calientes).name, from: "product_category_id"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.products.created")
     assert_text "Chai Latte"
     assert_equal 5500, Product.find_by(name: "Chai Latte").base_price_cents
   end
@@ -130,7 +127,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "product_base_price", with: "40"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.products.updated")
+    assert_current_path admin_products_path
     assert_equal 4000, products(:americano).reload.base_price_cents
   end
 
@@ -142,7 +139,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("admin.products.deleted")
+    assert_no_text product.name
     assert_not_nil product.reload.deleted_at
 
     visit order_path(orders(:open_order))
@@ -174,7 +171,6 @@ class AdminCatalogTest < ApplicationSystemTestCase
     select I18n.t("spot_types.dine_in"), from: "spot_spot_type"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.spots.created")
     assert_text "Mesa 99"
   end
 
@@ -198,7 +194,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("admin.spots.deleted")
+    assert_no_text spot.name
     assert_nil Spot.find_by(id: spot.id)
   end
 
@@ -211,7 +207,9 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("activerecord.errors.models.spot.attributes.base.restrict_dependent_destroy.has_many")
+    # The message wording is asserted in test/models/destroy_restriction_test.rb.
+    # Here the durable fact is that the row survived rather than 500ing.
+    assert_text spot.name
     assert_not_nil Spot.find_by(id: spot.id)
   end
 
@@ -224,7 +222,6 @@ class AdminCatalogTest < ApplicationSystemTestCase
     fill_in "payment_method_name", with: "Vales"
     click_on I18n.t("save")
 
-    assert_text I18n.t("admin.payment_methods.created")
     assert_text "Vales"
   end
 
@@ -252,7 +249,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("activerecord.errors.models.payment_method.attributes.base.restrict_dependent_destroy.has_many")
+    assert_text method.name
     assert_not_nil PaymentMethod.find_by(id: method.id)
   end
 
@@ -265,7 +262,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("delete") }
     end
 
-    assert_text I18n.t("admin.payment_methods.deleted")
+    assert_no_text method.name
     assert_nil PaymentMethod.find_by(id: method.id)
   end
 

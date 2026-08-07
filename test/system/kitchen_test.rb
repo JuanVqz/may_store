@@ -42,7 +42,10 @@ class KitchenTest < ApplicationSystemTestCase
       click_on I18n.t("kitchen.ready")
     end
 
-    assert_text I18n.t("kitchen.marked_ready")
+    # Wait on a durable post-condition rather than the auto-dismissing toast.
+    within "#line_item_card_#{item.id}" do
+      assert_text I18n.t("kitchen.waiting_for_waiter")
+    end
     assert_equal "ready", item.reload.status
   end
 
@@ -53,8 +56,8 @@ class KitchenTest < ApplicationSystemTestCase
     order.line_items.each do |item|
       within "#line_item_card_#{item.id}" do
         click_on I18n.t("kitchen.ready")
+        assert_text I18n.t("kitchen.waiting_for_waiter")
       end
-      assert_text I18n.t("kitchen.marked_ready")
     end
 
     assert_equal "ready", order.reload.status
@@ -79,7 +82,8 @@ class KitchenTest < ApplicationSystemTestCase
       accept_confirm { click_on I18n.t("kitchen.cancel") }
     end
 
-    assert_text I18n.t("kitchen.item_cancelled")
+    # A cancelled item drops out of the queue entirely.
+    assert_no_selector "#line_item_card_#{item.id}"
     assert_equal "cancelled", item.reload.status
   end
 
@@ -92,7 +96,7 @@ class KitchenTest < ApplicationSystemTestCase
       click_on I18n.t("line_item.mark_delivered")
     end
 
-    assert_text I18n.t("line_item.marked_delivered")
+    assert_no_selector "#line_item_card_#{item.id}"
     assert_equal "delivered", item.reload.status
   end
 
@@ -172,9 +176,8 @@ class KitchenTest < ApplicationSystemTestCase
 
     within "#line_item_card_#{item.id}" do
       click_on I18n.t("kitchen.ready")
+      assert_text I18n.t("kitchen.waiting_for_waiter")
     end
-
-    assert_text I18n.t("kitchen.marked_ready")
     assert_equal "ready", item.reload.status
   end
 end

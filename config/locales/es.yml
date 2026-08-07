@@ -414,7 +414,7 @@ es:
           attributes:
             base:
               restrict_dependent_destroy:
-                has_many: "No se puede eliminar un metodo de pago con pagos registrados. Desactivalo en su lugar."
+                has_many: "No se puede eliminar un metodo de pago que ya esta en uso. Desactivalo en su lugar."
 
   # ============================================
   # Date/Time formats

@@ -36,14 +36,58 @@ class DestroyRestrictionTest < ActiveSupport::TestCase
       I18n.t("activerecord.errors.models.payment_method.attributes.base.restrict_dependent_destroy.has_many")
   end
 
-  test "a payment method without payments can be destroyed" do
+  test "a payment method used by a cash closing cannot be destroyed" do
+    method = payment_methods(:mercado_pago)
+    assert_empty method.payments, "fixture must isolate the cash closing line FK"
+    assert method.cash_closing_lines.any?
+
+    assert_no_difference "PaymentMethod.count" do
+      assert_not method.destroy
+    end
+    assert_includes method.errors.full_messages,
+      I18n.t("activerecord.errors.models.payment_method.attributes.base.restrict_dependent_destroy.has_many")
+  end
+
+  test "a payment method with no references at all can be destroyed" do
     method = payment_methods(:transferencia)
     assert_empty method.payments
+    assert_empty method.cash_closing_lines
 
     assert_difference "PaymentMethod.count", -1 do
       assert method.destroy
     end
   end
+
+  # The guard is per-association, so adding a new inbound foreign key silently
+  # reintroduces the 500 these tests exist to prevent. This checks the schema
+  # against the model rather than trusting anyone to remember.
+  test "every foreign key pointing at payment methods is guarded" do
+    assert_empty unguarded_foreign_keys_for(PaymentMethod)
+  end
+
+  test "every foreign key pointing at spots is guarded" do
+    assert_empty unguarded_foreign_keys_for(Spot)
+  end
+
+  private
+    def unguarded_foreign_keys_for(model)
+      connection = ActiveRecord::Base.connection
+
+      inbound = connection.tables.flat_map do |table|
+        connection.foreign_keys(table)
+          .select { |fk| fk.to_table == model.table_name }
+          .map(&:from_table)
+      end.uniq
+
+      guarded = model.reflect_on_all_associations(:has_many)
+        .select { |association| association.options[:dependent] == :restrict_with_error }
+        .map { |association| association.klass.table_name }
+
+      (inbound - guarded).tap do |missing|
+        next if missing.empty?
+        flunk "unguarded foreign keys to #{model.table_name}: #{missing.join(', ')}"
+      end
+    end
 
   test "the restriction reports in Spanish rather than raising" do
     spot = spots(:mesa_5)
