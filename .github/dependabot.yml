@@ -3,10 +3,27 @@ updates:
 - package-ecosystem: bundler
   directory: "/"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+    interval: weekly
+    day: monday
+    time: "06:00"
+    timezone: America/Mexico_City
+  open-pull-requests-limit: 5
+  groups:
+    bundler:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+    interval: weekly
+    day: monday
+    time: "06:00"
+    timezone: America/Mexico_City
+  open-pull-requests-limit: 5
+  groups:
+    github-actions:
+      patterns:
+      - "*"
