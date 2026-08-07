@@ -64,6 +64,20 @@ Two traps worth knowing:
 
 Fixtures deliberately keep `mesa_2` free of orders so tests have a genuinely available table.
 
+## View Layer (ReActionView / Herb)
+
+`reactionview` (dev/test only) routes all `.html.erb` through `Herb::Engine`, so invalid HTML raises in tests and shows an overlay in development. Config: `config/initializers/reactionview.rb` (guarded with `defined?(ReActionView)` because the gem is absent in production) and `.herb.yml` (linter rules, version pin, `public/` excluded).
+
+Lint templates before pushing:
+
+```
+bundle exec herb lint          # 85 rules, ~1s over 55 files
+bundle exec herb lint --fix    # autocorrect what it can
+bundle exec herb format <file> # formatter is disabled by default in .herb.yml
+```
+
+The linter runs in CI as the `lint_views` job. It shells out to `npx @herb-tools/linter`, so Node is required.
+
 ## Plans
 
 Implementation plans live in `docs/plans/` with a kanban-style structure:

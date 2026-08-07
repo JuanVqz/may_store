@@ -34,3 +34,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "reactionview", "~> 0.3.0", groups: [:development, :test]

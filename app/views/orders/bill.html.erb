@@ -97,6 +97,7 @@
           <div>
             <label class="block text-sm font-medium mb-1" for="received"><%= t("bill.received") %></label>
             <input type="number" step="0.01" min="0" name="received" id="received"
+                   autocomplete="off"
                    class="w-full py-2 px-3 rounded-md border border-border"
                    value="0.00"
                    autofocus
@@ -113,7 +114,7 @@
       </div>
 
       <div class="grid grid-cols-2 gap-2 mt-4">
-        <%= link_to t("bill.print"), "#",
+        <%= tag.button t("bill.print"), type: "button",
               class: "text-center",
               data: { component: "button", variant: "outline", size: "lg", action: "print#print" } %>
         <%= f.submit t("bill.confirm_payment"),

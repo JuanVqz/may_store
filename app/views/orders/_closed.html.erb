@@ -14,7 +14,7 @@
   </dl>
 
   <div class="grid grid-cols-2 gap-2">
-    <%= link_to t("bill.print"), "#",
+    <%= tag.button t("bill.print"), type: "button",
           class: "text-center",
           data: { component: "button", variant: "outline", size: "lg", action: "print#print" } %>
     <%= link_to t("order.back_to_tables"), tables_path,
