@@ -65,6 +65,11 @@ linter:
       exclude:
         - "app/views/orders/bill.html.erb"
 
+    # Every partial declares its contract, so a caller that forgets a local
+    # fails loudly instead of rendering nil into the page.
+    erb-strict-locals-required:
+      enabled: true
+
     # Partials that already declare strict locals must keep the blank line
     # after the declaration.
     actionview-strict-locals-first-line:

@@ -1,3 +1,5 @@
+<%# locals: (order:) %>
+
 <div id="order_header" class="flex items-center justify-between gap-2 mb-3">
   <h2 class="text-lg font-bold"><%= order.spot.name %> &middot; <%= order.code %></h2>
   <span class="<%= status_badge_classes(order.status) %>"><%= order.status_label %></span>

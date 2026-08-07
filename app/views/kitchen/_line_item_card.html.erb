@@ -1,6 +1,8 @@
+<%# locals: (item:, oldest_cooking_id: nil) %>
+
 <%
   wait_minutes = ((Time.current - item.created_at) / 60).floor
-  is_oldest = local_assigns[:oldest_cooking_id] == item.id && item.cooking?
+  is_oldest = oldest_cooking_id == item.id && item.cooking?
   spot = item.order.spot
   spot_label = spot.takeout? ? t("spot_types.takeout").upcase : spot.name.upcase
   border_class = if is_oldest
