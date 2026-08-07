@@ -1,0 +1,9 @@
+{
+  "name": "may_store",
+  "private": true,
+  "description": "Node tooling for the Herb HTML+ERB linter and formatter. This app uses importmap-rails and has no JavaScript build step; these are dev tools only.",
+  "devDependencies": {
+    "@herb-tools/formatter": "0.10.3",
+    "@herb-tools/linter": "0.10.3"
+  }
+}

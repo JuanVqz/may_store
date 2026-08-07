@@ -29,6 +29,18 @@ Two partials read `local_assigns` and now read the declared local directly:
 - `_line_item.html.erb`: `local_assigns[:highlight]` became `highlight`, declared `false`. Only `create.turbo_stream.erb` passes `true`.
 - `_line_item_card.html.erb`: `local_assigns[:oldest_cooking_id]` became `oldest_cooking_id`, declared `nil`.
 
+**The `_line_item` change is a bug fix, not a rename.** The old markup was:
+
+```erb
+<%= 'data-controller="highlight"' if local_assigns[:highlight] %>
+```
+
+`<%=` HTML-escapes its output, so that rendered as `data-controller=&quot;highlight&quot;`. The browser parsed an unquoted attribute value of `"highlight"`, quotes included, which matches no Stimulus identifier. **The highlight controller never ran.** Confirmed with `ERB::Util.html_escape`, and Herb::Engine now refuses to compile the old form at all.
+
+So adding a line item plays the 1.5s green `item-added` flash for the first time since `highlight_controller.js` was written ("Briefly highlights the element on connect (used for newly added items)"). That is clearly the intended behavior, but it is a visible change, not a refactor.
+
+The new form emits a bare `data-controller=""` on non-highlighted rows. Stimulus ignores it. `tag.div ... data: { controller: ("highlight" if highlight) }` would omit the attribute entirely, but converting that element to a tag helper costs more readability than the empty attribute costs anything.
+
 `tables/_table` also dropped a `defined?(order)` guard. With strict locals the local is always defined, so `if order && ...` is the honest check.
 
 ## Notes for next time

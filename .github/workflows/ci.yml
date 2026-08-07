@@ -69,6 +69,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
+          cache: npm
+
+      # Installs the pinned @herb-tools/linter from package-lock.json. Without
+      # this, `herb lint` falls back to `npx @herb-tools/linter` with no version,
+      # so a new Herb release could add a rule and fail unrelated PRs.
+      - name: Install Herb tooling
+        run: npm ci
 
       - name: Lint HTML+ERB templates
         run: bundle exec herb lint --github

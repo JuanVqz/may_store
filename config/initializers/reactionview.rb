@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
-# The reactionview gem is only bundled in :development and :test, so this
-# initializer must do nothing when the constant is missing (production).
+# The gem is in the :development, :test group, so `Bundler.require(*Rails.groups)`
+# never requires it in production and this constant is undefined there. Note the
+# gem is still *installed* in the production image: Dockerfile sets
+# BUNDLE_WITHOUT="development" only, which leaves :test in. So do not read this
+# guard as "the gem is absent" — it means "the gem was not required". Anything
+# that adds an explicit `require "reactionview"` would route every production
+# template through Herb::Engine with validation_mode :overlay.
 return unless defined?(ReActionView)
 
 ReActionView.configure do |config|
