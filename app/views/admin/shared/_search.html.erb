@@ -1,4 +1,5 @@
 <%# locals: (url:, placeholder: nil) %>
+
 <%= form_with url: url, method: :get, data: { turbo_frame: "_top" } do |f| %>
   <div class="flex gap-2 items-center">
     <%= f.search_field :q, value: params[:q],

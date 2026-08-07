@@ -1,4 +1,5 @@
 <%# locals: (component:) %>
+
 <% if component.available? %>
   <%= render "components/badge", variant: :default do %><%= t("admin.available") %><% end %>
 <% else %>

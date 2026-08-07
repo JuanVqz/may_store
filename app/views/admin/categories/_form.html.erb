@@ -1,4 +1,5 @@
 <%# locals: (category:) %>
+
 <%= form_with model: [:admin, category], class: "space-y-4" do |f| %>
   <% if category.errors.any? %>
     <%= render "components/alert", variant: :destructive do %>

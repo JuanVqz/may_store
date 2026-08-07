@@ -1,3 +1,5 @@
+<%# locals: (order:) %>
+
 <div id="takeout_order_<%= order.id %>">
   <%= link_to order_path(order), class: "flex items-center gap-4 p-3.5 rounded-lg border bg-card no-underline text-foreground border-l-4 #{order_status_border_class(order.status)} hover:shadow-md transition" do %>
     <span class="font-bold text-sm whitespace-nowrap"><%= order.code %></span>

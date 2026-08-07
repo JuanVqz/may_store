@@ -1,3 +1,5 @@
+<%# locals: (order:, categories:, category:, products:) %>
+
 <%= turbo_frame_tag "product_browser" do %>
   <div class="flex gap-2 overflow-x-auto pb-2 mt-2 mb-4">
     <% categories.each do |cat| %>

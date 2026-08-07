@@ -15,6 +15,15 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
 
+  # The Herb linter and formatter are npm packages, pinned in package.json so
+  # `herb lint` uses node_modules/.bin instead of an unversioned npx download.
+  # There is no JavaScript build step; this is dev tooling only.
+  if system("which npm > /dev/null 2>&1")
+    system! "npm install"
+  else
+    puts "npm not found, skipping Herb tooling (bundle exec herb lint will need it)"
+  end
+
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")
   #   FileUtils.cp "config/database.yml.sample", "config/database.yml"

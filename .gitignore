@@ -38,3 +38,6 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Node tooling for the Herb linter/formatter (dev only, no JS build step).
+/node_modules

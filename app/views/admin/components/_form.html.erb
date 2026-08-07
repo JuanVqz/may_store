@@ -1,4 +1,5 @@
 <%# locals: (component:) %>
+
 <%= form_with model: [:admin, component], class: "space-y-4" do |f| %>
   <% if component.errors.any? %>
     <%= render "components/alert", variant: :destructive do %>

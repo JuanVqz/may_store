@@ -64,6 +64,42 @@ Two traps worth knowing:
 
 Fixtures deliberately keep `mesa_2` free of orders so tests have a genuinely available table.
 
+## View Layer (ReActionView / Herb)
+
+`reactionview` (dev/test only) routes all `.html.erb` through `Herb::Engine`, so invalid HTML raises in tests and shows an overlay in development. Config: `config/initializers/reactionview.rb` (guarded with `defined?(ReActionView)` because the gem is absent in production) and `.herb.yml` (linter rules, version pin, `public/` excluded).
+
+**Touched a view? Run the linter before committing.** It takes about a second over the whole app, so there is no reason to discover an offense from CI:
+
+```
+bundle exec herb lint          # all 100 rules, ~1s over 56 files
+bundle exec herb lint --fix    # autocorrect what it can
+bundle exec herb format <file> # formatter is disabled by default in .herb.yml
+```
+
+The same linter runs in CI as the `lint_views` job, and it fails the build on any error-severity offense. It shells out to `npx @herb-tools/linter`, so Node is required.
+
+Because `intercept_erb` is on, malformed HTML also fails the **test** suite, not just the linter. A render failure in a test may be an HTML content-model error rather than a Ruby error, so read the message before hunting through the Ruby.
+
+### Write it right the first time
+
+Every item below is a rule that is on. These are the ones this codebase actually tripped over:
+
+- **Never emit an attribute name, or a whole attribute, from ERB.** `<%= 'checked' if x %>` and `<%= 'data-controller="y"' if x %>` are both offenses. Put the ERB in the attribute *value* (`data-controller="<%= "y" if x %>"`) or use the Rails helper (`radio_button_tag`, `check_box_tag`).
+- **Not a link? Not an `<a>`.** Anything that only fires a Stimulus action is `tag.button ... type: "button"`. `<a href="#">` is an offense, and the explicit `type` matters because a bare `<button>` inside a form submits it. `[data-component="button"]` styling is element-agnostic, so the swap is free.
+- **Every `<input>` needs `autocomplete`.** Use a real token where one fits, `off` otherwise.
+- **No block elements inside inline ones.** A `<div>` inside a `<label>` is invalid; use `<span class="block ...">`, which renders identically under Tailwind.
+- **Every `<nav>` needs `aria-label`** (or `aria-labelledby`), from a locale key.
+- **Never use `title=`, `accesskey=`, or `autofocus`**, and never nest interactive elements (`<button>` inside `<a>`).
+- **New partial? Declare strict locals** before writing the body.
+
+Deliberate exceptions go in `.herb.yml` as a rule-level `exclude:` with a comment explaining why, so they stay reviewable. Do not reach for one until the rule is actually wrong for the case.
+
+**All 100 rules are on**, including the 15 Herb ships disabled, listed explicitly under `linter.rules` in `.herb.yml`. The only exception is `a11y-no-autofocus-attribute`, excluded for `orders/bill.html.erb` (the cashier register screen). When Herb adds rules, `herb lint --upgrade` bumps `version:` and disables the new ones, so review them and turn them on deliberately.
+
+**Every partial declares strict locals.** A new partial needs a `<%# locals: (...) %>` line followed by a blank line, or `<%# locals: () %>` when it takes none. Optional locals get a default (`highlight: false`) instead of a `local_assigns[:highlight]` lookup. Missing and undeclared locals both raise at render time, including under `Herb::Engine`.
+
+`herb:disable` comments are **line-scoped**: they only suppress offenses reported on their own line, and a multi-line tag anchors its offense to the line the tag opens on. When the offending element spans lines, scope the exception with a rule-level `exclude:` in `.herb.yml` instead, where it stays reviewable.
+
 ## Plans
 
 Implementation plans live in `docs/plans/` with a kanban-style structure:
@@ -124,6 +160,7 @@ Dependabot runs weekly on Monday and groups bumps into one PR per ecosystem (bun
 
 - Never add co-author lines to commits
 - No commits or PRs on weekends — all git operations paused Saturday/Sunday
+- Touched a view? Run `bundle exec herb lint` before committing, and never suppress a rule without a comment saying why. See "View Layer"
 - Role = default screen, not permissions. All roles can perform all item actions.
 - No unique index on `line_item_components(line_item_id, component_id)` — duplicates allowed for multiple extras
 - Order codes use `OrderCounter` table for atomic sequence generation

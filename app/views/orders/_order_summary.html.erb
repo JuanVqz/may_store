@@ -1,3 +1,5 @@
+<%# locals: (order:) %>
+
 <div id="order_summary" class="mt-3 space-y-2">
   <div class="flex items-center justify-between">
     <span class="text-sm text-muted-foreground"><%= t("order.total", count: order.line_items.size) %></span>

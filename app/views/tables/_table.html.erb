@@ -1,5 +1,7 @@
+<%# locals: (spot:, order: nil) %>
+
 <div id="spot_<%= spot.id %>">
-  <% if defined?(order) && order && !order.closed? && !order.cancelled? %>
+  <% if order && !order.closed? && !order.cancelled? %>
     <%= link_to order_path(order), class: "flex flex-col items-center justify-center p-5 rounded-lg border-2 bg-card min-h-[100px] no-underline text-foreground hover:-translate-y-0.5 hover:shadow-md transition #{order_status_border_class(order.status)}" do %>
       <span class="font-bold text-sm"><%= spot.name %></span>
       <span class="text-xs mt-1 font-medium" style="color: <%= order.status_color %>">

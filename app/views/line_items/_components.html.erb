@@ -1,4 +1,5 @@
 <%# locals: (item:, modified_only: false) %>
+
 <% ingredients = item.line_item_components.select(&:ingredient?) %>
 <% extras = item.line_item_components.select(&:extra?) %>
 
