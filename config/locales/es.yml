@@ -266,18 +266,6 @@ es:
     mercado_pago: "Mercado Pago"
     transferencia: "Transferencia"
 
-  # ============================================
-  # Admin
-  # ============================================
-  admin:
-    dashboard: "Panel de Administracion"
-    today_summary: "Resumen del Dia"
-    orders_closed: "Ordenes cerradas"
-    orders_cancelled: "Ordenes canceladas"
-    daily_total: "Total del dia"
-    by_payment_method: "Por Metodo de Pago"
-    new_cash_closing: "Realizar Corte de Caja"
-    recent_closings: "Cortes Recientes"
 
   # ============================================
   # Cash Closing (Corte de Caja)
@@ -386,6 +374,7 @@ es:
         total_price_cents: "Precio total"
       payment:
         amount_cents: "Monto"
+        received_cents: "Monto recibido"
         notes: "Notas"
       cash_closing:
         status: "Estado"
@@ -403,6 +392,8 @@ es:
         less_than: "debe ser menor que %{count}"
         not_a_number: "no es un número"
         inclusion: "no está incluido en la lista"
+        restrict_dependent_destroy:
+          has_many: "No se puede eliminar porque existen %{record} asociados"
       models:
         account:
           attributes:
@@ -414,6 +405,16 @@ es:
           attributes:
             received_cents:
               insufficient: "debe ser mayor o igual a %{amount}"
+        spot:
+          attributes:
+            base:
+              restrict_dependent_destroy:
+                has_many: "No se puede eliminar un lugar con ordenes. Desactivalo en su lugar."
+        payment_method:
+          attributes:
+            base:
+              restrict_dependent_destroy:
+                has_many: "No se puede eliminar un metodo de pago que ya esta en uso. Desactivalo en su lugar."
 
   # ============================================
   # Date/Time formats
@@ -520,6 +521,14 @@ es:
   # Admin
   # ============================================
   admin:
+    dashboard: "Panel de Administracion"
+    today_summary: "Resumen del Dia"
+    orders_closed: "Ordenes cerradas"
+    orders_cancelled: "Ordenes canceladas"
+    daily_total: "Total del dia"
+    by_payment_method: "Por Metodo de Pago"
+    new_cash_closing: "Realizar Corte de Caja"
+    recent_closings: "Cortes Recientes"
     confirm_delete: "¿Estás seguro? Esta acción no se puede deshacer."
     available: "Disponible"
     unavailable: "No disponible"

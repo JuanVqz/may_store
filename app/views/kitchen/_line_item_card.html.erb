@@ -12,7 +12,7 @@
   end
 %>
 
-<%= render "components/card", css_classes: "overflow-hidden #{border_class}" do %>
+<%= render "components/card", id: "line_item_card_#{item.id}", css_classes: "overflow-hidden #{border_class}" do %>
   <div class="px-4 pt-3">
     <% if is_oldest %>
       <div class="text-sm font-semibold text-destructive-foreground mb-1">

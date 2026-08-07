@@ -1,5 +1,11 @@
 <%= turbo_stream.remove "line_item_#{@line_item.id}" %>
 
+<% if @order.line_items.where.not(status: :cancelled).none? %>
+  <%= turbo_stream.after "order_items" do %>
+    <%= render "orders/no_items_message" %>
+  <% end %>
+<% end %>
+
 <%= turbo_stream.replace "order_summary" do %>
   <%= render "orders/order_summary", order: @order %>
 <% end %>

@@ -42,7 +42,7 @@
       </div>
 
       <% if @line_items.empty? %>
-        <p class="text-center text-muted-foreground mt-4" id="no_items_message"><%= t("order.no_items") %></p>
+        <%= render "orders/no_items_message" %>
       <% end %>
 
       <%= render "orders/order_summary", order: @order %>

@@ -32,8 +32,11 @@ class Admin::PaymentMethodsController < Admin::BaseController
   end
 
   def destroy
-    @payment_method.destroy
-    redirect_to admin_payment_methods_path, notice: t("admin.payment_methods.deleted")
+    if @payment_method.destroy
+      redirect_to admin_payment_methods_path, notice: t("admin.payment_methods.deleted")
+    else
+      redirect_to admin_payment_methods_path, alert: @payment_method.errors.full_messages.to_sentence
+    end
   end
 
   private

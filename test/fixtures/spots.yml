@@ -5,6 +5,14 @@ mesa_1:
   position: 1
   active: true
 
+# Deliberately has no order, so tests have a genuinely free table to open.
+mesa_2:
+  store: cafe_delicias
+  name: Mesa 2
+  spot_type: dine_in
+  position: 2
+  active: true
+
 mesa_3:
   store: cafe_delicias
   name: Mesa 3

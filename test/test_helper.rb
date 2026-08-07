@@ -10,6 +10,9 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
+    # Every account fixture is seeded with this password.
+    PASSWORD = "password123".freeze
+
     # Add more helper methods to be used by all tests here...
   end
 end

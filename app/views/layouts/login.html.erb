@@ -20,8 +20,6 @@
       <%= yield %>
     </div>
 
-    <%= render "components/toaster", position: :bottom_right do %>
-      <%= toast_flash_messages %>
-    <% end %>
+    <%= render "components/toaster", position: :bottom_right, content: toast_flash_messages %>
   </body>
 </html>
