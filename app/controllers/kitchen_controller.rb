@@ -5,6 +5,6 @@ class KitchenController < ApplicationController
       .where(orders: { store_id: Current.store.id })
       .where(status: [:cooking, :ready])
       .includes(order: [:spot, :user], line_item_components: :component, product: :category)
-      .order(created_at: :asc)
+      .order(created_at: :asc, id: :asc)
   end
 end

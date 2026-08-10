@@ -517,9 +517,12 @@ puts "  - Total: $#{'%.2f' % takeout_order.total}"
 # "esperando al mesero" state is visible too.
 puts "\n--- Creando órdenes en cocina ---"
 
-mesa_1 = Spot.find_by(name: "Mesa 1")
-mesa_2 = Spot.find_by(name: "Mesa 2")
-crepa_nutella = Product.find_by(name: "Crepa de Nutella")
+# Scoped to the store: the second tenant is created at the end of this file, and
+# an unscoped find_by would start returning its records the day it gets spots and
+# products of its own.
+mesa_1 = store.spots.find_by(name: "Mesa 1")
+mesa_2 = store.spots.find_by(name: "Mesa 2")
+crepa_nutella = store.products.find_by(name: "Crepa de Nutella")
 maria = users.find { |u| u.waiter? && u.name.start_with?("Maria") } || waiter
 
 seed_line_item = lambda do |order, product, notes: nil, portions: {}, extras_for: []|
@@ -571,9 +574,13 @@ seed_line_item.call(kitchen_order, cappuccino)
 kitchen_order.recalculate_total!
 kitchen_order.confirm!
 # The queue times the wait as max(item.created_at, order.cooking_at), so both have
-# to move for the header to read as a real wait instead of "0 min".
-kitchen_order.line_items.update_all(created_at: 14.minutes.ago)
-kitchen_order.update_columns(cooking_at: 12.minutes.ago)
+# to move for the header to read as a real wait instead of "0 min". The items are
+# staggered a second apart because the queue sorts on created_at, and identical
+# timestamps leave the card order to Postgres.
+kitchen_order.line_items.order(:id).each_with_index do |item, i|
+  item.update_columns(created_at: 14.minutes.ago + i.seconds)
+end
+kitchen_order.update_columns(created_at: 14.minutes.ago, cooking_at: 12.minutes.ago)
 
 # Single station, and one item already ready and waiting on a waiter.
 ready_order = Order.create!(
@@ -587,8 +594,10 @@ ready_item = seed_line_item.call(ready_order, cucurumbe)
 seed_line_item.call(ready_order, crepa_nutella)
 ready_order.recalculate_total!
 ready_order.confirm!
-ready_order.line_items.update_all(created_at: 6.minutes.ago)
-ready_order.update_columns(cooking_at: 5.minutes.ago)
+ready_order.line_items.order(:id).each_with_index do |item, i|
+  item.update_columns(created_at: 6.minutes.ago + i.seconds)
+end
+ready_order.update_columns(created_at: 6.minutes.ago, cooking_at: 5.minutes.ago)
 ready_item.reload.mark_ready! # confirm! flips status with update_all, so reload first
 
 puts "Orden en cocina creada: #{kitchen_order.code} (#{kitchen_order.line_items.count} artículos, 2 estaciones)"
