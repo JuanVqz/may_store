@@ -396,70 +396,70 @@ See Screen 3 — the same single-page layout is used for open, cooking, ready, a
 
 ## Screen 7: Kitchen Queue (Oldest First)
 
+One box per order, not per item. Everything the items share (spot, code, time,
+waiter, wait time, print) sits in the order header once; inside, items are grouped
+into one section per prep station, side by side on tablet and up.
+
 ```
 +--------------------------------------------------------------------+
 | COCINA                                 Bienvenido, Cocina 1 [Salir] |
 +--------------------------------------------------------------------+
 |                                                                    |
-|  Ordenado por: Mas antiguo primero               Cola: 6          |
+|  Ordenado por: Mas antiguo primero               Cola: 6           |
 |                                                                    |
 +--------------------------------------------------------------------+
+|  +--------------------------------------------------------------+  |
+|  | MESA 3  CFE2601-008 . 14:27 . Maria    Esperando 8 min  Imprimir |
+|  +--------------------------------------------------------------+  |
+|  |  COCINA                    |  BARRA                          |  |
+|  |  +----------------------+  |  +---------------------------+   |  |
+|  |  | CREPA DE NUTELLA     |  |  | AMERICANO                 |   |  |
+|  |  |   Crema: 1/2         |  |  |   Cafe: 1                 |   |  |
+|  |  |   Nutella: 1         |  |  |   Agua: 1                 |   |  |
+|  |  |   + Cajeta x1        |  |  |                           |   |  |
+|  |  | [Listo]   [Cancelar] |  |  | [Listo]      [Cancelar]   |   |  |
+|  |  +----------------------+  |  +---------------------------+   |  |
+|  +--------------------------------------------------------------+  |
 |                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  MAS ANTIGUO - Esperando 8 min                               | |
-|  |  MESA 3 | CFE2601-008 | 14:27 | Maria                       | |
-|  +--------------------------------------------------------------+ |
-|  |                                                              | |
-|  |  #1 AMERICANO                                               | |
-|  |      Preparacion estandar                                    | |
-|  |      Estado: Preparando                                      | |
-|  |  +------------------------------------------------------+   | |
-|  |  |            [Listo]           [Cancelar]              |   | |
-|  |  +------------------------------------------------------+   | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  Esperando 5 min                                             | |
-|  |  MESA 5 | CFE2601-009 | 14:30 | Juan                        | |
-|  +--------------------------------------------------------------+ |
-|  |                                                              | |
-|  |  #1 CREPA DE NUTELLA                                        | |
-|  |      Crema: 1/2 *                                           | |
-|  |      + Rell. Extra Cajeta x1                                | |
-|  |      + Extra Chocolate x2                                   | |
-|  |      Estado: Preparando                                      | |
-|  |  +------------------------------------------------------+  | |
-|  |  |            [Listo]           [Cancelar]              |  | |
-|  |  +------------------------------------------------------+  | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
-|  +--------------------------------------------------------------+ |
-|  |  LISTO - Esperando 1 min para recoger                        | |
-|  |  MESA 5 | CFE2601-009 | 14:30 | Juan                        | |
-|  +--------------------------------------------------------------+ |
-|  |                                                              | |
-|  |  #3 CUCURUMBE                                               | |
-|  |      Preparacion estandar                                    | |
-|  |      Estado: Listo                                           | |
-|  |      +--------------------------------------------------+   | |
-|  |      |  [Cancelar]  (listo, esperando mesero)           |   | |
-|  |      +--------------------------------------------------+   | |
-|  +--------------------------------------------------------------+ |
-|                                                                    |
+|  +--------------------------------------------------------------+  |
+|  | PARA LLEVAR  CFE2601-009 . 14:30 . Juan  Esperando 5 min  Imprimir |
+|  +--------------------------------------------------------------+  |
+|  |  COCINA                                                      |  |
+|  |  +--------------------------------------------------------+  |  |
+|  |  | (borde verde) Esperando al mesero                       |  |  |
+|  |  | CUCURUMBE                                               |  |  |
+|  |  | [Entregado]                              [Cancelar]     |  |  |
+|  |  +--------------------------------------------------------+  |  |
+|  +--------------------------------------------------------------+  |
 +--------------------------------------------------------------------+
 ```
 
 ### Kitchen Display Rules
 
-1. **Oldest first** - items waiting longest at top
-2. **Items already COOKING** - no "Start Cooking" button
-3. **Two actions only:** `[Listo]` -> READY, `[Cancelar]` -> CANCELLED
-4. **Show wait time** per item
-5. **No prices** - kitchen doesn't need pricing info
-6. **Modified ingredients** shown with * marker
-7. **Extras** shown with + prefix and quantity: `+ Extra Chocolate x2`
-8. **Auto-refreshes** via Turbo Streams
-9. **Takeout orders** show "PARA LLEVAR" instead of a table name (e.g., "PARA LLEVAR | CFE2603-002 | 14:35 | Juan")
+1. **Oldest first** - the order whose oldest item has waited longest is at the top.
+   Position carries the urgency, so there is no "MAS ANTIGUO" badge.
+2. **One box per order**, with the shared meta in its header and no per-item
+   repetition of spot, code, time or waiter.
+3. **Wait time is per order**, counted from `cooking_at` (when the waiter confirmed)
+   or from the item's own `created_at` for items added to an order already cooking,
+   whichever is later. It ticks client-side via the `elapsed` Stimulus controller,
+   because a quiet kitchen gets no re-render.
+4. **One section per station**, ordered as the `Category.station` enum is declared
+   (cocina, then barra). A station with no items in this order is not rendered, and a
+   single-station order gets no column split.
+5. **Items already COOKING** - no "Start Cooking" button.
+6. **Two actions only:** `[Listo]` -> READY, `[Cancelar]` -> CANCELLED, pinned to
+   opposite edges of the card so a mis-tap cannot hit the other one.
+7. **Ready items** keep a green left border and "Esperando al mesero", and swap
+   `[Listo]` for `[Entregado]`.
+8. **No prices** - kitchen doesn't need pricing info.
+9. **Every ingredient is listed**, so a cook who does not know the recipe can still
+   make it. Only modified portions are bolded; **extras** use a `+` prefix and a
+   quantity: `+ Extra Chocolate x2`.
+10. **Auto-refreshes** via Turbo Streams (morph).
+11. **Takeout orders** show "PARA LLEVAR" instead of a table name.
+12. **Imprimir** prints just that order as a 72mm thermal ticket, always
+    single-column.
 
 ---
 

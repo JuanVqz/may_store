@@ -22,6 +22,11 @@
       <% spot_label = spot.takeout? ? t("spot_types.takeout") : spot.name %>
       <%# The queue is sorted oldest first, so the group's first item is its oldest. %>
       <% oldest_item = items.first %>
+      <%# The kitchen waits from the moment the order was confirmed, not from when
+          the waiter first tapped the product: items are created as `ordering` and
+          only flip to `cooking` at confirm!. Items added to an already-cooking
+          order are newer than cooking_at, so max reads right either way. %>
+      <% waiting_since = [oldest_item.created_at, order.cooking_at].compact.max %>
       <% by_station = items.group_by { |i| i.product.category.station } %>
       <% stations = Category.stations.keys.select { |station| by_station[station].present? } %>
       <div class="border-2 border-border rounded-lg overflow-hidden"
@@ -43,9 +48,9 @@
             <%# kitchen would otherwise leave this frozen at its rendered value. %>
             <span class="kitchen-order-elapsed text-sm font-semibold text-muted-foreground whitespace-nowrap"
                   data-controller="elapsed"
-                  data-elapsed-start-value="<%= oldest_item.created_at.iso8601 %>"
+                  data-elapsed-start-value="<%= waiting_since.iso8601 %>"
                   data-elapsed-template-value="<%= t("kitchen.waiting", minutes: "%{minutes}") %>">
-              <%= t("kitchen.waiting", minutes: ((Time.current - oldest_item.created_at) / 60).floor) %>
+              <%= t("kitchen.waiting", minutes: ((Time.current - waiting_since) / 60).floor) %>
             </span>
             <button class="kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer"
                     data-action="click->print#printOrder">
@@ -53,8 +58,11 @@
             </button>
           </span>
         </div>
-        <%# One column per prep area on tablet and up; stacked sections on phones. %>
-        <div class="grid gap-3 p-3 <%= "md:grid-cols-2" if stations.size > 1 %>">
+        <%# One column per prep area on tablet and up; stacked sections on phones.
+            print:grid-cols-1 because `md:` is a viewport query that also matches the
+            print media width (A4 is ~794px), and two columns inside the 72mm thermal
+            ticket wraps every product name. %>
+        <div class="grid gap-3 p-3 <%= "md:grid-cols-2 print:grid-cols-1" if stations.size > 1 %>">
           <% stations.each do |station| %>
             <section class="space-y-3" data-kitchen-station="<%= station %>">
               <h3 class="text-xs font-bold uppercase tracking-wide text-muted-foreground">

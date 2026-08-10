@@ -47,6 +47,14 @@ class Admin::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "bar", Category.last.station
   end
 
+  test "create with a station outside the enum re-renders the form" do
+    assert_no_difference "Category.count" do
+      post admin_categories_url(subdomain: @store.subdomain),
+        params: { category: { name: "Parrilla", station: "grill" } }
+    end
+    assert_response :unprocessable_entity
+  end
+
   test "update changes the station" do
     patch admin_category_url(@category, subdomain: @store.subdomain),
       params: { category: { name: @category.name, station: "kitchen" } }
