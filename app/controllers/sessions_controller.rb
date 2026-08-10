@@ -7,10 +7,11 @@ class SessionsController < ApplicationController
 
   def create
     account = Account.joins(:user)
-                     .where(users: { store_id: Current.store.id, deleted_at: nil })
+                     .where(users: { store_id: Current.store.id, active: true, deleted_at: nil })
                      .find_by(employee_number: params[:employee_number])
 
     if account&.authenticate(params[:password])
+      reset_session
       session[:user_id] = account.user_id
       redirect_by_role(account.user)
     else
