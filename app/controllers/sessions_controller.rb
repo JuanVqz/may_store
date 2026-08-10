@@ -7,7 +7,7 @@ class SessionsController < ApplicationController
 
   def create
     account = Account.joins(:user)
-                     .where(users: { store_id: Current.store.id })
+                     .where(users: { store_id: Current.store.id, deleted_at: nil })
                      .find_by(employee_number: params[:employee_number])
 
     if account&.authenticate(params[:password])

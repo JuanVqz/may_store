@@ -13,8 +13,15 @@ class ApplicationController < ActionController::Base
     render plain: I18n.t("flash.store_not_found"), status: :not_found
   end
 
+  # Scoped to the store and to active users, so soft-deleting an employee ends
+  # their session on the next request instead of when they get around to logging
+  # out. The store scope also keeps a session from carrying across subdomains if
+  # the session cookie ever stops being host-only.
   def set_current_user
-    Current.user = User.find_by(id: session[:user_id]) if session[:user_id]
+    return unless session[:user_id]
+
+    Current.user = Current.store.users.active.find_by(id: session[:user_id])
+    session.delete(:user_id) unless Current.user
   end
 
   def require_authentication
