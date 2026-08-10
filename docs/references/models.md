@@ -1084,11 +1084,28 @@ class Category < ApplicationRecord
   belongs_to :store
   has_many :products
 
+  # Which prep area the kitchen queue files this category's products under.
+  enum :station, {
+    kitchen: "kitchen",
+    bar: "bar"
+  }, prefix: true
+
   validates :name, presence: true
+  validates :station, presence: true
 
   scope :ordered, -> { order(:position) }
+
+  def station_label
+    I18n.t("stations.#{station}")
+  end
 end
 ```
+
+`station` drives the two-column split on the kitchen queue: an order's items are
+grouped by `product.category.station` and rendered side by side on tablet and up,
+stacked on phones. It defaults to `kitchen`, so a store that never touches it keeps
+a single column. Per-station *screens* were considered and deferred, see
+`docs/plans/backlog/26-08-08-per-station-queues.md`.
 
 ---
 

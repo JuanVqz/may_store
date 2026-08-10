@@ -84,13 +84,14 @@ puts "Se crearon 15 lugares de mesa + 1 lugar para llevar"
 # ============================================
 # CATEGORÍAS
 # ============================================
+# station decides which column of the kitchen queue a product lands in.
 categories_data = [
-  { name: "Bebidas Calientes", description: "Cafés y bebidas de espresso calientes", icon: "coffee", position: 1 },
-  { name: "Tizanas", description: "Tés de frutas calientes e infusiones", icon: "tea", position: 2 },
-  { name: "Crepas Dulces", description: "Crepas dulces con diversos rellenos", icon: "crepe", position: 3 },
-  { name: "Especialidades", description: "Creaciones especiales del chef", icon: "star", position: 4 },
-  { name: "Frappes", description: "Bebidas de café frappé", icon: "frappe", position: 5 },
-  { name: "Postres", description: "Postres y dulces", icon: "cake", position: 6 }
+  { name: "Bebidas Calientes", description: "Cafés y bebidas de espresso calientes", icon: "coffee", position: 1, station: "bar" },
+  { name: "Tizanas", description: "Tés de frutas calientes e infusiones", icon: "tea", position: 2, station: "bar" },
+  { name: "Crepas Dulces", description: "Crepas dulces con diversos rellenos", icon: "crepe", position: 3, station: "kitchen" },
+  { name: "Especialidades", description: "Creaciones especiales del chef", icon: "star", position: 4, station: "kitchen" },
+  { name: "Frappes", description: "Bebidas de café frappé", icon: "frappe", position: 5, station: "bar" },
+  { name: "Postres", description: "Postres y dulces", icon: "cake", position: 6, station: "kitchen" }
 ]
 
 categories = {}

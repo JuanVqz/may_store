@@ -168,6 +168,59 @@ class KitchenTest < ApplicationSystemTestCase
     end
   end
 
+  test "an order splits its items into kitchen and bar columns" do
+    order = orders(:cooking_order)
+    crepa = LineItem.create!(order: order, product: products(:crepa_nutella), status: :cooking,
+                             base_price_cents: 8500, total_price_cents: 8500)
+
+    visit kitchen_path
+
+    within "[data-kitchen-order='#{order.id}'] [data-kitchen-station='kitchen']" do
+      assert_text products(:crepa_nutella).name.upcase
+      assert_no_text products(:cappuccino).name.upcase
+    end
+    within "[data-kitchen-order='#{order.id}'] [data-kitchen-station='bar']" do
+      assert_text products(:cappuccino).name.upcase
+      assert_no_text crepa.product.name.upcase
+    end
+  end
+
+  test "an order with a single station renders only that column" do
+    order = orders(:cooking_order)
+
+    visit kitchen_path
+
+    within "[data-kitchen-order='#{order.id}']" do
+      assert_selector "[data-kitchen-station='bar']"
+      assert_no_selector "[data-kitchen-station='kitchen']"
+    end
+  end
+
+  test "the order header shows a wait time that ticks on its own" do
+    order = orders(:cooking_order)
+
+    visit kitchen_path
+
+    within "[data-kitchen-order='#{order.id}']" do
+      assert_text I18n.t("kitchen.waiting", minutes: 0)
+      # The Stimulus controller owns the label after connect, so the raw
+      # interpolation placeholder must never survive to the screen.
+      assert_no_text "%{minutes}"
+    end
+
+    # Rewind the start timestamp: only a live controller recomputes the label,
+    # a server-rendered string would sit at zero forever.
+    page.execute_script(<<~JS, 10.minutes.ago.iso8601)
+      document
+        .querySelector("[data-kitchen-order='#{order.id}'] .kitchen-order-elapsed")
+        .setAttribute("data-elapsed-start-value", arguments[0])
+    JS
+
+    within "[data-kitchen-order='#{order.id}']" do
+      assert_text I18n.t("kitchen.waiting", minutes: 10)
+    end
+  end
+
   test "a waiter can also work the kitchen queue" do
     sign_in_waiter
     item = line_items(:cooking_cappuccino)

@@ -22,6 +22,7 @@
       empty_message: t("no_results"),
       columns: [
         { key: :name, label: t("admin.categories.attributes.name") },
+        { key: ->(c) { c.station_label }, label: t("admin.categories.attributes.station") },
         { key: ->(c) { render "admin/categories/actions", category: c }, label: "" }
       ] %>
   <% end %>

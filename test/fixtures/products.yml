@@ -21,3 +21,11 @@ latte:
   base_price_cents: 4500
   available: true
   allows_customization: true
+
+crepa_nutella:
+  store: cafe_delicias
+  category: crepas
+  name: Crepa de Nutella
+  base_price_cents: 8500
+  available: true
+  allows_customization: true

@@ -160,10 +160,10 @@ class OrderFlowTest < ApplicationSystemTestCase
       click_on categories(:crepas).name
     end
 
-    # The crepas category has no products in the fixtures. Scope the check to
-    # the browser, since the order itself still lists an americano.
+    # Scope the check to the browser, since the order itself still lists an
+    # americano regardless of which category is selected.
     within "#product_browser" do
-      assert_text I18n.t("no_results")
+      assert_text products(:crepa_nutella).name
       assert_no_text products(:americano).name
     end
   end
