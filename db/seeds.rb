@@ -506,6 +506,104 @@ puts "  - #{takeout_order.line_items.count} artículos"
 puts "  - Total: $#{'%.2f' % takeout_order.total}"
 
 # ============================================
+# ÓRDENES EN COCINA (Para la pantalla de cocina)
+# ============================================
+# The kitchen queue only shows items in `cooking` or `ready`, so the two orders
+# above (both `open`, items `ordering`) leave it empty. These two are confirmed,
+# and backdated so the wait time reads as a real number instead of "0 min".
+#
+# The first spans both stations, which is what makes the queue split into
+# columns; the second is single-station with an item already ready, so the green
+# "esperando al mesero" state is visible too.
+puts "\n--- Creando órdenes en cocina ---"
+
+# Scoped to the store: the second tenant is created at the end of this file, and
+# an unscoped find_by would start returning its records the day it gets spots and
+# products of its own.
+mesa_1 = store.spots.find_by(name: "Mesa 1")
+mesa_2 = store.spots.find_by(name: "Mesa 2")
+crepa_nutella = store.products.find_by(name: "Crepa de Nutella")
+maria = users.find { |u| u.waiter? && u.name.start_with?("Maria") } || waiter
+
+seed_line_item = lambda do |order, product, notes: nil, portions: {}, extras_for: []|
+  item = LineItem.create!(
+    order: order,
+    product: product,
+    status: :ordering,
+    base_price_cents: product.base_price_cents,
+    special_notes: notes
+  )
+
+  product.product_components.where(component_type: :ingredient).each do |pc|
+    LineItemComponent.create!(
+      line_item: item,
+      component: pc.component,
+      component_type: :ingredient,
+      portion: portions.fetch(pc.component.name, 1.0),
+      unit_price_cents: 0
+    )
+  end
+
+  extras_for.each do |extra|
+    LineItemComponent.create!(
+      line_item: item,
+      component: extra,
+      component_type: :extra,
+      portion: 1.0,
+      unit_price_cents: extra.price_cents
+    )
+  end
+
+  item.calculate_total!
+  item
+end
+
+# Cocina (crepa) + barra (cappuccino) in one order, so the queue shows two columns.
+kitchen_order = Order.create!(
+  store: store,
+  spot: mesa_1,
+  user: waiter,
+  status: :open,
+  opened_at: 14.minutes.ago
+)
+seed_line_item.call(kitchen_order, crepa_nutella,
+  notes: "Sin nuez, alergia",
+  portions: { "Nutella" => 0.5 },
+  extras_for: [extras["Relleno Extra Cajeta"]])
+seed_line_item.call(kitchen_order, cappuccino)
+kitchen_order.recalculate_total!
+kitchen_order.confirm!
+# The queue times the wait as max(item.created_at, order.cooking_at), so both have
+# to move for the header to read as a real wait instead of "0 min". The items are
+# staggered a second apart because the queue sorts on created_at, and identical
+# timestamps leave the card order to Postgres.
+kitchen_order.line_items.order(:id).each_with_index do |item, i|
+  item.update_columns(created_at: 14.minutes.ago + i.seconds)
+end
+kitchen_order.update_columns(created_at: 14.minutes.ago, cooking_at: 12.minutes.ago)
+
+# Single station, and one item already ready and waiting on a waiter.
+ready_order = Order.create!(
+  store: store,
+  spot: mesa_2,
+  user: maria,
+  status: :open,
+  opened_at: 6.minutes.ago
+)
+ready_item = seed_line_item.call(ready_order, cucurumbe)
+seed_line_item.call(ready_order, crepa_nutella)
+ready_order.recalculate_total!
+ready_order.confirm!
+ready_order.line_items.order(:id).each_with_index do |item, i|
+  item.update_columns(created_at: 6.minutes.ago + i.seconds)
+end
+ready_order.update_columns(created_at: 6.minutes.ago, cooking_at: 5.minutes.ago)
+ready_item.reload.mark_ready! # confirm! flips status with update_all, so reload first
+
+puts "Orden en cocina creada: #{kitchen_order.code} (#{kitchen_order.line_items.count} artículos, 2 estaciones)"
+puts "Orden en cocina creada: #{ready_order.code} (#{ready_order.line_items.count} artículos, 1 listo)"
+
+# ============================================
 # RESUMEN
 # ============================================
 puts "\n" + "=" * 50
