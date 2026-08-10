@@ -17,23 +17,53 @@
         <% end %>
       <% end %>
     <% end %>
-    <% oldest_cooking_id = @line_items.find(&:cooking?)&.id %>
     <% @line_items.group_by(&:order).each do |order, items| %>
       <% spot = order.spot %>
       <% spot_label = spot.takeout? ? t("spot_types.takeout") : spot.name %>
+      <%# The queue is sorted oldest first, so the group's first item is its oldest. %>
+      <% oldest_item = items.first %>
+      <% by_station = items.group_by { |i| i.product.category.station } %>
+      <% stations = Category.stations.keys.select { |station| by_station[station].present? } %>
       <div class="border-2 border-border rounded-lg overflow-hidden"
            data-kitchen-order="<%= order.id %>"
            data-controller="print">
-        <div class="flex items-center justify-between bg-muted px-4 py-3 border-b border-border kitchen-order-header">
-          <span><%= order.code %> &middot; <%= spot_label %></span>
-          <button class="kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer"
-                  data-action="click->print#printOrder">
-            <%= t("print") %>
-          </button>
+        <%# Stacks on phones so the order meta never squeezes into a narrow column. %>
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 bg-muted px-4 py-3 border-b border-border kitchen-order-header">
+          <%# Everything shared by the order's items lives here, once. %>
+          <span class="flex flex-wrap items-baseline gap-x-2">
+            <strong class="text-lg"><%= spot_label %></strong>
+            <span class="text-sm text-muted-foreground">
+              <%= order.code %> &middot;
+              <%= l(order.opened_at || order.created_at, format: :time_only) %> &middot;
+              <%= order.user.name %>
+            </span>
+          </span>
+          <span class="flex items-baseline justify-between gap-4 sm:justify-end">
+            <%# Ticks client-side: broadcasts are the only re-render, and a quiet %>
+            <%# kitchen would otherwise leave this frozen at its rendered value. %>
+            <span class="kitchen-order-elapsed text-sm font-semibold text-muted-foreground whitespace-nowrap"
+                  data-controller="elapsed"
+                  data-elapsed-start-value="<%= oldest_item.created_at.iso8601 %>"
+                  data-elapsed-template-value="<%= t("kitchen.waiting", minutes: "%{minutes}") %>">
+              <%= t("kitchen.waiting", minutes: ((Time.current - oldest_item.created_at) / 60).floor) %>
+            </span>
+            <button class="kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer"
+                    data-action="click->print#printOrder">
+              <%= t("print") %>
+            </button>
+          </span>
         </div>
-        <div class="space-y-3 p-3">
-          <% items.each do |item| %>
-            <%= render "kitchen/line_item_card", item: item, oldest_cooking_id: oldest_cooking_id %>
+        <%# One column per prep area on tablet and up; stacked sections on phones. %>
+        <div class="grid gap-3 p-3 <%= "md:grid-cols-2" if stations.size > 1 %>">
+          <% stations.each do |station| %>
+            <section class="space-y-3" data-kitchen-station="<%= station %>">
+              <h3 class="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                <%= t("stations.#{station}") %>
+              </h3>
+              <% by_station[station].each do |item| %>
+                <%= render "kitchen/line_item_card", item: item %>
+              <% end %>
+            </section>
           <% end %>
         </div>
       </div>

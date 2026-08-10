@@ -50,6 +50,13 @@ es:
     admin: "Administrador"
 
   # ============================================
+  # Prep Stations
+  # ============================================
+  stations:
+    kitchen: "Cocina"
+    bar: "Barra"
+
+  # ============================================
   # Spot Types
   # ============================================
   spot_types:
@@ -207,7 +214,6 @@ es:
     oldest_first: "Mas antiguo primero"
     queue_count: "Cola: %{count} productos"
     waiting: "Esperando %{minutes} min"
-    oldest: "Mas antiguo"
     ready: "Listo"
     cancel: "Cancelar"
     ready_pickup: "Listo - Esperando %{minutes} min para recoger"
@@ -564,6 +570,7 @@ es:
       search_placeholder: "Buscar por nombre..."
       attributes:
         name: "Nombre"
+        station: "Area de preparacion"
 
     components:
       title: "Ingredientes y Extras"

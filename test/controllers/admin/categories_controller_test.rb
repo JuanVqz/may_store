@@ -35,6 +35,24 @@ class Admin::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @store, Category.last.store
   end
 
+  test "create defaults a category to the kitchen station" do
+    post admin_categories_url(subdomain: @store.subdomain),
+      params: { category: { name: "Nueva Categoria" } }
+    assert_equal "kitchen", Category.last.station
+  end
+
+  test "create stores the chosen station" do
+    post admin_categories_url(subdomain: @store.subdomain),
+      params: { category: { name: "Barra Fria", station: "bar" } }
+    assert_equal "bar", Category.last.station
+  end
+
+  test "update changes the station" do
+    patch admin_category_url(@category, subdomain: @store.subdomain),
+      params: { category: { name: @category.name, station: "kitchen" } }
+    assert_equal "kitchen", @category.reload.station
+  end
+
   test "create with blank name re-renders form" do
     assert_no_difference "Category.count" do
       post admin_categories_url(subdomain: @store.subdomain),

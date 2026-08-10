@@ -6,6 +6,7 @@ class CreateCategories < ActiveRecord::Migration[8.1]
       t.string :description
       t.string :icon
       t.integer :position
+      t.string :station, default: "kitchen", null: false
       t.boolean :active, default: true, null: false
       t.datetime :deleted_at
 
