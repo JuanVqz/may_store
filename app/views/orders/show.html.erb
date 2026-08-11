@@ -21,7 +21,7 @@
 
 <div id="order_<%= @order.id %>">
   <% if @order.closed? %>
-    <%= render "orders/closed", order: @order %>
+    <%= render "orders/closed", order: @order, items: @receipt_items %>
   <% else %>
   <div class="flex flex-col h-[calc(100svh-var(--header-height))] md:flex-row" data-controller="order-page">
     <%# Left: Product browser %>

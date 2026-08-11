@@ -152,4 +152,35 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_no_match order.code, response.body
   end
+
+  # The waiter is often asked "what did we have?" before the paper is out of the
+  # printer, so the closed screen carries the sold items, not just the total.
+  test "show on a closed order lists what was sold with the total" do
+    order = orders(:delivered_order)
+    order.update!(status: :closed, closed_at: Time.current)
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    order.line_items.each { |item| assert_match item.product.name, response.body }
+    assert_match order.formatted_total, response.body
+    assert_match order.code, response.body
+  end
+
+  # The screen and the printed bill both number items, so they have to agree:
+  # oldest first, cancelled included. They diverged when the closed view was fed
+  # the newest-first collection the active order screen uses.
+  test "the closed screen numbers items the way the printed bill does" do
+    order = orders(:cooking_order)
+    order.update!(status: :closed, closed_at: Time.current)
+    oldest, newest = order.line_items.order(created_at: :asc).to_a
+    newest.update!(status: :cancelled)
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    body = response.body
+    assert_operator body.index(oldest.product.name), :<, body.index(newest.product.name),
+                    "expected oldest item first, as on the receipt"
+    assert_match "CANCELADO", body
+  end
 end

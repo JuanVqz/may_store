@@ -13,6 +13,7 @@ All specs live in `docs/`. Read these before making architectural decisions:
 - `docs/references/wireframes.md` — All 14 screens with ASCII wireframes
 - `docs/references/turbo-streams.md` — Broadcast channels and Turbo Stream architecture
 - `docs/references/reference-patterns.md` — Patterns extracted from the Fizzy codebase
+- `docs/references/thermal-printing.md` — ESC/POS over WebUSB: the printer's USB identifiers, why HTML printing does not work with it, and the per-OS setup at the store
 - Root `README.md` — What the app does, with screenshots. Public-facing.
 - Seed data: `db/seeds.rb`
 - Spanish locale: `config/locales/es.yml`
@@ -99,6 +100,27 @@ Deliberate exceptions go in `.herb.yml` as a rule-level `exclude:` with a commen
 **Every partial declares strict locals.** A new partial needs a `<%# locals: (...) %>` line followed by a blank line, or `<%# locals: () %>` when it takes none. Optional locals get a default (`highlight: false`) instead of a `local_assigns[:highlight]` lookup. Missing and undeclared locals both raise at render time, including under `Herb::Engine`.
 
 `herb:disable` comments are **line-scoped**: they only suppress offenses reported on their own line, and a multi-line tag anchors its offense to the line the tag opens on. When the offending element spans lines, scope the exception with a rule-level `exclude:` in `.herb.yml` instead, where it stays reviewable.
+
+## Printing
+
+Receipts are **ESC/POS byte streams built server-side and pushed to the printer
+by the browser over WebUSB**. They are not HTML, and no print dialog opens. Full
+detail in `docs/references/thermal-printing.md`; the essentials:
+
+- The printer (Epson TM-T81, `04b8:0202`) **must stay in USB vendor class (255)**.
+  Chrome's WebUSB blocklist protects printer class (7), so switching it with an
+  Epson memory switch would lock the browser out permanently, and no macOS driver
+  covers this model. Never flip it.
+- `EscPos::Document` builds the bytes and has no Rails dependencies.
+  `Receipt::Bill` and `Receipt::KitchenTicket` decide what lands on the paper.
+- Text is CP437-encoded, not UTF-8: `ñ` is one byte, `0xA4`. Unmappable
+  characters degrade to `?` instead of raising.
+- Layout is 42 columns of monospace. `row`, `rule` and `wrapped` in
+  `EscPos::Document` all work in those columns.
+- WebUSB needs HTTPS and Chrome/Edge. Windows needs a one-time WinUSB binding,
+  and Epson's Advanced Printer Driver must not be installed on that machine.
+- `docs/plans/backlog/26-08-11-html-print-fallback.md` keeps the HTML +
+  `window.print()` design on the shelf in case WebUSB proves awkward in the store.
 
 ## Plans
 

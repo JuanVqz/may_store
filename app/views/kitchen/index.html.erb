@@ -31,7 +31,9 @@
       <% stations = Category.stations.keys.select { |station| by_station[station].present? } %>
       <div class="border-2 border-border rounded-lg overflow-hidden"
            data-kitchen-order="<%= order.id %>"
-           data-controller="print">
+           data-controller="print"
+           data-print-messages-value="<%= t("receipt.errors").to_json %>"
+           data-print-preview-value="<%= thermal_preview? %>">
         <%# Stacks on phones so the order meta never squeezes into a narrow column. %>
         <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4 bg-muted px-4 py-3 border-b border-border kitchen-order-header">
           <%# Everything shared by the order's items lives here, once. %>
@@ -52,10 +54,9 @@
                   data-elapsed-template-value="<%= t("kitchen.waiting", minutes: "%{minutes}") %>">
               <%= t("kitchen.waiting", minutes: ((Time.current - waiting_since) / 60).floor) %>
             </span>
-            <button class="kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer"
-                    data-action="click->print#printOrder">
-              <%= t("print") %>
-            </button>
+            <%= tag.button t("print"), type: "button",
+                  class: "kitchen-print-btn text-sm font-normal underline underline-offset-2 cursor-pointer",
+                  data: { action: "print#ticket", print_url_param: order_kitchen_ticket_path(order) } %>
           </span>
         </div>
         <%# One column per prep area on tablet and up; stacked sections on phones.

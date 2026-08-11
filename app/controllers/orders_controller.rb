@@ -22,6 +22,16 @@ class OrdersController < ApplicationController
                        .includes(:product, line_item_components: :component)
                        .order(created_at: :desc)
 
+    # The closed screen is a receipt, so it lists items the way the printed bill
+    # does: oldest first and cancelled ones included. Handing it @line_items
+    # (newest first, cancelled dropped) numbered the same order differently on
+    # screen and on paper, so "line #2" meant two different products.
+    if @order.closed?
+      @receipt_items = @order.line_items
+                            .includes(:product, line_item_components: :component)
+                            .order(created_at: :asc)
+    end
+
     if @order.allows_item_addition?
       @categories = Current.store.categories.active.ordered
       @category =

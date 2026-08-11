@@ -12,11 +12,16 @@
   <% end %>
 <% end %>
 
-<div class="max-w-2xl mx-auto p-4 space-y-4" data-controller="print">
+<div class="max-w-2xl mx-auto p-4 space-y-4"
+     data-controller="print"
+     data-print-messages-value="<%= t("receipt.errors").to_json %>"
+     data-print-preview-value="<%= thermal_preview? %>">
   <div data-print-target="area">
     <%= render "components/card" do %>
+      <%# card/title takes `text:`; it renders `text || content` and never yields,
+          so the block form silently produced an empty heading here. %>
       <%= render "components/card/header" do %>
-        <%= render "components/card/title" do %><%= t("bill.title") %><% end %>
+        <%= render "components/card/title", text: t("bill.title") %>
       <% end %>
       <%= render "components/card/content" do %>
         <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm mb-4">
@@ -76,16 +81,28 @@
           data: { controller: "payment-form", payment_form_total_value: @order.total_cents / 100.0 } do |f| %>
       <div class="grid grid-cols-3 gap-2">
         <% @payment_methods.each_with_index do |pm, idx| %>
-          <label class="cursor-pointer">
+          <label class="cursor-pointer group">
             <%= f.radio_button :payment_method_id, pm.id,
                   checked: idx.zero?,
-                  class: "sr-only peer",
+                  class: "sr-only",
                   data: {
                     payment_form_target: "method",
                     action: "change->payment-form#update",
                     cash: pm.cash?.to_s
                   } %>
-            <span class="block text-center py-3 px-4 rounded-md border border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
+            <%# Styled from the label with group-has, NOT with peer-checked.
+                `peer-*` compiles to a sibling selector (.peer:checked ~ *), and in
+                development ReActionView's debug_mode wraps each ERB output in a
+                <span display:contents>, which puts the input inside a wrapper and
+                stops it being a sibling of this span. The selected state then
+                silently disappeared in development while working in test and
+                production. group-has keys off the ancestor label, so any wrapper
+                inserted around the input is irrelevant.
+
+                The selected method also has to read at a glance from behind a
+                counter, hence background, weight and a ring rather than a 1px
+                border colour change on its own. %>
+            <span class="block text-center py-3 px-4 rounded-md border border-border group-has-checked:border-primary group-has-checked:bg-primary group-has-checked:text-primary-foreground group-has-checked:font-semibold group-has-checked:ring-2 group-has-checked:ring-primary">
               <%= pm.name %>
             </span>
           </label>
@@ -119,7 +136,8 @@
       <div class="grid grid-cols-2 gap-2 mt-4">
         <%= tag.button t("bill.print"), type: "button",
               class: "text-center",
-              data: { component: "button", variant: "outline", size: "lg", action: "print#print" } %>
+              data: { component: "button", variant: "outline", size: "lg",
+                      action: "print#receipt", print_url_param: order_receipt_path(@order) } %>
         <%= f.submit t("bill.confirm_payment"),
               class: "cursor-pointer",
               data: { component: "button", variant: "primary", size: "lg" } %>

@@ -246,6 +246,25 @@ es:
     received_too_low: "El monto recibido debe ser mayor o igual al total"
 
   # ============================================
+  # Thermal Receipts (ESC/POS)
+  # ============================================
+  receipt:
+    thanks: "Gracias por su compra"
+    remaining: "Pendiente"
+    printed_at: "Impreso"
+    paid_with: "Pagado con"
+    amount: "Monto"
+    errors:
+      unsupported: "Este navegador no puede imprimir. Use Chrome."
+      no_device: "No se selecciono la impresora"
+      wrong_class: "La impresora no esta en modo compatible"
+      no_endpoint: "La impresora no responde"
+      transfer_failed: "No se pudo imprimir. Revise la impresora."
+      fetch_failed: "No se pudo generar el recibo"
+      printer_stalled: "La impresora no responde. Revise el papel y la tapa."
+      session_expired: "Su sesion expiro. Inicie sesion de nuevo."
+
+  # ============================================
   # Split Payment
   # ============================================
   split:

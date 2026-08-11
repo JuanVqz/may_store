@@ -1,4 +1,11 @@
 module ApplicationHelper
+  # Development previews receipts in a browser tab instead of printing them, so
+  # iterating on a layout does not feed a roll of paper through the printer.
+  # Set THERMAL_PRINT=1 to print for real while still in development.
+  def thermal_preview?
+    Rails.env.development? && ENV["THERMAL_PRINT"].blank?
+  end
+
   def order_status_border_class(status)
     case status.to_s
     when "open" then "border-amber-300"
