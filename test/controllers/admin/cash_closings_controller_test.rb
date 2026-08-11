@@ -116,4 +116,38 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/vnd.escpos", response.media_type
     assert_includes response.body, I18n.t("cash_closing.title")
   end
+
+  # Expected is derived from the day's payments, so an open corte left on screen
+  # while sales come in must not keep showing the number it was opened with.
+  test "show refreshes the expected total of an open corte" do
+    closing = CashClosing.open_for_today!(store: @store, user: users(:admin_principal))
+    line = closing.cash_closing_lines.find_by(payment_method: payment_methods(:efectivo))
+    before = line.expected_cents
+
+    order = @store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
+                                  opened_at: Time.current, total_cents: 2_500)
+    order.payments.create!(payment_method: payment_methods(:efectivo), amount_cents: 2_500,
+                           received_cents: 2_500, paid_at: Time.current)
+
+    get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_equal before + 2_500, line.reload.expected_cents
+  end
+
+  # A closed corte is a record of a moment and must not move afterwards.
+  test "show leaves a closed corte's expected total alone" do
+    closing = cash_closings(:open_closing)
+    line = closing.cash_closing_lines.first
+    closing.close!
+
+    order = @store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
+                                  opened_at: closing.period_start, total_cents: 2_500)
+    order.payments.create!(payment_method: line.payment_method, amount_cents: 2_500,
+                           received_cents: 2_500, paid_at: closing.period_start + 1.hour)
+
+    assert_no_changes -> { line.reload.expected_cents } do
+      get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+    end
+  end
 end

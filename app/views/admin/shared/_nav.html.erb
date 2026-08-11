@@ -1,13 +1,15 @@
 <%# locals: () %>
 
 <nav class="flex gap-1 mb-6 border-b pb-3 flex-wrap" aria-label="<%= t("admin.nav.title") %>">
+  <%# Corte de caja first: the catalogue is set up once, but the cash count is
+      opened every day. %>
   <% [
+    [t("admin.nav.cash_closings"),   admin_cash_closings_path,   "cash_closings"],
     [t("admin.nav.categories"),      admin_categories_path,      "categories"],
     [t("admin.nav.components"),      admin_components_path,      "components"],
     [t("admin.nav.products"),        admin_products_path,        "products"],
     [t("admin.nav.spots"),           admin_spots_path,           "spots"],
-    [t("admin.nav.payment_methods"), admin_payment_methods_path, "payment_methods"],
-    [t("admin.nav.cash_closings"),   admin_cash_closings_path,   "cash_closings"]
+    [t("admin.nav.payment_methods"), admin_payment_methods_path, "payment_methods"]
   ].each do |label, path, ctrl| %>
     <%= link_to label, path,
       data: { component: "button", variant: ctrl == controller_name ? "secondary" : "ghost", size: "sm" } %>

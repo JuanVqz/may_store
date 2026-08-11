@@ -10,7 +10,16 @@ class Admin::CashClosingsController < Admin::BaseController
     @pagy, @cash_closings = pagy(Current.store.cash_closings.recent.includes(:user, :cash_closing_lines))
   end
 
+  # Expected is derived from the day's payments, and an open corte outlives the
+  # moment it was opened: sales keep landing while it sits there. Refreshing on
+  # view keeps the count honest, because the whole point of the screen is to
+  # check a physical count against this number, and a stale one sends someone
+  # hunting a difference that does not exist.
+  #
+  # A write on a GET, but an idempotent one that only recomputes derived
+  # columns, and never for a closed corte, which is a record of a moment.
   def show
+    @cash_closing.calculate_expected! if @cash_closing.open?
   end
 
   # Reuses the day's open corte rather than starting a rival count of the same
