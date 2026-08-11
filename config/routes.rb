@@ -20,6 +20,12 @@ Rails.application.routes.draw do
       get :bill
     end
 
+    # ESC/POS byte streams, fetched by the print Stimulus controller and
+    # forwarded to the thermal printer over WebUSB. Not HTML: see
+    # docs/references/thermal-printing.md.
+    resource :receipt, only: [:show]
+    resource :kitchen_ticket, only: [:show]
+
     resources :payments, only: [:create]
 
     resources :line_items, only: [:new, :create, :destroy] do
