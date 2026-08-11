@@ -5,6 +5,10 @@ class CashClosing < ApplicationRecord
   belongs_to :user
   has_many :cash_closing_lines, dependent: :destroy
 
+  accepts_nested_attributes_for :cash_closing_lines
+
+  scope :recent, -> { order(period_start: :desc, created_at: :desc) }
+
   enum :status, {
     open: "open",
     closed: "closed"
@@ -15,8 +19,33 @@ class CashClosing < ApplicationRecord
 
   price_in_cents :total_expected, :total_actual, :total_difference
 
+  # The corte covers the whole day. Stores keep different hours (06:00-22:00 for
+  # one, 08:00-16:00 for another), so no fixed window is right for all of them,
+  # and the calendar day is the boundary they do share. Per-store opening hours
+  # would refine this and change nothing else.
+  #
+  # A second corte on the same day reuses the day's open one rather than starting
+  # a rival count of the same money.
+  def self.open_for_today!(store:, user:)
+    period = Time.current.all_day
+
+    closing = where(store: store, period_start: period.begin, period_end: period.end)
+                .find_by(status: :open)
+    closing ||= create!(
+      store: store, user: user, status: :open,
+      period_start: period.begin, period_end: period.end
+    )
+
+    closing.calculate_expected!
+    closing
+  end
+
   def status_label
     I18n.t("cash_closing_statuses.#{status}")
+  end
+
+  def period_label
+    "#{I18n.l(period_start.to_date)} #{I18n.l(period_start, format: :time_only)} - #{I18n.l(period_end, format: :time_only)}"
   end
 
   def calculate_expected!

@@ -1,0 +1,20 @@
+<%# locals: (line:, closed:) %>
+
+<%# One row per payment method. Expected is read-only on purpose: it is the
+    number the physical count is checked against, so it must not look editable. %>
+<tr class="border-b border-border" data-cash-closing-target="row">
+  <td class="p-3"><%= line.object.payment_method.name %></td>
+  <td class="p-3 text-right text-muted-foreground"
+      data-cash-closing-target="expected"
+      data-expected="<%= line.object.expected_cents %>">
+    <%= line.object.formatted_expected %>
+  </td>
+  <td class="p-3 text-right">
+    <%= line.hidden_field :id %>
+    <%= line.number_field :actual, step: "0.01", min: "0", disabled: closed,
+          autocomplete: "off",
+          class: "w-28 py-2 px-3 rounded-md border border-border text-right",
+          data: { cash_closing_target: "actual", action: "input->cash-closing#recalc" } %>
+  </td>
+  <td class="p-3 text-right" data-cash-closing-target="difference"></td>
+</tr>

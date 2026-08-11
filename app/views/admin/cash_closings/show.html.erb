@@ -1,0 +1,77 @@
+<% content_for :title, t("cash_closing.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<div data-controller="print cash-closing"
+     data-print-messages-value="<%= t("receipt.errors").to_json %>"
+     data-print-preview-value="<%= thermal_preview? %>">
+  <%= render "components/card" do %>
+    <%= render "components/card/header" do %>
+      <%= render "components/card/title", text: t("cash_closing.title") %>
+    <% end %>
+
+    <%= render "components/card/content" do %>
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt class="text-muted-foreground"><%= t("cash_closing.period") %>:</dt>
+        <dd><%= @cash_closing.period_label %></dd>
+        <dt class="text-muted-foreground"><%= t("cash_closing.performed_by") %>:</dt>
+        <dd><%= @cash_closing.user.name %></dd>
+        <dt class="text-muted-foreground"><%= t("orders_today.status") %>:</dt>
+        <dd><%= @cash_closing.status_label %></dd>
+      </dl>
+    <% end %>
+
+    <%= form_with model: @cash_closing, url: admin_cash_closing_path(@cash_closing), method: :patch do |f| %>
+      <%= render "components/card/content", spacing: :full do %>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border text-left">
+              <th class="p-3"><%= t("cash_closing.method") %></th>
+              <th class="p-3 text-right"><%= t("cash_closing.expected") %></th>
+              <th class="p-3 text-right"><%= t("cash_closing.actual") %></th>
+              <th class="p-3 text-right"><%= t("cash_closing.difference") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= f.fields_for :cash_closing_lines do |line| %>
+              <%= render "admin/cash_closings/line", line: line, closed: @cash_closing.closed? %>
+            <% end %>
+          </tbody>
+          <tfoot>
+            <tr class="border-t-2 border-border font-bold">
+              <td class="p-3"><%= t("cash_closing.total") %></td>
+              <td class="p-3 text-right"><%= @cash_closing.formatted_total_expected %></td>
+              <td class="p-3 text-right" data-cash-closing-target="totalActual"></td>
+              <td class="p-3 text-right" data-cash-closing-target="totalDifference"></td>
+            </tr>
+          </tfoot>
+        </table>
+      <% end %>
+
+      <%= render "components/card/content" do %>
+        <label class="block text-sm font-medium mb-1" for="cash_closing_notes"><%= t("cash_closing.notes") %></label>
+        <%= f.text_area :notes, rows: 3, disabled: @cash_closing.closed?,
+              class: "w-full py-2 px-3 rounded-md border border-border" %>
+      <% end %>
+
+      <%= render "components/card/footer" do %>
+        <div class="flex flex-wrap gap-2">
+          <% unless @cash_closing.closed? %>
+            <%= f.submit t("admin.cash_closings.save"),
+                  class: "cursor-pointer",
+                  data: { component: "button", variant: "outline", size: "lg" } %>
+            <%= f.submit t("cash_closing.close"), name: "close",
+                  class: "cursor-pointer",
+                  data: { component: "button", variant: "primary", size: "lg",
+                          turbo_confirm: t("admin.cash_closings.close_confirm") } %>
+          <% end %>
+          <%= tag.button t("print"), type: "button",
+                class: "text-center",
+                data: { component: "button", variant: "outline", size: "lg",
+                        action: "print#receipt",
+                        print_url_param: admin_cash_closing_receipt_path(@cash_closing) } %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

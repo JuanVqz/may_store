@@ -46,6 +46,11 @@ Rails.application.routes.draw do
     resources :products
     resources :spots
     resources :payment_methods
+
+    resources :cash_closings, only: [:index, :show, :create, :update] do
+      # The printed corte, as ESC/POS bytes. Same transport as the bills.
+      resource :receipt, only: [:show], controller: "cash_closing_receipts"
+    end
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

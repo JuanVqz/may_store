@@ -1,0 +1,31 @@
+<% content_for :title, t("admin.cash_closings.title") %>
+
+<%= render "admin/shared/nav" %>
+
+<%= render "components/card" do %>
+  <%= render "components/card/header", layout: :row do %>
+    <div>
+      <%= render "components/card/title", text: t("admin.cash_closings.title") %>
+    </div>
+    <%= render "components/card/action" do %>
+      <%# A POST, not a link: it opens the day's corte (or reuses it) rather than
+          showing a form to fill in first. %>
+      <%= button_to t("admin.new_cash_closing"), admin_cash_closings_path,
+            data: { component: "button", variant: "default", size: "sm" } %>
+    <% end %>
+  <% end %>
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: @cash_closings,
+      empty_message: t("admin.cash_closings.empty"),
+      columns: [
+        { key: ->(closing) { link_to closing.period_label, admin_cash_closing_path(closing), class: "underline underline-offset-2" }, label: t("cash_closing.period") },
+        { key: ->(closing) { closing.user.name }, label: t("cash_closing.performed_by") },
+        { key: ->(closing) { closing.status_label }, label: t("orders_today.status") },
+        { key: ->(closing) { render "admin/cash_closings/difference", cents: closing.total_difference_cents }, label: t("cash_closing.difference") }
+      ] %>
+  <% end %>
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: @pagy %>
+  <% end %>
+<% end %>

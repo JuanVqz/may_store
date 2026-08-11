@@ -1,0 +1,119 @@
+require "test_helper"
+
+class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @store = stores(:cafe_delicias)
+    post login_url(subdomain: @store.subdomain), params: { employee_number: "ADM-001", password: "password123" }
+  end
+
+  test "index lists cortes with their difference" do
+    get admin_cash_closings_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match cash_closings(:open_closing).user.name, response.body
+  end
+
+  test "create opens the day's corte and fills in the expected totals" do
+    assert_difference "CashClosing.count", 1 do
+      post admin_cash_closings_url(subdomain: @store.subdomain)
+    end
+
+    closing = @store.cash_closings.recent.first
+    assert_redirected_to admin_cash_closing_url(closing, subdomain: @store.subdomain)
+    assert_equal Time.current.to_date, closing.period_start.to_date
+    assert_equal @store.payment_methods.active.count, closing.cash_closing_lines.count
+  end
+
+  # A second corte on the same day must not start a rival count of the same money.
+  test "create reuses the day's open corte" do
+    post admin_cash_closings_url(subdomain: @store.subdomain)
+    first = @store.cash_closings.recent.first
+
+    assert_no_difference "CashClosing.count" do
+      post admin_cash_closings_url(subdomain: @store.subdomain)
+    end
+
+    assert_redirected_to admin_cash_closing_url(first, subdomain: @store.subdomain)
+  end
+
+  test "update saves the counted amounts in cents" do
+    closing = cash_closings(:open_closing)
+    line = closing.cash_closing_lines.first
+
+    patch admin_cash_closing_url(closing, subdomain: @store.subdomain), params: {
+      cash_closing: {
+        notes: "faltaron cincuenta",
+        cash_closing_lines_attributes: [{ id: line.id, actual: "95.50" }]
+      }
+    }
+
+    assert_redirected_to admin_cash_closing_url(closing, subdomain: @store.subdomain)
+    assert_equal 9_550, line.reload.actual_cents
+    assert_equal 9_550 - line.expected_cents, line.difference_cents
+    assert_equal "faltaron cincuenta", closing.reload.notes
+  end
+
+  test "update with close closes the corte" do
+    closing = cash_closings(:open_closing)
+
+    patch admin_cash_closing_url(closing, subdomain: @store.subdomain), params: {
+      close: "1", cash_closing: { notes: "" }
+    }
+
+    assert closing.reload.closed?
+    assert_not_nil closing.closed_at
+  end
+
+  test "a closed corte cannot be edited again" do
+    closing = cash_closings(:open_closing)
+    closing.close!
+    line = closing.cash_closing_lines.first
+
+    patch admin_cash_closing_url(closing, subdomain: @store.subdomain), params: {
+      cash_closing: { cash_closing_lines_attributes: [{ id: line.id, actual: "1.00" }] }
+    }
+
+    assert_redirected_to admin_cash_closing_url(closing, subdomain: @store.subdomain)
+    assert_not_equal 100, line.reload.actual_cents
+  end
+
+  test "requires authentication" do
+    delete logout_url(subdomain: @store.subdomain)
+
+    get admin_cash_closings_url(subdomain: @store.subdomain)
+
+    assert_redirected_to login_url(subdomain: @store.subdomain)
+  end
+
+  # Role is the default screen, not a permission: a waiter reaching this is fine.
+  test "any role can reach it" do
+    delete logout_url(subdomain: @store.subdomain)
+    post login_url(subdomain: @store.subdomain), params: { employee_number: "EMP-001", password: "password123" }
+
+    get admin_cash_closings_url(subdomain: @store.subdomain)
+
+    assert_response :success
+  end
+
+  test "cannot reach another store's corte" do
+    other_store = stores(:mi_cafe)
+    other = other_store.cash_closings.create!(
+      user: users(:other_store_waiter), status: :open,
+      period_start: Time.current.beginning_of_day, period_end: Time.current.end_of_day
+    )
+
+    get admin_cash_closing_url(other, subdomain: @store.subdomain)
+
+    assert_response :not_found
+  end
+
+  test "receipt streams the corte as ESC/POS bytes" do
+    closing = cash_closings(:open_closing)
+
+    get admin_cash_closing_receipt_url(closing, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_equal "application/vnd.escpos", response.media_type
+    assert_includes response.body, I18n.t("cash_closing.title")
+  end
+end

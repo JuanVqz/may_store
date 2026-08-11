@@ -1,6 +1,23 @@
 # Corte de Caja (daily cash closing)
 
-**Status:** backlog, ready to start. Admin-only, once per day.
+**Status:** in progress. Lives under Admin, daily.
+
+## Decisions taken (2026-08-11)
+
+The open questions below were answered before implementation:
+
+1. **Period is the whole day**, `Time.current.all_day`. Some stores run 06:00-22:00
+   and others 08:00-16:00, so no single fixed window is right for everyone, and the
+   day boundary is the one thing they all share. Per-store opening hours are a
+   worthwhile refinement later, and would change only where `period_start` and
+   `period_end` come from.
+2. **No permission boundary.** Everybody can see and do everything, exactly as the
+   rest of the app works today. Corte de caja lives under Admin because that is its
+   default screen, not because it is restricted. Boundaries get picked up as their
+   own piece of work once the feature is settled.
+3. **Many cortes per day are allowed.** Nothing blocks a second one; the day's open
+   corte is reused rather than duplicated.
+4. **Closing locks nothing.** It records a count at a moment in time.
 
 The domain layer already exists and is tested. This plan is about the missing
 half: routes, controller, screens, and a printed corte for the drawer.
