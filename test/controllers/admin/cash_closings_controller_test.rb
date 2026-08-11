@@ -13,27 +13,41 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
     assert_match cash_closings(:open_closing).user.name, response.body
   end
 
-  test "create opens the day's corte and fills in the expected totals" do
+  test "create opens a corte running from the last close up to now" do
+    previous = cash_closings(:open_closing)
+    previous.close!
+
     assert_difference "CashClosing.count", 1 do
       post admin_cash_closings_url(subdomain: @store.subdomain)
     end
 
-    closing = @store.cash_closings.recent.first
+    closing = @store.cash_closings.find_by(status: :open)
     assert_redirected_to admin_cash_closing_url(closing, subdomain: @store.subdomain)
-    assert_equal Time.current.to_date, closing.period_start.to_date
+    assert_equal previous.reload.period_end.to_i, closing.period_start.to_i
+    assert_in_delta Time.current, closing.period_end, 5.seconds
     assert_equal @store.payment_methods.active.count, closing.cash_closing_lines.count
   end
 
-  # A second corte on the same day must not start a rival count of the same money.
-  test "create reuses the day's open corte" do
-    post admin_cash_closings_url(subdomain: @store.subdomain)
-    first = @store.cash_closings.recent.first
+  # Two open cortes would overlap and count the same money twice.
+  test "create reuses the open corte instead of opening a second one" do
+    open_corte = cash_closings(:open_closing)
 
     assert_no_difference "CashClosing.count" do
       post admin_cash_closings_url(subdomain: @store.subdomain)
     end
 
-    assert_redirected_to admin_cash_closing_url(first, subdomain: @store.subdomain)
+    assert_redirected_to admin_cash_closing_url(open_corte, subdomain: @store.subdomain)
+  end
+
+  test "a store can cut the drawer as many times as it likes" do
+    cash_closings(:open_closing).close!
+
+    assert_difference "CashClosing.count", 2 do
+      2.times do
+        post admin_cash_closings_url(subdomain: @store.subdomain)
+        @store.cash_closings.find_by(status: :open).close!
+      end
+    end
   end
 
   test "update saves the counted amounts in cents" do
@@ -120,7 +134,7 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
   # Expected is derived from the day's payments, so an open corte left on screen
   # while sales come in must not keep showing the number it was opened with.
   test "show refreshes the expected total of an open corte" do
-    closing = CashClosing.open_for_today!(store: @store, user: users(:admin_principal))
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
     line = closing.cash_closing_lines.find_by(payment_method: payment_methods(:efectivo))
     before = line.expected_cents
 

@@ -6,18 +6,29 @@
 
 The open questions below were answered before implementation:
 
-1. **Period is the whole day**, `Time.current.all_day`. Some stores run 06:00-22:00
-   and others 08:00-16:00, so no single fixed window is right for everyone, and the
-   day boundary is the one thing they all share. Per-store opening hours are a
-   worthwhile refinement later, and would change only where `period_start` and
-   `period_end` come from.
+1. **Cortes chain.** A corte starts where the previous one was closed and runs to
+   the moment it is closed itself. Revised on 2026-08-11 after using it: the
+   original all-day window was wrong, because a store may want to cut the drawer
+   per shift, per cashier, or twice on a busy Saturday, and a calendar day cannot
+   express that. Chaining also makes the guarantee stronger than a fixed window
+   ever could: no sale is counted twice or lost between two cortes.
+
+   For a store's first ever corte there is no previous one, so it starts at the
+   store's earliest payment, which means nothing already sold goes uncounted.
+
+   Only **one corte is open at a time**, and that is what keeps the chain honest:
+   a second open corte would overlap the first and count the same money twice, so
+   `open_current!` reuses the open one instead of rivalling it.
+
+   Per-store opening hours are no longer needed for this. A store that wants a
+   06:00-22:00 corte simply closes it at 22:00.
 2. **No permission boundary.** Everybody can see and do everything, exactly as the
    rest of the app works today. Corte de caja lives under Admin because that is its
    default screen, not because it is restricted. Boundaries get picked up as their
    own piece of work once the feature is settled.
-3. **Many cortes per day are allowed.** Nothing blocks a second one; the day's open
-   corte is reused rather than duplicated.
-4. **Closing locks nothing.** It records a count at a moment in time.
+3. **As many cortes as wanted**, per shift or per cashier. See 1.
+4. **Closing locks nothing else.** It fixes this corte's period end, takes one last
+   reading so a sale rung up mid-count still lands here, and records the result.
 
 The domain layer already exists and is tested. This plan is about the missing
 half: routes, controller, screens, and a printed corte for the drawer.
@@ -64,20 +75,18 @@ deliberately whether corte de caja is the first genuine permission boundary in
 this app, or whether any role may perform it. If it is a real boundary, that is
 a decision worth writing to `docs/plans/decisions/`.
 
-### 2. Period boundaries
+### 2. Period boundaries — done
 
-The day is not midnight-to-midnight for a cafe. Wireframe Screen 14 shows
-`06:00 - 22:00`. Decide where those come from, in order of preference:
+Settled by chaining, see decision 1. `CashClosing.open_current!` opens the corte
+that runs from the last closed one up to now; `refresh_expected!` moves that end
+forward while it stays open; `close!` fixes it.
 
-1. Store-level opening hours (new columns, a migration, and the most correct).
-2. First and last payment of the day (no configuration, but a slow morning
-   silently narrows the period).
-3. `Time.zone.now.all_day` (simplest, wrong for a shop open past midnight).
+The wireframe's `06:00 - 22:00` is a *result* of this rather than configuration: a
+store that opens at six and closes at ten gets exactly that period by closing its
+corte at ten.
 
-Whichever it is, `period_start`/`period_end` are already `null: false`, so the
-choice has to be explicit. Also decide what happens when two cortes are attempted
-for the same day: the index on `(store_id, period_start, period_end)` is not
-unique, so nothing currently stops it.
+Nothing enforces one corte per day, deliberately. What is enforced is one *open*
+corte per store, since two would overlap and count the same money twice.
 
 ### 3. Screens
 
@@ -138,11 +147,17 @@ Print at close, not at create, and include the signature line.
 
 ## Open questions
 
-1. Where do period boundaries come from? (step 2)
-2. Is corte de caja the app's first real permission boundary? (step 1)
-3. One corte per day enforced, or many allowed?
-4. Does closing a corte lock anything, or is it purely a record? Payments after a
-   close would currently land outside the closed period with nothing flagging it.
+All four of the original questions are answered in the decisions above. What is
+left:
+
+1. **A sale backdated into a closed corte is silently uncounted.** Payments are
+   read by `paid_at`, so a payment written with a `paid_at` inside an
+   already-closed period lands in no corte at all: the closed one will not be
+   recomputed and the open one starts later. Today nothing backdates a payment, so
+   this is a trap rather than a bug, but it is the one worth watching.
+2. **Nothing stops two people counting the same open corte from two screens.** The
+   last save wins. Fine for one till; worth revisiting for a store with two.
+3. Permission boundaries, deliberately deferred (decision 2).
 
 ## Not in scope
 

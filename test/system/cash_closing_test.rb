@@ -40,6 +40,6 @@ class CashClosingTest < ApplicationSystemTestCase
   private
 
   def open_corte
-    CashClosing.open_for_today!(store: stores(:cafe_delicias), user: users(:admin_principal))
+    CashClosing.open_current!(store: stores(:cafe_delicias), user: users(:admin_principal))
   end
 end
