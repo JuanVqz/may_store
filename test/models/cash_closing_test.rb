@@ -105,9 +105,71 @@ class CashClosingTest < ActiveSupport::TestCase
     assert_equal frozen_end.to_i, closing.reload.period_end.to_i
   end
 
+  # The hole that claiming exists to close: a payment written with a paid_at
+  # inside an already-closed period is too late for that corte and too early for
+  # a period-based next one, so a time window would count it in neither.
+  test "a backdated payment is counted by the next corte" do
+    store = stores(:cafe_delicias)
+    CashClosing.open_current!(store: store, user: users(:admin_principal)).close!
+
+    pay store, 900, paid_at: 3.days.ago
+
+    following = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    line = following.cash_closing_lines.find_by(payment_method: payment_methods(:efectivo))
+
+    assert_equal 900, line.expected_cents
+  end
+
+  # cancel! leaves payments alone, so money taken for an order that was later
+  # cancelled is still in the drawer and still has to be counted.
+  test "a cancelled order's payments are still counted" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    order = pay(store, 400).order
+    order.cancel!
+
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    line = closing.cash_closing_lines.find_by(payment_method: payment_methods(:efectivo))
+
+    assert_equal 400, line.expected_cents
+  end
+
+  test "closing claims the payments it counted so no later corte can count them again" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    payment = pay(store, 250)
+
+    first = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    first.close!
+
+    assert_equal first, payment.reload.cash_closing
+
+    second = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    assert_equal 0, second.total_expected_cents
+  end
+
+  test "a closed corte's totals do not move when new money arrives" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    pay store, 100
+    closing.close!
+    counted = closing.total_expected_cents
+
+    pay store, 5_000
+    closing.calculate_expected!
+
+    assert_equal counted, closing.reload.total_expected_cents
+  end
+
   # Two cortes in a row must not both count the same payment.
   test "consecutive cortes split the day's payments between them" do
     store = stores(:cafe_delicias)
+    # Whatever the fixtures left uncounted lands in the first corte, so the
+    # assertion below is about the money added between the two closes.
+    already_uncounted = Payment.joins(:order).where(orders: { store_id: store.id })
+                               .uncounted.where(payment_method: payment_methods(:efectivo))
+                               .sum(:amount_cents)
     first = CashClosing.open_current!(store: store, user: users(:admin_principal))
     pay store, 500
     first.close!
@@ -118,8 +180,8 @@ class CashClosingTest < ActiveSupport::TestCase
     second.close!
     counted_second = second.cash_closing_lines.find_by(payment_method: payment_methods(:efectivo)).expected_cents
 
+    assert_equal 500, counted_first - already_uncounted
     assert_equal 300, counted_second
-    assert_equal counted_first + 300, counted_first + counted_second - 0
   end
 
   test "period_label reads as a date and a time range" do
@@ -130,10 +192,10 @@ class CashClosingTest < ActiveSupport::TestCase
 
   private
 
-  def pay(store, cents, method: payment_methods(:efectivo))
+  def pay(store, cents, method: payment_methods(:efectivo), paid_at: Time.current)
     order = store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
                                  opened_at: Time.current, total_cents: cents)
     order.payments.create!(payment_method: method, amount_cents: cents,
-                           received_cents: cents, paid_at: Time.current)
+                           received_cents: cents, paid_at: paid_at)
   end
 end

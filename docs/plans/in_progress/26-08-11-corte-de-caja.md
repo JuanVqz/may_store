@@ -6,29 +6,49 @@
 
 The open questions below were answered before implementation:
 
-1. **Cortes chain.** A corte starts where the previous one was closed and runs to
-   the moment it is closed itself. Revised on 2026-08-11 after using it: the
-   original all-day window was wrong, because a store may want to cut the drawer
-   per shift, per cashier, or twice on a busy Saturday, and a calendar day cannot
-   express that. Chaining also makes the guarantee stronger than a fixed window
-   ever could: no sale is counted twice or lost between two cortes.
+1. **A corte counts the payments no corte has claimed yet**, and claims them when
+   it closes. Membership is a foreign key on `payments.cash_closing_id`, not a
+   time window.
 
-   For a store's first ever corte there is no previous one, so it starts at the
-   store's earliest payment, which means nothing already sold goes uncounted.
+   This went through two earlier designs, both wrong, and the reasons are worth
+   keeping:
 
-   Only **one corte is open at a time**, and that is what keeps the chain honest:
-   a second open corte would overlap the first and count the same money twice, so
-   `open_current!` reuses the open one instead of rivalling it.
+   - *All-day window.* Could not express cutting the drawer per shift, per
+     cashier, or twice on a busy Saturday.
+   - *Chained windows* (each corte from the last close to now). Better, but still
+     selected by `paid_at`, so a payment written with a `paid_at` inside an
+     already-closed period was counted by nobody: too late for the corte covering
+     that time, too early for the next one.
 
-   Per-store opening hours are no longer needed for this. A store that wants a
-   06:00-22:00 corte simply closes it at 22:00.
-2. **No permission boundary.** Everybody can see and do everything, exactly as the
+   Claiming removes the whole class of problem. Anything unclaimed will be picked
+   up by the next corte no matter when it was paid, so money cannot fall between
+   two cortes, and a closed corte's totals can never move because it counts
+   exactly the rows it claimed.
+
+   `period_start` and `period_end` survive as **description**, not selection: they
+   say when the shift ran, and appear on screen and on the printed corte. Nothing
+   is counted by them.
+
+   Only **one corte is open at a time**, so two counts cannot claim the same
+   money. `open_current!` reuses the open one instead of rivalling it.
+
+   Per-store opening hours are not needed. A store that wants a 06:00-22:00 corte
+   simply closes it at 22:00.
+
+2. **Order status does not filter the count.** A `Payment` row means money reached
+   the drawer; whether the food was served is a different question. In particular
+   `cancel!` does not touch payments, so an order paid and then cancelled keeps
+   its payments, and the earlier `orders.status = :closed` filter left that money
+   counted by **no corte at all**, permanently. A partial payment on an order
+   still open counts for the same reason: the cash is in the till now.
+3. **No permission boundary.** Everybody can see and do everything, exactly as the
    rest of the app works today. Corte de caja lives under Admin because that is its
    default screen, not because it is restricted. Boundaries get picked up as their
    own piece of work once the feature is settled.
-3. **As many cortes as wanted**, per shift or per cashier. See 1.
-4. **Closing locks nothing else.** It fixes this corte's period end, takes one last
-   reading so a sale rung up mid-count still lands here, and records the result.
+4. **As many cortes as wanted**, per shift or per cashier. See 1.
+5. **Closing takes a final reading, claims the payments it counted, and freezes.**
+   All three in one transaction: a claim without matching totals, or totals
+   without the claim, would silently miscount the next corte.
 
 The domain layer already exists and is tested. This plan is about the missing
 half: routes, controller, screens, and a printed corte for the drawer.
@@ -46,8 +66,10 @@ Do not rebuild these.
 | Tests | `test/models/cash_closing_test.rb`, `cash_closing_line_test.rb`, fixtures |
 | Wireframes | `docs/references/wireframes.md` Screen 13 (admin dashboard) and Screen 14 (the corte) |
 
-`calculate_expected!` sums `Payment.amount_cents` for **closed orders only**,
-joined on `paid_at` within the period, grouped per active payment method.
+`calculate_expected!` originally summed `Payment.amount_cents` for closed orders
+only, joined on `paid_at` within the period. Both of those filters are gone: see
+decisions 1 and 2. It now sums the payments this corte counts, grouped per active
+payment method.
 
 ## What is missing
 
@@ -55,7 +77,7 @@ Everything user-facing. There is no controller, no route, and no view.
 
 ## Steps
 
-### 1. Routes and controller
+### 1. Routes and controller — done
 
 ```ruby
 namespace :admin do
@@ -63,9 +85,8 @@ namespace :admin do
 end
 ```
 
-- `new` previews today's expected totals without persisting, so an admin can look
-  without creating a record.
-- `create` builds the `CashClosing` for the period and calls `calculate_expected!`.
+Built as `index`, `show`, `create`, `update`; `new` was dropped, since `create`
+reuses the open corte rather than creating a rival, so there is nothing to preview.
 - `update` saves the counted `actual_cents` per line plus notes, and closes the
   corte when the submit button says so.
 
@@ -88,7 +109,7 @@ corte at ten.
 Nothing enforces one corte per day, deliberately. What is enforced is one *open*
 corte per store, since two would overlap and count the same money twice.
 
-### 3. Screens
+### 3. Screens — done
 
 Follow Screen 14. One row per active payment method: expected (computed, read
 only), actual (the admin types what they counted), difference (live).
@@ -103,7 +124,7 @@ Screen 13 also wants the day's summary on the admin dashboard: orders closed,
 orders cancelled, day total, and totals per payment method. `Order.today` and the
 same payment join give all of it.
 
-### 4. Print the corte
+### 4. Print the corte — done
 
 This is why the plan is worth doing now: the thermal printer works, and a corte
 that prints is a corte that can be signed and dropped in the drawer.
@@ -129,15 +150,12 @@ Notas: faltaron $50, posible error
         Firma: ____________________
 ```
 
-Note the width problem: four money columns do not fit in 42 columns. Either drop
-to two lines per method, or print expected/actual/difference stacked under each
-method name. `EscPos::Document#row` is a two-column primitive, so a three-column
-layout needs either a new helper or per-method blocks. Prefer per-method blocks;
-see `docs/references/thermal-printing.md`.
+Four money columns do not fit in 42 columns, so each method got a block of its
+own. A test asserts no printed line exceeds the paper width.
 
 Print at close, not at create, and include the signature line.
 
-### 5. Tests
+### 5. Tests — done
 
 - Controller: admin reaches it, other roles get whatever the decision in step 1
   says, tenant scoping holds, `update` persists actuals and closes.
@@ -147,17 +165,30 @@ Print at close, not at create, and include the signature line.
 
 ## Open questions
 
-All four of the original questions are answered in the decisions above. What is
-left:
+1. **Refunds cannot be expressed, so the count can overstate the drawer.** Now that
+   a cancelled order's payments are counted, handing money back to a customer is
+   invisible: the payment still reads as cash on hand. There is no refund concept
+   in the app, no negative payment and no `refunded_at`. This is the most
+   important gap in the feature and needs a domain decision:
 
-1. **A sale backdated into a closed corte is silently uncounted.** Payments are
-   read by `paid_at`, so a payment written with a `paid_at` inside an
-   already-closed period lands in no corte at all: the closed one will not be
-   recomputed and the open one starts later. Today nothing backdates a payment, so
-   this is a trap rather than a bug, but it is the one worth watching.
+   - a refund as a negative `Payment` (simplest, keeps one ledger, makes the corte
+     arithmetic work with no special cases), or
+   - a `refunded_at`/`refunded_cents` on `Payment` (keeps the original amount
+     visible, but every sum has to remember to subtract), or
+   - nothing, and the store handles refunds as a note on the corte.
+
+   Until this is settled, a store that refunds will see a shortfall equal to the
+   refund and will have to explain it in the notes.
+
 2. **Nothing stops two people counting the same open corte from two screens.** The
    last save wins. Fine for one till; worth revisiting for a store with two.
-3. Permission boundaries, deliberately deferred (decision 2).
+
+3. **A payment on an order that is never closed is counted at once.** That is the
+   intent, but it means `Esperado` can include money for a table still eating. For
+   a drawer count that is correct; if it ever reads as wrong to a cashier, the
+   answer is to show which payments make up a line, not to filter by order status.
+
+4. Permission boundaries, deliberately deferred (decision 3).
 
 ## Not in scope
 

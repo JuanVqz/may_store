@@ -77,17 +77,36 @@ class CashClosing < ApplicationRecord
   end
 
   def calculate_expected!
-    store.payment_methods.active.each do |pm|
-      expected = Payment.joins(:order)
-                        .where(orders: { store_id: store_id, status: :closed })
-                        .where(payment_method: pm)
-                        .where(paid_at: period_start..period_end)
-                        .sum(:amount_cents)
+    totals = countable_payments.group(:payment_method_id).sum(:amount_cents)
 
+    store.payment_methods.active.each do |pm|
       line = cash_closing_lines.find_or_initialize_by(payment_method: pm)
-      line.expected_cents = expected
+      line.expected_cents = totals[pm.id] || 0
       line.save!
     end
+  end
+
+  # An open corte counts every payment no corte has claimed yet; a closed one
+  # counts exactly what it claimed, so its totals never move again.
+  #
+  # Membership is by claim, not by timestamp. Selecting on paid_at would drop a
+  # payment written with a paid_at inside an already-closed period: too late for
+  # the corte that covered that time, too early for the next one.
+  #
+  # Deliberately not filtered by order status. A Payment row means money reached
+  # the drawer, and the drawer does not care whether the food was served: an
+  # order cancelled after being paid keeps its payments (cancel! does not touch
+  # them), and filtering those out left that money counted by no corte at all.
+  # A partial payment on an order still open counts for the same reason: the
+  # money is in the till now.
+  #
+  # The gap this leaves is refunds, which the app cannot express yet. Handing
+  # money back is invisible here, so a refunded payment still reads as cash on
+  # hand. See docs/plans/in_progress/26-08-11-corte-de-caja.md.
+  def countable_payments
+    scope = Payment.joins(:order).where(orders: { store_id: store_id })
+
+    closed? ? scope.where(cash_closing: self) : scope.uncounted
   end
 
   def total_expected_cents
@@ -102,11 +121,18 @@ class CashClosing < ApplicationRecord
     cash_closing_lines.sum(:difference_cents)
   end
 
-  # Closing fixes the period's end at this moment and takes one last reading, so
-  # a sale rung up while the drawer was being counted still lands in this corte
-  # rather than falling into the gap before the next one.
+  # Closing takes one last reading, claims the payments it counted, and freezes.
+  # The claim is what makes the count final: those payments now belong to this
+  # corte and no later one can count them again.
+  #
+  # All three in one transaction, because a claim without a matching set of
+  # totals, or totals without the claim, would silently miscount the next corte.
   def close!
-    refresh_expected!
-    update!(status: :closed, closed_at: Time.current)
+    transaction do
+      refresh_expected!
+      claimed = countable_payments.update_all(cash_closing_id: id, updated_at: Time.current)
+      update!(status: :closed, closed_at: Time.current)
+      claimed
+    end
   end
 end
