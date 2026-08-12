@@ -195,7 +195,46 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     patch cancel_order_url(order, subdomain: @store.subdomain)
 
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
-    assert_equal I18n.t("order.cannot_cancel_closed"), flash[:alert]
+    assert_equal I18n.t("order.cannot_cancel_paid"), flash[:alert]
     assert order.reload.closed?
+  end
+
+  test "cancel refuses an order that was paid but not closed yet" do
+    order = orders(:delivered_order)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+
+    patch cancel_order_url(order, subdomain: @store.subdomain)
+
+    assert_equal I18n.t("order.cannot_cancel_paid"), flash[:alert]
+    assert_not order.reload.cancelled?
+  end
+
+  # Both cancel buttons come off the page once money has been taken, so nobody is
+  # offered an action the model will refuse.
+  test "show hides both cancel buttons once the order was paid" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_select "form[action=?]", cancel_order_path(order), count: 0
+    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
+  end
+
+  test "show offers both cancel buttons while the order is unpaid" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_select "form[action=?]", cancel_order_path(order)
+    assert_select "form[action=?]", cancel_order_line_item_path(order, item)
   end
 end

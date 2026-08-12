@@ -55,15 +55,19 @@ module Order::Stateful
     update!(status: :closed, closed_at: Time.current)
   end
 
-  # A closed order has been paid in full. Cancelling it would void a sale the
-  # customer already settled and free the table, while the money stays in the
-  # drawer attached to an order that says it never happened. Nothing in the app
-  # can hand that money back, so the only honest answer is to refuse.
+  # Cancelling a paid order would void a sale the customer already settled and
+  # free the table, while the money stays in the drawer attached to an order that
+  # says it never happened. Nothing in the app can hand that money back, so the
+  # only honest answer is to refuse.
+  #
+  # Keyed on `payment_taken?` rather than `closed?` because the invariant is
+  # about money, not status: a payment row exists before `close!` runs, and
+  # cancelling in that window loses the same money.
   #
   # The button is already hidden for closed orders; this is the guard for the
   # route itself.
   def cancel!
-    return false if closed?
+    return false if payment_taken?
 
     transaction do
       update!(status: :cancelled, cancelled_at: Time.current)

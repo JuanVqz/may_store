@@ -56,7 +56,7 @@ class OrdersController < ApplicationController
 
   def cancel
     unless @order.cancel!
-      redirect_to order_path(@order), alert: t("order.cannot_cancel_closed")
+      redirect_to order_path(@order), alert: t("order.cannot_cancel_paid")
       return
     end
 

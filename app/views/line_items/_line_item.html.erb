@@ -26,10 +26,14 @@
               ready_order_line_item_path(order, item),
               method: :patch,
               data: { component: "button", variant: "primary", size: "sm" } %>
-        <%= button_to t("kitchen.cancel"),
-              cancel_order_line_item_path(order, item),
-              method: :patch,
-              data: { component: "button", variant: "destructive", size: "sm", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <%# Hidden once the order is paid, where cancelling is refused: the total
+            would drop below what was already taken. %>
+        <% unless order.payment_taken? %>
+          <%= button_to t("kitchen.cancel"),
+                cancel_order_line_item_path(order, item),
+                method: :patch,
+                data: { component: "button", variant: "destructive", size: "sm", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% end %>
       <% end %>
       <% if item.ready? %>
         <%= button_to t("line_item.mark_delivered"),

@@ -168,18 +168,33 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "cooking", item.reload.status
   end
 
-  test "cancel refuses an item on a closed order and says why" do
-    order = orders(:delivered_order)
+  # The item is left READY so the request reaches the paid-order guard rather
+  # than the status check, which would refuse a delivered item regardless.
+  test "cancel refuses a ready item on a closed order and says why" do
+    order = orders(:cooking_order)
+    order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
     item = order.line_items.first
-    order.payments.create!(payment_method: payment_methods(:efectivo),
-                           amount_cents: order.total_cents,
-                           received_cents: order.total_cents, paid_at: Time.current)
+    order.reload.payments.create!(payment_method: payment_methods(:efectivo),
+                                  amount_cents: order.total_cents,
+                                  received_cents: order.total_cents, paid_at: Time.current)
     order.close!
 
     patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
 
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
-    assert_equal I18n.t("line_item.cannot_cancel"), flash[:alert]
+    assert_equal I18n.t("line_item.cannot_cancel_paid"), flash[:alert]
     assert_not item.reload.cancelled?
+  end
+
+  # A generic alert would leave the cashier guessing which rule they hit, so the
+  # status refusal names the status instead of borrowing the payment message.
+  test "cancel names the status when the item itself cannot be cancelled" do
+    item = line_items(:delivered_latte)
+
+    patch cancel_order_line_item_url(orders(:delivered_order), item, subdomain: @store.subdomain)
+
+    assert_equal I18n.t("line_item.cannot_cancel_status", status: item.status_label.downcase),
+                 flash[:alert]
+    assert_equal "delivered", item.reload.status
   end
 end

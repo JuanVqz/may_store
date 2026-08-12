@@ -51,8 +51,25 @@ class Order < ApplicationRecord
     total_cents - total_paid_cents
   end
 
+  # "Nothing is owed". Gates close! and the bill screen. Note this is also true
+  # for an order with nothing on it yet, since zero is owed on zero.
   def fully_paid?
     remaining_cents <= 0
+  end
+
+  # "Money changed hands", which is the invariant the cancel guards defend: once
+  # cash is in the drawer, voiding the order strands it with nothing in the app
+  # able to hand it back.
+  #
+  # Distinct from fully_paid?, and the two genuinely disagree in both directions:
+  # an empty order owes nothing but nobody paid, and a partial payment is money
+  # taken while something is still owed. Using fully_paid? here would make a
+  # brand-new empty order impossible to cancel.
+  #
+  # `closed?` still has to be asked alongside the payment rows, because a
+  # zero-total order can be closed without any payment at all.
+  def payment_taken?
+    closed? || payments.exists?
   end
 
   def readiness_counts
