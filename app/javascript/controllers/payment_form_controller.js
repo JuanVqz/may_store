@@ -6,6 +6,16 @@ export default class extends Controller {
 
   connect() {
     this.update()
+    // The field is autofocused and pre-filled with 0.00, so a cashier typing 5
+    // to mean five pesos was landing next to the zeros and getting 50.00.
+    // Selecting the content makes the first keystroke replace it.
+    this.selectReceived()
+  }
+
+  // Also on focus, so coming back to the field by click or tab behaves the same
+  // way as arriving on it.
+  selectReceived() {
+    this.receivedInputTarget.select()
   }
 
   update() {
