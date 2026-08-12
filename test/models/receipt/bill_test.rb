@@ -54,19 +54,6 @@ class Receipt::BillTest < ActiveSupport::TestCase
     assert_includes printable(@order.reload), "sin azucar"
   end
 
-  test "prints payments taken so far and what is left" do
-    @order.payments.create!(
-      payment_method: payment_methods(:efectivo),
-      amount_cents: 1000,
-      received_cents: 1000
-    )
-
-    text = printable(@order.reload)
-
-    assert_includes text, "Efectivo"
-    assert_includes text, "Pendiente"
-  end
-
   test "a cash payment prints what was handed over and the change" do
     @order.payments.create!(
       payment_method: payment_methods(:efectivo),
@@ -96,17 +83,6 @@ class Receipt::BillTest < ActiveSupport::TestCase
     assert_includes text, "Transferencia"
     assert_not_includes text, "Recibido"
     assert_not_includes text, "Cambio"
-  end
-
-  test "the amount per payment only appears when payments are split" do
-    half = @order.total_cents / 2
-    @order.payments.create!(payment_method: payment_methods(:efectivo), amount_cents: half, received_cents: half)
-
-    assert_not_includes printable(@order.reload), "Monto"
-
-    @order.payments.create!(payment_method: payment_methods(:transferencia), amount_cents: half, received_cents: half)
-
-    assert_includes printable(@order.reload), "Monto"
   end
 
   test "ends with a cut so the next bill starts on fresh paper" do

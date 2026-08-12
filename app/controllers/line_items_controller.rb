@@ -60,6 +60,8 @@ class LineItemsController < ApplicationController
   def cancel
     @line_item.cancel!(by: Current.user)
     redirect_back fallback_location: order_path(@order), notice: t("kitchen.item_cancelled")
+  rescue LineItem::Stateful::InvalidTransition
+    redirect_back fallback_location: order_path(@order), alert: t("line_item.cannot_cancel")
   end
 
   private

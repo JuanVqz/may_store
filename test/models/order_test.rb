@@ -151,4 +151,27 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.create!(store: @store, spot: @spot, user: @user, status: :open, created_at: 1.day.ago)
     assert_not_includes @store.orders.today, order
   end
+
+  # A closed order has been paid in full. Cancelling it would void a settled sale
+  # and free the table while the money stays in the drawer, and nothing in the app
+  # can hand that money back.
+  test "cancel! refuses a closed order" do
+    order = orders(:delivered_order)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+    order.close!
+
+    assert_not order.cancel!
+    assert order.reload.closed?
+    assert_nil order.cancelled_at
+  end
+
+  test "cancel! still cancels an unpaid order and its outstanding items" do
+    order = orders(:cooking_order)
+
+    assert order.cancel!
+    assert order.reload.cancelled?
+    assert_empty order.line_items.where(status: [:ordering, :cooking, :ready])
+  end
 end

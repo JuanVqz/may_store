@@ -167,4 +167,19 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to order_url(orders(:cooking_order), subdomain: @store.subdomain)
     assert_equal "cooking", item.reload.status
   end
+
+  test "cancel refuses an item on a closed order and says why" do
+    order = orders(:delivered_order)
+    item = order.line_items.first
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+    order.close!
+
+    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+
+    assert_redirected_to order_url(order, subdomain: @store.subdomain)
+    assert_equal I18n.t("line_item.cannot_cancel"), flash[:alert]
+    assert_not item.reload.cancelled?
+  end
 end

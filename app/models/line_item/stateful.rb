@@ -34,8 +34,14 @@ module LineItem::Stateful
     update!(status: :delivered, delivered_by: by)
   end
 
+  # Cancelling an item on a closed order would recalculate the order's total
+  # downwards and leave it overpaid, with the difference sitting in the drawer
+  # and no way to refund it. Reachable in practice: paying before the food is
+  # delivered leaves items READY on an order that is already closed.
   def cancel!(by: nil)
+    raise LineItem::Stateful::InvalidTransition, "Cannot cancel items on a closed order" if order.closed?
     raise LineItem::Stateful::InvalidTransition, "Cannot cancel #{status} items" if cancelled? || delivered?
+
     update!(status: :cancelled, cancelled_by: by)
   end
 

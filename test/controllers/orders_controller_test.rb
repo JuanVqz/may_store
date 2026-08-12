@@ -183,4 +183,19 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
                     "expected oldest item first, as on the receipt"
     assert_match "CANCELADO", body
   end
+
+  # The button is hidden for a closed order, but the route was not guarded.
+  test "cancel refuses a closed order and says why" do
+    order = orders(:delivered_order)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+    order.close!
+
+    patch cancel_order_url(order, subdomain: @store.subdomain)
+
+    assert_redirected_to order_url(order, subdomain: @store.subdomain)
+    assert_equal I18n.t("order.cannot_cancel_closed"), flash[:alert]
+    assert order.reload.closed?
+  end
 end

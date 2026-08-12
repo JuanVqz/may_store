@@ -97,4 +97,23 @@ class LineItemTest < ActiveSupport::TestCase
     item.cancel!
     assert_raises(LineItem::InvalidTransition) { item.cancel! }
   end
+
+  # Reachable whenever the bill is settled before the food goes out: the order is
+  # closed while its items are still READY. Cancelling one then would drop the
+  # order total below what was already paid.
+  test "cancel! refuses an item on a closed order" do
+    order = orders(:delivered_order)
+    item = order.line_items.first
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+    order.close!
+
+    assert_raises LineItem::Stateful::InvalidTransition do
+      item.cancel!(by: users(:waiter_juan))
+    end
+
+    assert_not item.reload.cancelled?
+    assert_equal order.total_cents, order.reload.total_cents
+  end
 end

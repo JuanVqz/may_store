@@ -55,7 +55,11 @@ class OrdersController < ApplicationController
   end
 
   def cancel
-    @order.cancel!
+    unless @order.cancel!
+      redirect_to order_path(@order), alert: t("order.cannot_cancel_closed")
+      return
+    end
+
     redirect_to tables_path, notice: t("order.table_available", name: @order.spot.name)
   end
 

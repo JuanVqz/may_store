@@ -152,6 +152,7 @@ es:
     confirmed: "Orden enviada a cocina"
     item_added: "Producto agregado a la orden"
     closed: "Orden cerrada exitosamente"
+    cannot_cancel_closed: "No se puede cancelar una orden ya pagada y cerrada"
     back_to_tables: "Volver a Mesas"
     table_now_available: "%{name} ahora esta disponible"
 
@@ -160,6 +161,7 @@ es:
   # ============================================
   line_item:
     special_notes: "Notas especiales"
+    cannot_cancel: "No se puede cancelar este producto"
     standard_preparation: "Preparacion estandar"
     all_standard: "Todos los ingredientes estandar"
     mark_delivered: "Marcar Entregado"
@@ -250,10 +252,8 @@ es:
   # ============================================
   receipt:
     thanks: "Gracias por su compra"
-    remaining: "Pendiente"
     printed_at: "Impreso"
     paid_with: "Pagado con"
-    amount: "Monto"
     errors:
       unsupported: "Este navegador no puede imprimir. Use Chrome."
       no_device: "No se selecciono la impresora"
