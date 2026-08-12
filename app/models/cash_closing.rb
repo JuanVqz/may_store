@@ -27,12 +27,21 @@ class CashClosing < ApplicationRecord
   # Only one corte is open at a time, which is what keeps that true: a second
   # open corte would overlap the first and count the same money twice, so an
   # existing open one is reused rather than rivalled.
+  # The reuse is a read followed by a create, which two simultaneous requests can
+  # both pass (a double-tapped button, two tabs, two devices). A partial unique
+  # index on the open ones is what actually holds the invariant, so a loser of that
+  # race lands here as RecordNotUnique and reuses the corte that won instead.
   def self.open_current!(store:, user:)
     closing = where(store: store).find_by(status: :open)
-    closing ||= create!(
-      store: store, user: user, status: :open,
-      period_start: next_period_start_for(store), period_end: Time.current
-    )
+
+    closing ||= begin
+      create!(
+        store: store, user: user, status: :open,
+        period_start: next_period_start_for(store), period_end: Time.current
+      )
+    rescue ActiveRecord::RecordNotUnique
+      where(store: store).find_by!(status: :open)
+    end
 
     closing.refresh_expected!
     closing
@@ -76,14 +85,28 @@ class CashClosing < ApplicationRecord
     end
   end
 
+  # Every method the corte will actually claim money on needs a line, not just the
+  # active ones: deactivating a method after taking money on it used to leave that
+  # money claimed by the corte and shown in no line at all, so it was counted by
+  # nobody, forever. Lines already on the corte are recomputed too, so a method
+  # deactivated mid-corte cannot keep a stale expected that the total still sums.
+  #
+  # Active methods with no payments still get a line, since a cashier confirming
+  # "nothing came in on this one" is part of counting the drawer.
   def calculate_expected!
     totals = countable_payments.group(:payment_method_id).sum(:amount_cents)
+    method_ids = store.payment_methods.active.ids | totals.keys | cash_closing_lines.pluck(:payment_method_id)
 
-    store.payment_methods.active.each do |pm|
+    PaymentMethod.where(id: method_ids).each do |pm|
       line = cash_closing_lines.find_or_initialize_by(payment_method: pm)
       line.expected_cents = totals[pm.id] || 0
       line.save!
     end
+
+    # find_or_initialize_by works on fresh instances, so a caller that preloaded
+    # cash_closing_lines would otherwise keep rendering the expected amounts from
+    # before this recalculation, while the SQL totals showed the new ones.
+    cash_closing_lines.reset
   end
 
   # An open corte counts every payment no corte has claimed yet; a closed one
@@ -113,6 +136,13 @@ class CashClosing < ApplicationRecord
     cash_closing_lines.sum(:expected_cents)
   end
 
+  # Whether anyone has entered a physical count yet. An untouched open corte has a
+  # difference of minus the whole drawer, which reads as a shortfall instead of as
+  # a count nobody has done.
+  def counted?
+    closed? || cash_closing_lines.where.not(actual_cents: 0).exists?
+  end
+
   def total_actual_cents
     cash_closing_lines.sum(:actual_cents)
   end
@@ -127,11 +157,18 @@ class CashClosing < ApplicationRecord
   #
   # All three in one transaction, because a claim without a matching set of
   # totals, or totals without the claim, would silently miscount the next corte.
+  #
+  # The claim happens *before* the totals are read, and the totals are then read
+  # from the claim itself. Reading first and claiming second left a gap: under
+  # READ COMMITTED a payment the register committed between the two statements was
+  # claimed by this corte yet excluded from its frozen totals, and being claimed
+  # it was then invisible to every later corte too.
   def close!
     transaction do
-      refresh_expected!
+      update!(period_end: Time.current)
       claimed = countable_payments.update_all(cash_closing_id: id, updated_at: Time.current)
       update!(status: :closed, closed_at: Time.current)
+      calculate_expected!
       claimed
     end
   end

@@ -22,6 +22,12 @@
     <% end %>
 
     <%= form_with model: @cash_closing, url: admin_cash_closing_path(@cash_closing), method: :patch do |f| %>
+      <% unless @cash_closing.closed? %>
+        <%= render "components/card/content" do %>
+          <p class="text-sm text-muted-foreground"><%= t("cash_closing.counted_hint") %></p>
+        <% end %>
+      <% end %>
+
       <%= render "components/card/content", spacing: :full do %>
         <table class="w-full text-sm">
           <thead>

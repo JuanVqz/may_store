@@ -163,6 +163,33 @@ Print at close, not at create, and include the signature line.
 - `Receipt::CashClosing`: totals, negative differences, and the notes wrapping.
 - System: type an actual, see the difference update, close the corte.
 
+## Review follow-ups (2026-08-12)
+
+Found by review on PR #142 and fixed in the same PR:
+
+- **One open corte per store is now enforced by the database**, not only by
+  `open_current!`. That method is a read followed by a create, which two
+  simultaneous requests both pass; the partial unique index
+  (`index_cash_closings_on_open_per_store`, `where status = 'open'`) is what
+  actually holds the invariant, and `open_current!` reuses the winner when it
+  loses that race.
+- **A payment on a since-deactivated method is counted.** `calculate_expected!`
+  iterated only the active methods while `close!` claimed *every* unclaimed
+  payment, so money taken on a method deactivated afterwards was claimed and
+  shown in no line: counted by nobody, forever. Lines are now built for every
+  method with countable payments, and existing lines are recomputed.
+- **Closing claims first and reads the totals from the claim.** Reading then
+  claiming left a gap where a payment committed between the two statements was
+  claimed by the corte yet missing from its frozen totals.
+- **Recalculating resets the loaded association**, so a preloaded screen cannot
+  render the previous expected amounts while the SQL total shows the new ones.
+  That mismatch put a phantom shortfall on the screen, since the live difference
+  is computed from `data-expected`.
+- **Printing refreshes an open corte** like viewing it does. The paper is the
+  artifact that gets signed and filed.
+- An uncounted open corte shows `Sin contar` rather than a red minus-the-whole-
+  drawer difference, which read as a shortfall instead of as a count not yet done.
+
 ## Open questions
 
 1. **Refunds cannot be expressed, so the count can overstate the drawer.** Now that

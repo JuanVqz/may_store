@@ -22,7 +22,15 @@
         { key: ->(closing) { link_to closing.period_label, admin_cash_closing_path(closing), class: "underline underline-offset-2" }, label: t("cash_closing.period") },
         { key: ->(closing) { closing.user.name }, label: t("cash_closing.performed_by") },
         { key: ->(closing) { closing.status_label }, label: t("orders_today.status") },
-        { key: ->(closing) { render "admin/cash_closings/difference", cents: closing.total_difference_cents }, label: t("cash_closing.difference") }
+        # An open corte nobody has counted yet has a difference of minus the whole
+        # drawer, which reads as a shortfall rather than as work not done.
+        { key: ->(closing) {
+            if closing.counted?
+              render "admin/cash_closings/difference", cents: closing.total_difference_cents
+            else
+              tag.span t("cash_closing.not_counted"), class: "text-muted-foreground"
+            end
+          }, label: t("cash_closing.difference") }
       ] %>
   <% end %>
   <%= render "components/card/content" do %>

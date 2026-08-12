@@ -64,6 +64,13 @@ class Receipt::CashClosingTest < ActiveSupport::TestCase
     assert Receipt::CashClosing.new(@closing).to_escpos.end_with?("\x1dVA\x00".b)
   end
 
+  # The block builder used to be called `methods`, which overrode Kernel#methods
+  # on the instance: anything that asked the receipt for its method list (a
+  # debugger, an error formatter) got a NoMethodError instead.
+  test "the receipt still answers Kernel#methods" do
+    assert_kind_of Array, Receipt::CashClosing.new(@closing).methods
+  end
+
   private
 
   def printable(closing)

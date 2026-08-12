@@ -312,6 +312,7 @@ es:
     total: "TOTAL"
     signature: "Firma"
     counted_hint: "Ingrese el monto contado fisicamente"
+    not_counted: "Sin contar"
 
   cash_closing_statuses:
     open: "Abierto"

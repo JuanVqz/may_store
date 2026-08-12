@@ -184,6 +184,100 @@ class CashClosingTest < ActiveSupport::TestCase
     assert_equal 300, counted_second
   end
 
+  # Money taken on a method that is deactivated afterwards is still money in the
+  # drawer, and the corte claims it either way. Without a line for it, it was
+  # claimed while appearing in no total, so no corte ever accounted for it.
+  test "a payment on a since-deactivated method is still counted" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    method = payment_methods(:mercado_pago)
+    pay store, 50_000, method: method
+    method.update!(active: false)
+
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    line = closing.cash_closing_lines.find_by(payment_method: method)
+
+    assert_equal 50_000, line.expected_cents
+    assert_equal 50_000, closing.total_expected_cents
+  end
+
+  # A line left over from a method deactivated mid-corte still counts towards the
+  # total, so it has to be recomputed rather than skipped.
+  test "an existing line for a deactivated method is recomputed, not left stale" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    method = payment_methods(:mercado_pago)
+    payment = pay(store, 700, method: method)
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    assert_equal 700, closing.cash_closing_lines.find_by(payment_method: method).expected_cents
+
+    method.update!(active: false)
+    payment.destroy!
+    closing.refresh_expected!
+
+    assert_equal 0, closing.cash_closing_lines.find_by(payment_method: method).expected_cents
+  end
+
+  # The screen reads the lines it preloaded, so a recalculation that only touched
+  # fresh instances left the rows showing the old expected amounts while the SQL
+  # total showed the new ones.
+  test "refresh_expected! is visible through an already-loaded association" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    closing.cash_closing_lines.load
+    pay store, 2_500
+
+    closing.refresh_expected!
+
+    assert_equal 2_500, closing.cash_closing_lines.sum(&:expected_cents)
+    assert_equal closing.total_expected_cents, closing.cash_closing_lines.sum(&:expected_cents)
+  end
+
+  # The totals a closed corte freezes have to describe exactly the payments it
+  # claimed, which is why closing claims first and reads afterwards.
+  test "closing freezes totals that match the payments it claimed" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    closing = CashClosing.open_current!(store: store, user: users(:admin_principal))
+    pay store, 1_200
+    pay store, 800, method: payment_methods(:mercado_pago)
+
+    closing.close!
+
+    claimed = Payment.where(cash_closing: closing).sum(:amount_cents)
+    assert_equal 2_000, claimed
+    assert_equal claimed, closing.total_expected_cents
+  end
+
+  # The invariant the whole chain rests on, held by the database rather than by
+  # the read-then-create in open_current!.
+  test "the database refuses a second open corte for the same store" do
+    store = stores(:cafe_delicias)
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      CashClosing.connection.execute(
+        CashClosing.sanitize_sql([
+          "INSERT INTO cash_closings (store_id, user_id, status, period_start, period_end, created_at, updated_at) " \
+          "VALUES (?, ?, 'open', ?, ?, ?, ?)",
+          store.id, users(:admin_principal).id, Time.current, Time.current, Time.current, Time.current
+        ])
+      )
+    end
+  end
+
+  # The index is partial, so it constrains only the open ones: a store accumulates
+  # closed cortes forever and still gets to open the next one.
+  test "a store can hold many closed cortes alongside one open" do
+    store = stores(:cafe_delicias)
+    cash_closings(:open_closing).close!
+    CashClosing.open_current!(store: store, user: users(:admin_principal)).close!
+    CashClosing.open_current!(store: store, user: users(:admin_principal))
+
+    assert_equal 1, CashClosing.where(store: store, status: :open).count
+    assert_operator CashClosing.where(store: store, status: :closed).count, :>=, 2
+  end
+
   test "period_label reads as a date and a time range" do
     closing = cash_closings(:open_closing)
 

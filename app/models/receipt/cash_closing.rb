@@ -13,7 +13,7 @@ class Receipt::CashClosing
   def to_escpos
     EscPos::Document.new.build do |d|
       header d
-      methods d
+      payment_method_blocks d
       totals d
       notes d
       signature d
@@ -46,7 +46,10 @@ class Receipt::CashClosing
     d.rule "="
   end
 
-  def methods(d)
+  # Not `methods`: that overrides Kernel#methods on the instance, so anything that
+  # asks the receipt for its method list (a debugger, an error formatter) gets a
+  # NoMethodError instead of an answer.
+  def payment_method_blocks(d)
     lines.each do |line|
       d.feed
       d.bold { d.text line.payment_method.name.upcase }

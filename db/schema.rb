@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["store_id", "period_start", "period_end"], name: "idx_on_store_id_period_start_period_end_32eb5e7b9f"
+    t.index ["store_id"], name: "index_cash_closings_on_open_per_store", unique: true, where: "((status)::text = 'open'::text)"
     t.index ["store_id"], name: "index_cash_closings_on_store_id"
     t.index ["user_id"], name: "index_cash_closings_on_user_id"
   end

@@ -131,6 +131,34 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, I18n.t("cash_closing.title")
   end
 
+  # The paper is what gets signed and filed, so it is the last place that should
+  # carry a number left over from an earlier screen.
+  test "receipt refreshes an open corte before printing it" do
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
+    line = closing.cash_closing_lines.first
+    before = line.expected_cents
+
+    order = @store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
+                                  opened_at: Time.current, total_cents: 3_100)
+    order.payments.create!(payment_method: line.payment_method, amount_cents: 3_100,
+                           received_cents: 3_100, paid_at: Time.current)
+
+    get admin_cash_closing_receipt_url(closing, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_equal before + 3_100, line.reload.expected_cents
+  end
+
+  test "receipt leaves a closed corte frozen" do
+    closing = cash_closings(:open_closing)
+    closing.close!
+    line = closing.cash_closing_lines.first
+
+    assert_no_changes -> { line.reload.expected_cents } do
+      get admin_cash_closing_receipt_url(closing, subdomain: @store.subdomain)
+    end
+  end
+
   # Expected is derived from the day's payments, so an open corte left on screen
   # while sales come in must not keep showing the number it was opened with.
   test "show refreshes the expected total of an open corte" do
@@ -163,6 +191,47 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
     assert_no_changes -> { line.reload.expected_cents } do
       get admin_cash_closing_url(closing, subdomain: @store.subdomain)
     end
+  end
+
+  # The screen reads the lines it preloaded, and the live difference the Stimulus
+  # controller shows comes off data-expected. Rendering a stale number there put a
+  # phantom shortfall on screen for money that was never missing, which is exactly
+  # what refreshing on GET exists to prevent.
+  test "show renders the refreshed expected amount, not the preloaded one" do
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
+    method = closing.cash_closing_lines.first.payment_method
+    get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+
+    order = @store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
+                                  opened_at: Time.current, total_cents: 2_500)
+    order.payments.create!(payment_method: method, amount_cents: 2_500,
+                           received_cents: 2_500, paid_at: Time.current)
+
+    get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+
+    rendered = response.body.scan(/data-expected="(\d+)"/).flatten.sum(&:to_i)
+    assert_equal closing.reload.total_expected_cents, rendered
+  end
+
+  # Minus the whole drawer is not a shortfall when nobody has counted it yet.
+  test "index labels an uncounted open corte instead of showing it as short" do
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
+    closing.cash_closing_lines.update_all(actual_cents: 0)
+
+    get admin_cash_closings_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_includes response.body, I18n.t("cash_closing.not_counted")
+  end
+
+  test "index shows the difference once a count has been entered" do
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
+    closing.cash_closing_lines.first.update!(actual_cents: 100)
+
+    get admin_cash_closings_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_not_includes response.body, I18n.t("cash_closing.not_counted")
   end
 
   # The catalogue is set up once; the corte is opened every day.
