@@ -78,6 +78,9 @@ module Order::Stateful
                 .update_all(status: :cancelled,
                             cancellation_reason: LineItem::DEFAULT_CANCELLATION_REASON,
                             updated_at: Time.current)
+      # update_all skips LineItem's callbacks, so the total has to be recomputed
+      # here. Delivered items survive the cascade and still count.
+      recalculate_total!
     end
 
     true

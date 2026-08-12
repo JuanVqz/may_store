@@ -39,7 +39,10 @@ class LineItem < ApplicationRecord
   # accusation against the kitchen.
   DEFAULT_CANCELLATION_REASON = "customer_changed_mind".freeze
 
-  after_save :recalculate_order_total, if: :saved_change_to_total_price_cents?
+  # Cancelling changes no price, but the order total excludes cancelled items,
+  # so a status change into or out of cancelled has to recompute it too.
+  # Without that, the bill keeps charging for a cancelled item.
+  after_save :recalculate_order_total, if: :affects_order_total?
   after_destroy :recalculate_order_total
 
   price_in_cents :base_price, :total_price
@@ -57,6 +60,10 @@ class LineItem < ApplicationRecord
   end
 
   private
+
+  def affects_order_total?
+    saved_change_to_total_price_cents? || saved_change_to_status&.include?("cancelled")
+  end
 
   def recalculate_order_total
     order.recalculate_total!

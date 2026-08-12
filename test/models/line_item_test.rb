@@ -32,6 +32,19 @@ class LineItemTest < ActiveSupport::TestCase
     assert_equal "cancelled", item.status
   end
 
+  # The bill reads order.total_cents, so a cancelled item that never triggers a
+  # recalculation is still charged for at the register.
+  test "cancel drops the item from the order total" do
+    item = line_items(:cooking_americano)
+    order = item.order
+    order.recalculate_total!
+    before = order.total_cents
+
+    item.cancel!
+
+    assert_equal before - item.total_price_cents, order.reload.total_cents
+  end
+
   test "cancel tracks who cancelled it" do
     user = users(:waiter_juan)
     item = line_items(:cooking_americano)
