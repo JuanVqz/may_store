@@ -196,6 +196,8 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("line_item.cannot_cancel_status", status: item.status_label.downcase),
                  flash[:alert]
     assert_equal "delivered", item.reload.status
+  end
+
   # A customer who changes their mind as the drink reaches the pass should not
   # need the kitchen to cancel it for them.
   test "a ready item can be cancelled from the order screen" do
@@ -218,5 +220,24 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match cancel_order_line_item_path(order, item), response.body
+  end
+
+  # Paying before the food goes out is the normal case that leaves items READY on
+  # a paid order, and the model refuses to cancel those: the total would fall below
+  # what was already taken. So the new button has to disappear there too, or it is
+  # a tap that can only ever produce an alert.
+  test "the order screen hides the cancel button on a ready item once the order is paid" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.update!(status: :ready)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
+    assert_select "form[action=?]", deliver_order_line_item_path(order, item)
   end
 end
