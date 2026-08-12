@@ -164,4 +164,12 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
       get admin_cash_closing_url(closing, subdomain: @store.subdomain)
     end
   end
+
+  # The catalogue is set up once; the corte is opened every day.
+  test "the admin root is the corte de caja" do
+    get admin_root_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match I18n.t("admin.cash_closings.title"), response.body
+  end
 end

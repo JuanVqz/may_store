@@ -23,7 +23,7 @@ class AuthenticationTest < ApplicationSystemTestCase
     click_on I18n.t("admin.nav.title")
 
     assert_current_path admin_root_path
-    assert_text I18n.t("admin.categories.title")
+    assert_text I18n.t("admin.cash_closings.title")
   end
 
   test "login page shows the store name for the subdomain" do

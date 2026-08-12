@@ -40,7 +40,9 @@ Rails.application.routes.draw do
   get "kitchen", to: "kitchen#index", as: :kitchen
 
   namespace :admin do
-    root "categories#index"
+    # The catalogue is set up once; the corte is opened every day, so it is what
+    # an admin is almost always coming here for.
+    root "cash_closings#index"
     resources :categories
     resources :components
     resources :products
