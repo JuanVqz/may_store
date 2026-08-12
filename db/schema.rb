@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["store_id", "period_start", "period_end"], name: "idx_on_store_id_period_start_period_end_32eb5e7b9f"
+    t.index ["store_id"], name: "index_cash_closings_on_open_per_store", unique: true, where: "((status)::text = 'open'::text)"
     t.index ["store_id"], name: "index_cash_closings_on_store_id"
     t.index ["user_id"], name: "index_cash_closings_on_user_id"
   end
@@ -162,6 +163,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
 
   create_table "payments", force: :cascade do |t|
     t.integer "amount_cents", null: false
+    t.bigint "cash_closing_id"
     t.datetime "created_at", null: false
     t.text "notes"
     t.uuid "order_id", null: false
@@ -169,6 +171,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
     t.bigint "payment_method_id", null: false
     t.integer "received_cents", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["cash_closing_id", "payment_method_id"], name: "index_payments_on_cash_closing_id_and_payment_method_id"
+    t.index ["cash_closing_id"], name: "index_payments_uncounted", where: "(cash_closing_id IS NULL)"
     t.index ["order_id"], name: "index_payments_on_order_id"
     t.index ["payment_method_id", "paid_at"], name: "index_payments_on_payment_method_id_and_paid_at"
     t.index ["payment_method_id"], name: "index_payments_on_payment_method_id"
@@ -266,6 +270,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
   add_foreign_key "orders", "stores"
   add_foreign_key "orders", "users"
   add_foreign_key "payment_methods", "stores"
+  add_foreign_key "payments", "cash_closings"
   add_foreign_key "payments", "orders"
   add_foreign_key "payments", "payment_methods"
   add_foreign_key "product_components", "components"

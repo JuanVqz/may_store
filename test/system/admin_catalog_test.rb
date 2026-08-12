@@ -271,6 +271,9 @@ class AdminCatalogTest < ApplicationSystemTestCase
   test "the admin nav reaches every catalog screen" do
     visit admin_root_path
 
+    click_on I18n.t("admin.nav.categories")
+    assert_current_path admin_categories_path
+
     click_on I18n.t("admin.nav.components")
     assert_current_path admin_components_path
 

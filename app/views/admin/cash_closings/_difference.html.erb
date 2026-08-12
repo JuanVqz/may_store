@@ -1,0 +1,8 @@
+<%# locals: (cents:) %>
+
+<%# A shortfall and a surplus mean very different things to whoever counts the
+    drawer, so the sign is explicit and the colour follows it. %>
+<% colour = cents.zero? ? "text-muted-foreground" : (cents.negative? ? "text-destructive" : "text-green-700") %>
+<span class="font-semibold <%= colour %>">
+  <%= number_to_currency(cents / 100.0, format: cents.positive? ? "+%u%n" : "%u%n") %>
+</span>

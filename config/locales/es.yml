@@ -309,6 +309,10 @@ es:
     closed: "Corte de caja cerrado exitosamente"
     status_open: "Abierto"
     status_closed: "Cerrado"
+    total: "TOTAL"
+    signature: "Firma"
+    counted_hint: "Ingrese el monto contado fisicamente"
+    not_counted: "Sin contar"
 
   cash_closing_statuses:
     open: "Abierto"
@@ -575,6 +579,15 @@ es:
       products: "Productos"
       spots: "Mesas y Lugares"
       payment_methods: "Métodos de Pago"
+      cash_closings: "Corte de Caja"
+
+    cash_closings:
+      title: "Cortes de Caja"
+      saved: "Conteo guardado"
+      save: "Guardar conteo"
+      already_closed: "Este corte ya esta cerrado"
+      empty: "No hay cortes de caja todavia"
+      close_confirm: "¿Cerrar el corte de caja? No podra editar el conteo despues."
 
     component_types:
       ingredient: "Ingrediente"
