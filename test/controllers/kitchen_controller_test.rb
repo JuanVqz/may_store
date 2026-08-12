@@ -41,4 +41,22 @@ class KitchenControllerTest < ActionDispatch::IntegrationTest
     get kitchen_url(subdomain: @store.subdomain)
     assert_select "#kitchen-queue-count", /2/
   end
+
+  # The queue selects on item status alone, so items on a paid order still show
+  # up here and still need delivering. Cancel is the one action the model refuses,
+  # and a button that can only ever produce an alert is worse than no button.
+  test "index hides cancel for items whose order was already paid" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+
+    get kitchen_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match item.product.name.upcase, response.body
+    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
+    assert_select "form[action=?]", ready_order_line_item_path(order, item)
+  end
 end

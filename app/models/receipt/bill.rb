@@ -69,7 +69,6 @@ class Receipt::Bill
 
     d.feed
     order.payments.each { |payment| payment_block d, payment }
-    d.row I18n.t("receipt.remaining"), money(order.remaining_cents) if order.remaining_cents.positive?
   end
 
   # What the customer handed over and what they got back. Only cash needs the
@@ -77,11 +76,11 @@ class Receipt::Bill
   # disputing the change has the arithmetic in their hand. On a card or transfer
   # the received amount is the total by definition, so printing it is noise.
   #
-  # The amount is only worth a line when payments are split, otherwise it just
-  # repeats TOTAL two lines above.
+  # One payment settles an order in full today, so there is no per-payment amount
+  # and no outstanding balance to print. Split payments (wireframes Screen 10) are
+  # deferred; when they land, both belong here.
   def payment_block(d, payment)
     d.row I18n.t("receipt.paid_with"), payment.payment_method.name
-    d.row I18n.t("receipt.amount"), payment.formatted_amount if order.payments.size > 1
 
     return unless payment.payment_method.cash?
 
@@ -89,11 +88,6 @@ class Receipt::Bill
     d.row I18n.t("bill.change"), payment.formatted_change
   end
 
-  # Order exposes remaining_cents as a computed method, so there is no
-  # PriceCents-generated formatter for it.
-  def money(cents)
-    "$#{"%.2f" % (cents / 100.0)}"
-  end
 
   def footer(d)
     d.rule "="

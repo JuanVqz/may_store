@@ -16,7 +16,9 @@
           data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
 
-  <% unless order.closed? || order.cancelled? %>
+  <%# Keyed on payment_taken? rather than closed?, so the button also disappears
+      in the window where a payment exists but close! has not run yet. %>
+  <% unless order.payment_taken? || order.cancelled? %>
     <%= button_to t("order.cancel_order"),
           cancel_order_path(order),
           method: :patch,

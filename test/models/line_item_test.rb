@@ -97,4 +97,60 @@ class LineItemTest < ActiveSupport::TestCase
     item.cancel!
     assert_raises(LineItem::InvalidTransition) { item.cancel! }
   end
+
+  # Reachable whenever the bill is settled before the food goes out: the order is
+  # closed while its items are still READY. Cancelling one then would drop the
+  # order total below what was already paid. The item has to be genuinely
+  # cancellable for this to reach the order guard at all, so it is left READY
+  # instead of reusing a delivered fixture the status check already rejects.
+  test "cancel! refuses a ready item on a closed order" do
+    order = orders(:cooking_order)
+    order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
+    item = order.line_items.first
+    pay_in_full(order)
+    order.close!
+
+    assert_raises LineItem::Stateful::OrderPaid do
+      item.reload.cancel!(by: users(:waiter_juan))
+    end
+
+    assert_not item.reload.cancelled?
+    assert_equal order.total_cents, order.reload.total_cents
+  end
+
+  test "cancel! refuses a ready item once the order was paid, before it is closed" do
+    order = orders(:cooking_order)
+    order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
+    item = order.line_items.first
+    pay_in_full(order)
+
+    assert_not order.reload.closed?
+    assert_raises LineItem::Stateful::OrderPaid do
+      item.reload.cancel!(by: users(:waiter_juan))
+    end
+    assert_equal order.total_cents, order.reload.total_cents
+  end
+
+  # The item's own status is the more precise reason, so it wins even when the
+  # order has also been paid.
+  test "cancel! blames the item status, not the payment, for a delivered item" do
+    order = orders(:cooking_order)
+    order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
+    item = order.line_items.first
+    item.reload.mark_delivered!(by: users(:waiter_juan))
+    pay_in_full(order)
+
+    error = assert_raises LineItem::Stateful::InvalidTransition do
+      item.reload.cancel!(by: users(:waiter_juan))
+    end
+    assert_not_kind_of LineItem::Stateful::OrderPaid, error
+  end
+
+  private
+
+  def pay_in_full(order)
+    order.reload.payments.create!(payment_method: payment_methods(:efectivo),
+                                  amount_cents: order.total_cents,
+                                  received_cents: order.total_cents, paid_at: Time.current)
+  end
 end

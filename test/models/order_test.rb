@@ -151,4 +151,54 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.create!(store: @store, spot: @spot, user: @user, status: :open, created_at: 1.day.ago)
     assert_not_includes @store.orders.today, order
   end
+
+  # A closed order has been paid in full. Cancelling it would void a settled sale
+  # and free the table while the money stays in the drawer, and nothing in the app
+  # can hand that money back.
+  test "cancel! refuses a closed order" do
+    order = orders(:delivered_order)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+    order.close!
+
+    assert_not order.cancel!
+    assert order.reload.closed?
+    assert_nil order.cancelled_at
+  end
+
+  # The money, not the status, is what makes cancelling wrong. A payment row
+  # exists before close! runs, and cancelling in that window strands the same
+  # cash as cancelling a closed order does.
+  test "cancel! refuses an order that was paid but not closed yet" do
+    order = orders(:delivered_order)
+    order.payments.create!(payment_method: payment_methods(:efectivo),
+                           amount_cents: order.total_cents,
+                           received_cents: order.total_cents, paid_at: Time.current)
+
+    assert_not order.reload.closed?
+    assert_not order.cancel!
+    assert_not order.reload.cancelled?
+    assert_nil order.cancelled_at
+  end
+
+  test "cancel! still cancels an unpaid order and its outstanding items" do
+    order = orders(:cooking_order)
+
+    assert order.cancel!
+    assert order.reload.cancelled?
+    assert_empty order.line_items.where(status: [:ordering, :cooking, :ready])
+  end
+
+  # An empty order owes nothing, so fully_paid? is true for it. Guarding cancel
+  # on that instead of on payment_taken? would leave a freshly opened order
+  # impossible to cancel, which is why the two predicates stay separate.
+  test "cancel! still cancels an empty order nobody has paid" do
+    order = Order.create!(store: @store, spot: @spot, user: @user, status: :open)
+
+    assert order.fully_paid?
+    assert_not order.payment_taken?
+    assert order.cancel!
+    assert order.reload.cancelled?
+  end
 end

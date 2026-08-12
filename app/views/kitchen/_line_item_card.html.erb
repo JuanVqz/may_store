@@ -21,25 +21,32 @@
 
   <%= render "components/card/footer" do %>
     <%# Actions are pinned to opposite edges so a mis-tap cannot hit the other one. %>
+    <%# The queue selects items by their own status, so an item whose order was
+        already paid still shows up here. Offering Cancel on one would be a dead
+        end: the model refuses it, so the tap only ever produces an alert. %>
     <div class="flex items-center justify-between gap-8 w-full">
       <% if item.cooking? %>
         <%= button_to t("kitchen.ready"),
               ready_order_line_item_path(item.order, item),
               method: :patch,
               data: { component: "button", variant: "primary", size: "lg" } %>
-        <%= button_to t("kitchen.cancel"),
-              cancel_order_line_item_path(item.order, item),
-              method: :patch,
-              data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% unless item.order.payment_taken? %>
+          <%= button_to t("kitchen.cancel"),
+                cancel_order_line_item_path(item.order, item),
+                method: :patch,
+                data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% end %>
       <% elsif item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
               deliver_order_line_item_path(item.order, item),
               method: :patch,
               data: { component: "button", variant: "primary", size: "lg" } %>
-        <%= button_to t("kitchen.cancel"),
-              cancel_order_line_item_path(item.order, item),
-              method: :patch,
-              data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% unless item.order.payment_taken? %>
+          <%= button_to t("kitchen.cancel"),
+                cancel_order_line_item_path(item.order, item),
+                method: :patch,
+                data: { component: "button", variant: "destructive", size: "lg", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% end %>
       <% end %>
     </div>
   <% end %>
