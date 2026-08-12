@@ -17,14 +17,24 @@ class ReceivedFieldTest < ApplicationSystemTestCase
   end
 
   test "coming back to the field by click replaces it too" do
-    find("#received").send_keys("7")
+    # Leave the field first, then click back into it with a real mouse click.
+    # `find("#received").send_keys` goes through Selenium's Element Send Keys,
+    # which focuses with no mouse events at all, so it would exercise the same
+    # path as the test above and leave the click path uncovered.
+    find("[data-payment-form-target='change']").click
+    find("#received").click
+    page.driver.browser.switch_to.active_element.send_keys("7")
 
     assert_equal "7", find("#received").value
   end
 
   test "the change is computed from what was actually typed" do
-    page.driver.browser.switch_to.active_element.send_keys("200")
+    # Derived from the total so the typed amount always covers it. Below the
+    # total, recalc blanks the change and the assertion would chase a negative.
+    received = "%.2f" % ((@order.total_cents + 10_000) / 100.0)
 
-    assert_text "$#{"%.2f" % (200 - @order.total_cents / 100.0)}"
+    page.driver.browser.switch_to.active_element.send_keys(received)
+
+    assert_text "$100.00"
   end
 end
