@@ -146,6 +146,26 @@ class LineItemTest < ActiveSupport::TestCase
     assert_not_kind_of LineItem::Stateful::OrderPaid, error
   end
 
+  # cancellable? is what the views ask; cancel! is what enforces. If they drift, a
+  # button appears that the model then refuses, or one disappears that would have
+  # worked, so each refusal is checked from both sides.
+  test "cancellable? agrees with cancel! on every refusal" do
+    order = orders(:cooking_order)
+    order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
+    ready = line_items(:cooking_cappuccino).reload
+
+    assert ready.cancellable?
+
+    delivered = line_items(:cooking_americano).reload
+    delivered.mark_delivered!(by: users(:waiter_juan))
+    assert_not delivered.cancellable?
+    assert_raises(LineItem::Stateful::InvalidTransition) { delivered.cancel! }
+
+    pay_in_full(order)
+    assert_not ready.reload.cancellable?
+    assert_raises(LineItem::Stateful::OrderPaid) { ready.cancel! }
+  end
+
   private
 
   def pay_in_full(order)

@@ -1,0 +1,13 @@
+<%# locals: (item:, size:) %>
+
+<%# One place for this button, because the condition it renders under is a model
+    rule: LineItem#cancellable?. It used to be spelled out at four call sites, so
+    a change to the model's cancel preconditions had to be chased through every
+    view, and a missed one leaves a button that can only ever produce an alert. %>
+<% if item.cancellable? %>
+  <%= button_to t("kitchen.cancel"),
+        cancel_order_line_item_path(item.order, item),
+        method: :patch,
+        data: { component: "button", variant: "destructive", size: size,
+                turbo_confirm: t("kitchen.cancel_confirm") } %>
+<% end %>

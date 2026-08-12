@@ -173,7 +173,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   test "cancel refuses a ready item on a closed order and says why" do
     order = orders(:cooking_order)
     order.line_items.each { |li| li.mark_ready!(by: users(:waiter_juan)) }
-    item = order.line_items.first
+    item = line_items(:cooking_cappuccino)
     order.reload.payments.create!(payment_method: payment_methods(:efectivo),
                                   amount_cents: order.total_cents,
                                   received_cents: order.total_cents, paid_at: Time.current)
@@ -202,7 +202,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   # need the kitchen to cancel it for them.
   test "a ready item can be cancelled from the order screen" do
     order = orders(:cooking_order)
-    item = order.line_items.first
+    item = line_items(:cooking_cappuccino)
     item.update!(status: :ready)
 
     patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
@@ -213,7 +213,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "the order screen offers the cancel button on a ready item" do
     order = orders(:cooking_order)
-    item = order.line_items.first
+    item = line_items(:cooking_cappuccino)
     item.update!(status: :ready)
 
     get order_url(order, subdomain: @store.subdomain)
@@ -228,7 +228,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   # a tap that can only ever produce an alert.
   test "the order screen hides the cancel button on a ready item once the order is paid" do
     order = orders(:cooking_order)
-    item = order.line_items.first
+    item = line_items(:cooking_cappuccino)
     item.update!(status: :ready)
     order.payments.create!(payment_method: payment_methods(:efectivo),
                            amount_cents: order.total_cents,

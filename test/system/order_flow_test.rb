@@ -220,6 +220,36 @@ class OrderFlowTest < ApplicationSystemTestCase
     assert_equal "cancelled", order.reload.status
   end
 
+  # Cancelling a ready item throws away a drink that was already made, so the
+  # dialog is the last thing standing between a mis-tap and lost stock. The
+  # integration test only sees the form in the HTML; whether the dialog gates the
+  # tap needs a real browser.
+  test "cancelling a ready item from the order screen asks first" do
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!(by: users(:waiter_juan))
+    visit order_path(item.order)
+
+    within "#line_item_#{item.id}" do
+      dismiss_confirm { click_on I18n.t("kitchen.cancel") }
+    end
+
+    assert_equal "ready", item.reload.status
+  end
+
+  test "confirming the dialog cancels the ready item" do
+    item = line_items(:cooking_cappuccino)
+    item.mark_ready!(by: users(:waiter_juan))
+    visit order_path(item.order)
+
+    within "#line_item_#{item.id}" do
+      accept_confirm { click_on I18n.t("kitchen.cancel") }
+    end
+
+    # show filters cancelled items out, so the row leaves the list entirely.
+    assert_no_selector "#line_item_#{item.id}"
+    assert_equal "cancelled", item.reload.status
+  end
+
   test "a closed order shows the closed view instead of the product browser" do
     order = orders(:delivered_order)
     order.update!(status: :closed, closed_at: Time.current)
