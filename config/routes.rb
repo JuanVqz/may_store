@@ -28,7 +28,7 @@ Rails.application.routes.draw do
 
     resources :payments, only: [:create]
 
-    resources :line_items, only: [:new, :create, :destroy] do
+    resources :line_items, only: [:new, :create, :update, :destroy] do
       member do
         patch :ready
         patch :deliver

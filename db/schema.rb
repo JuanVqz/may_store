@@ -97,6 +97,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_000016) do
 
   create_table "line_items", force: :cascade do |t|
     t.integer "base_price_cents", default: 0, null: false
+    t.string "cancellation_reason"
     t.bigint "cancelled_by_id"
     t.datetime "created_at", null: false
     t.bigint "delivered_by_id"

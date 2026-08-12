@@ -173,4 +173,50 @@ class LineItemTest < ActiveSupport::TestCase
                                   amount_cents: order.total_cents,
                                   received_cents: order.total_cents, paid_at: Time.current)
   end
+
+  # One tap has to keep working, so cancelling with no reason given must still
+  # record something usable.
+  test "cancel! records the default reason when none is given" do
+    item = line_items(:cooking_cappuccino)
+
+    item.cancel!(by: users(:waiter_juan))
+
+    assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.reload.cancellation_reason
+    assert item.reason_customer_changed_mind?
+  end
+
+  test "cancel! records an explicit reason instead" do
+    item = line_items(:cooking_cappuccino)
+
+    item.cancel!(by: users(:kitchen_carlos), reason: "kitchen_error")
+
+    assert_equal "kitchen_error", item.reload.cancellation_reason
+  end
+
+  # A stale or tampered form post must fail validation rather than raise
+  # ArgumentError on assignment and turn into a 500.
+  test "an unknown reason fails validation instead of raising" do
+    item = line_items(:cooking_cappuccino)
+
+    item.cancellation_reason = "because_i_said_so"
+
+    assert_not item.valid?
+    assert_includes item.errors.attribute_names, :cancellation_reason
+  end
+
+  # Items cancelled before reasons existed have none, and that has to stay legal.
+  test "no reason at all is a valid state" do
+    item = line_items(:cooking_cappuccino)
+    item.update_columns(status: "cancelled", cancellation_reason: nil)
+
+    assert item.reload.valid?
+    assert_nil item.cancellation_reason_label
+  end
+
+  test "the reason reads back as Spanish" do
+    item = line_items(:cooking_cappuccino)
+    item.cancel!(reason: "out_of_stock")
+
+    assert_equal I18n.t("cancellation_reasons.out_of_stock"), item.cancellation_reason_label
+  end
 end

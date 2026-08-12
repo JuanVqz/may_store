@@ -240,4 +240,74 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
     assert_select "form[action=?]", deliver_order_line_item_path(order, item)
   end
+
+  test "cancelling records the default reason without asking for one" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+
+    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+
+    assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.reload.cancellation_reason
+  end
+
+  test "update corrects the reason on a cancelled item" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+
+    patch order_line_item_url(order, item, subdomain: @store.subdomain),
+          params: { line_item: { cancellation_reason: "kitchen_error" } }
+
+    assert_equal "kitchen_error", item.reload.cancellation_reason
+  end
+
+  test "update rejects a reason outside the list" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+
+    patch order_line_item_url(order, item, subdomain: @store.subdomain),
+          params: { line_item: { cancellation_reason: "because_i_said_so" } }
+
+    assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.reload.cancellation_reason
+  end
+
+  # Only the reason is editable this way; nothing else about an item is.
+  test "update ignores any other attribute" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+
+    before = item.total_price_cents
+
+    patch order_line_item_url(order, item, subdomain: @store.subdomain),
+          params: { line_item: { cancellation_reason: "duplicate", total_price_cents: 1 } }
+
+    assert_equal "duplicate", item.reload.cancellation_reason
+    assert_equal before, item.total_price_cents
+  end
+
+  # The active order screen filters cancelled items out entirely, so the only
+  # places a cancelled item is visible are the bill and the closed order. The
+  # selector lives there rather than somewhere it could never be seen.
+  test "the bill offers the reason selector on a cancelled item" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match I18n.t("line_item.cancellation_reason"), response.body
+    assert_match I18n.t("cancellation_reasons.kitchen_error"), response.body
+  end
+
+  test "an item that was not cancelled gets no reason selector" do
+    order = orders(:cooking_order)
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_no_match I18n.t("line_item.cancellation_reason"), response.body
+  end
 end

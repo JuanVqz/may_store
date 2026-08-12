@@ -2,7 +2,7 @@ class LineItemsController < ApplicationController
   rescue_from LineItem::InvalidTransition, with: :handle_invalid_transition
 
   before_action :set_order
-  before_action :set_line_item, only: [:destroy, :ready, :deliver, :cancel]
+  before_action :set_line_item, only: [:update, :destroy, :ready, :deliver, :cancel]
 
   def new
     @product = Current.store.products.find(params[:product_id])
@@ -34,6 +34,18 @@ class LineItemsController < ApplicationController
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to order_path(@order), notice: t("order.item_added") }
+    end
+  end
+
+  # Correcting why an item was cancelled. Cancelling records a default so the
+  # waiter never has to stop and think, which only pays off if the guess can be
+  # put right afterwards; this is that path.
+  def update
+    if @line_item.update(line_item_update_params)
+      redirect_back fallback_location: order_path(@order), notice: t("line_item.reason_updated")
+    else
+      redirect_back fallback_location: order_path(@order),
+                    alert: @line_item.errors.full_messages.to_sentence
     end
   end
 
@@ -82,6 +94,12 @@ class LineItemsController < ApplicationController
 
   def line_item_params
     params.require(:line_item).permit(:product_id)
+  end
+
+  # Only the reason: everything else about a line item is driven by its own
+  # actions, not by editing the record.
+  def line_item_update_params
+    params.expect(line_item: [:cancellation_reason])
   end
 
   def special_notes_param

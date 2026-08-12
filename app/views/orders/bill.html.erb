@@ -54,6 +54,9 @@
                 <% if item.special_notes.present? %>
                   <div class="text-xs text-muted-foreground ml-6 italic"><%= item.special_notes %></div>
                 <% end %>
+                <div class="ml-6">
+                  <%= render "line_items/cancellation_reason", item: item %>
+                </div>
               </div>
               <div class="text-right whitespace-nowrap">
                 <% if item.cancelled? %>
