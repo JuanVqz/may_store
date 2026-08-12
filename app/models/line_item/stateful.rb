@@ -55,6 +55,14 @@ module LineItem::Stateful
     update!(status: :cancelled, cancelled_by: by)
   end
 
+  # What the views ask before offering a cancel button, so the rule lives here with
+  # cancel! instead of being spelled out at every call site. cancel! still raises
+  # rather than consulting this, because each refusal needs to say which rule it
+  # hit; keep the two in step.
+  def cancellable?
+    !cancelled? && !delivered? && !order.payment_taken?
+  end
+
   private
 
   def broadcast_refreshes
