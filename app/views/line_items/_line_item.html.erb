@@ -35,11 +35,26 @@
                 data: { component: "button", variant: "destructive", size: "sm", turbo_confirm: t("kitchen.cancel_confirm") } %>
         <% end %>
       <% end %>
+      <%# A ready item can still be cancelled: a customer who changes their mind
+          the moment the drink reaches the pass should not need the kitchen to do
+          it for them. The kitchen screen has always offered this, and the model
+          has always allowed it; only this screen was missing it. Delivered items
+          stay uncancellable, since the food is on the table.
+
+          Still hidden once the order is paid, like the cooking one above: the
+          model refuses that cancel, so the button could only ever produce an
+          alert. %>
       <% if item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
               deliver_order_line_item_path(order, item),
               method: :patch,
               data: { component: "button", variant: "primary", size: "sm" } %>
+        <% unless order.payment_taken? %>
+          <%= button_to t("kitchen.cancel"),
+                cancel_order_line_item_path(order, item),
+                method: :patch,
+                data: { component: "button", variant: "destructive", size: "sm", turbo_confirm: t("kitchen.cancel_confirm") } %>
+        <% end %>
       <% end %>
     </div>
   </div>

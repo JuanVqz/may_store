@@ -196,5 +196,27 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("line_item.cannot_cancel_status", status: item.status_label.downcase),
                  flash[:alert]
     assert_equal "delivered", item.reload.status
+  # A customer who changes their mind as the drink reaches the pass should not
+  # need the kitchen to cancel it for them.
+  test "a ready item can be cancelled from the order screen" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.update!(status: :ready)
+
+    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+
+    assert item.reload.cancelled?
+    assert_not_nil item.cancelled_by
+  end
+
+  test "the order screen offers the cancel button on a ready item" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.update!(status: :ready)
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match cancel_order_line_item_path(order, item), response.body
   end
 end
