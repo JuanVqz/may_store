@@ -1,0 +1,35 @@
+<%# locals: (payments:, pagy:, closed:) %>
+
+<%# What the expected total is made of. A corte that reports a difference and
+    nothing else gives nobody a way to find it; this is the list the cashier
+    reads to spot the sale rung on the wrong method or the one nobody rang.
+
+    An open corte lists the payments it will claim when it closes, a closed one
+    lists exactly what it claimed, which is why the hint changes with the state:
+    the first list still moves, the second never will. %>
+<%= render "components/card", css_classes: "mt-4" do %>
+  <%= render "components/card/header" do %>
+    <%= render "components/card/title", text: t("cash_closing.payments") %>
+    <p class="text-sm text-muted-foreground">
+      <%= closed ? t("cash_closing.payments_hint_closed") : t("cash_closing.payments_hint_open") %>
+    </p>
+  <% end %>
+
+  <%= render "components/card/content", spacing: :full do %>
+    <%= render "components/simple_table",
+      collection: payments,
+      empty_message: t("cash_closing.no_payments"),
+      columns: [
+        { key: ->(payment) { l(payment.paid_at, format: :time_only) }, label: t("cash_closing.time") },
+        { key: ->(payment) { link_to payment.order.code, order_path(payment.order), class: "underline underline-offset-2" }, label: t("bill.order") },
+        { key: ->(payment) { payment.order.spot.name }, label: t("bill.table") },
+        { key: ->(payment) { payment.order.user.name }, label: t("bill.server") },
+        { key: ->(payment) { payment.payment_method.name }, label: t("cash_closing.method") },
+        { key: ->(payment) { payment.formatted_amount }, label: t("cash_closing.amount"), align: :right }
+      ] %>
+  <% end %>
+
+  <%= render "components/card/content" do %>
+    <%= render "admin/shared/pagination", pagy: pagy %>
+  <% end %>
+<% end %>

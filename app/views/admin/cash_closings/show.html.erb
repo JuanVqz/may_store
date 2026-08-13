@@ -80,4 +80,10 @@
       <% end %>
     <% end %>
   <% end %>
+
+  <%# Its own card below the count, not inside the form: paging through the
+      payments is a link, and a cashier halfway through typing the counted
+      amounts would lose them to a page reload. %>
+  <%= render "admin/cash_closings/payments",
+        payments: @payments, pagy: @pagy, closed: @cash_closing.closed? %>
 </div>

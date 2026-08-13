@@ -326,6 +326,12 @@ es:
     signature: "Firma"
     counted_hint: "Ingrese el monto contado fisicamente"
     not_counted: "Sin contar"
+    payments: "Pagos del periodo"
+    payments_hint_open: "Pagos que este corte contara al cerrarse"
+    payments_hint_closed: "Pagos contados por este corte"
+    no_payments: "Sin pagos en este periodo"
+    time: "Hora"
+    amount: "Monto"
 
   cash_closing_statuses:
     open: "Abierto"

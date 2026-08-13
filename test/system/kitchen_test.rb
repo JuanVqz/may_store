@@ -198,6 +198,12 @@ class KitchenTest < ApplicationSystemTestCase
 
   test "the order header shows a wait time that ticks on its own" do
     order = orders(:cooking_order)
+    # The label counts from the newest of cooking_at and the oldest item, both of
+    # which are fixture timestamps: by the time the system tests run, the fixtures
+    # are over a minute old and the assertion below reads 1, not 0. Pin them to
+    # now so the test measures the label, not how long the suite took to get here.
+    order.update_columns(cooking_at: Time.current)
+    order.line_items.update_all(created_at: Time.current)
 
     visit kitchen_path
 

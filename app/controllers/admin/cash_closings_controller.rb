@@ -18,6 +18,16 @@ class Admin::CashClosingsController < Admin::BaseController
   # refresh_expected! leaves a closed corte alone: that is a record of a moment.
   def show
     @cash_closing.refresh_expected!
+
+    # The payments behind the expected total. A corte that says "faltan $50" and
+    # nothing else leaves the cashier with no way to find the $50; this is the
+    # list they check it against. countable_payments already answers it for both
+    # states: what a closed corte claimed, what an open one will claim.
+    @pagy, @payments = pagy(
+      @cash_closing.countable_payments
+                   .includes(:payment_method, order: [:spot, :user])
+                   .order(paid_at: :desc)
+    )
   end
 
   # Opens the corte that runs from the last closed one up to now, or reuses the

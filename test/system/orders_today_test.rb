@@ -3,6 +3,13 @@ require "application_system_test_case"
 class OrdersTodayTest < ApplicationSystemTestCase
   setup do
     sign_in_waiter
+
+    # Fixtures are inserted once, at the start of the run, so a suite that crosses
+    # midnight leaves them stamped yesterday and Order.today drops them: this file
+    # failed at 00:00:59 local for a scope that was behaving correctly. Restamping
+    # them here ties "today" to the moment the test runs instead of to whenever
+    # the fixtures were loaded.
+    Order.update_all(created_at: Time.current)
   end
 
   test "today's orders lists both table and takeout orders" do

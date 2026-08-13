@@ -189,6 +189,9 @@ Found by review on PR #142 and fixed in the same PR:
   artifact that gets signed and filed.
 - An uncounted open corte shows `Sin contar` rather than a red minus-the-whole-
   drawer difference, which read as a shortfall instead of as a count not yet done.
+- The corte screen lists the payments behind its expected total, in its own card
+  below the count: paging that list is a link, and a cashier halfway through
+  typing counted amounts would lose them to a reload of the form.
 
 ## Open questions
 
@@ -214,6 +217,11 @@ Found by review on PR #142 and fixed in the same PR:
    intent, but it means `Esperado` can include money for a table still eating. For
    a drawer count that is correct; if it ever reads as wrong to a cashier, the
    answer is to show which payments make up a line, not to filter by order status.
+
+   Done: the corte screen now lists the payments behind its expected total
+   (`admin/cash_closings/_payments`), each linking to its order, so money for a
+   table still eating can be seen for what it is. An open corte lists what it
+   will claim, a closed one exactly what it claimed.
 
 4. Permission boundaries, deliberately deferred (decision 3).
 
