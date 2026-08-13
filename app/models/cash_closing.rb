@@ -4,6 +4,10 @@ class CashClosing < ApplicationRecord
   belongs_to :store
   belongs_to :user
   has_many :cash_closing_lines, dependent: :destroy
+  # The payments this corte claimed when it closed. No `dependent:`, because a
+  # corte is a record of a count and is never destroyed; if one ever were, the
+  # payments would have to survive it to be counted by a later corte.
+  has_many :payments
 
   accepts_nested_attributes_for :cash_closing_lines
 

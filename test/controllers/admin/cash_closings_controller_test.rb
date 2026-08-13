@@ -214,6 +214,42 @@ class Admin::CashClosingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Minus the whole drawer is not a shortfall when nobody has counted it yet.
+  # A corte that reports a difference and nothing else gives nobody a way to find
+  # it. The payments behind the expected total are what the cashier reads to spot
+  # the sale rung on the wrong method, or the one nobody rang.
+  test "show lists the payments behind an open corte's expected total" do
+    closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
+    payment = payments(:pago_efectivo)
+
+    get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match payment.order.code, response.body
+    assert_match payment.formatted_amount, response.body
+    assert_match I18n.t("cash_closing.payments_hint_open"), response.body
+  end
+
+  # A closed corte lists exactly what it claimed, and money that arrived after it
+  # closed belongs to the next one: showing it here would double-count it to
+  # anyone reading the screen.
+  test "show lists only the payments a closed corte claimed" do
+    closing = cash_closings(:open_closing)
+    closing.close!
+    claimed = closing.payments.first
+
+    later_order = @store.orders.create!(spot: spots(:mesa_2), user: users(:waiter_juan), status: :closed,
+                                        opened_at: Time.current, total_cents: 3_300)
+    later = later_order.payments.create!(payment_method: payment_methods(:efectivo), amount_cents: 3_300,
+                                         received_cents: 3_300, paid_at: Time.current)
+
+    get admin_cash_closing_url(closing, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match claimed.order.code, response.body
+    assert_no_match(/#{Regexp.escape(later.order.code)}/, response.body)
+    assert_match I18n.t("cash_closing.payments_hint_closed"), response.body
+  end
+
   test "index labels an uncounted open corte instead of showing it as short" do
     closing = CashClosing.open_current!(store: @store, user: users(:admin_principal))
     closing.cash_closing_lines.update_all(actual_cents: 0)
