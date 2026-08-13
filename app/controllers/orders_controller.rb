@@ -18,7 +18,7 @@ class OrdersController < ApplicationController
 
   def show
     @line_items = @order.line_items
-                       .where.not(status: :cancelled)
+                       .not_cancelled
                        .includes(:product, line_item_components: :component)
                        .order(created_at: :desc)
 

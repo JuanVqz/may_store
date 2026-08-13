@@ -23,7 +23,7 @@ class Order < ApplicationRecord
   price_in_cents :total
 
   def recalculate_total!
-    update_columns(total_cents: line_items.reload.where.not(status: :cancelled).sum(:total_price_cents))
+    update_columns(total_cents: line_items.reload.not_cancelled.sum(:total_price_cents))
   end
 
   def allows_item_addition?
@@ -79,7 +79,7 @@ class Order < ApplicationRecord
       ready_count = active.count { |li| li.ready? || li.delivered? }
       delivered_count = active.count(&:delivered?)
     else
-      rows = line_items.where.not(status: :cancelled)
+      rows = line_items.not_cancelled
                        .group(:status)
                        .count
       total_count = rows.values.sum

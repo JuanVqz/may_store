@@ -42,6 +42,11 @@ class LineItem < ApplicationRecord
   # Cancelling changes no price, but the order total excludes cancelled items,
   # so a status change into or out of cancelled has to recompute it too.
   # Without that, the bill keeps charging for a cancelled item.
+  # What the customer is actually getting, and paying for. Everything that counts
+  # items or money has to agree on this, or the screen shows three products and
+  # the price of two.
+  scope :not_cancelled, -> { where.not(status: :cancelled) }
+
   after_save :recalculate_order_total, if: :affects_order_total?
   after_destroy :recalculate_order_total
 

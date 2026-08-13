@@ -13,14 +13,14 @@
 <% if item.cancelled? %>
   <%= form_with model: item, url: order_line_item_path(item.order, item), method: :patch,
         data: { controller: "auto-submit" } do |f| %>
-    <label class="text-xs text-muted-foreground" for="<%= dom_id(item, :cancellation_reason) %>">
+    <label class="block text-xs text-muted-foreground mb-1" for="<%= dom_id(item, :cancellation_reason) %>">
       <%= t("line_item.cancellation_reason") %>
     </label>
     <%= f.select :cancellation_reason,
           LineItem.cancellation_reasons.keys.map { |reason| [t("cancellation_reasons.#{reason}"), reason] },
           { include_blank: (t("line_item.no_reason") if item.cancellation_reason.nil?) },
           id: dom_id(item, :cancellation_reason),
-          class: "text-xs py-1 px-2 rounded-md border border-border bg-background",
+          class: "w-full max-w-xs text-xs py-1.5 px-2 rounded-md border border-border bg-background",
           data: { action: "change->auto-submit#submit" } %>
   <% end %>
 <% end %>

@@ -1,16 +1,22 @@
 <%# locals: (order:) %>
 
+<%# Counted here rather than taken from the caller: this partial re-renders on
+    its own from the item Turbo Streams, where no item collection is in scope.
+    Cancelled items are excluded so the count agrees with the total beside it,
+    which has always left them out. %>
+<% items = order.line_items.not_cancelled %>
+
 <div id="order_summary" class="mt-3 space-y-2">
   <div class="flex items-center justify-between">
-    <span class="text-sm text-muted-foreground"><%= t("order.total", count: order.line_items.size) %></span>
+    <span class="text-sm text-muted-foreground"><%= t("order.total", count: items.size) %></span>
     <span class="font-bold text-primary"><%= order.formatted_total %></span>
   </div>
 
-  <% if order.open? && order.line_items.any? %>
+  <% if order.open? && items.any? %>
     <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "w-full", data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
 
-  <% if order.line_items.any? && !order.open? && !order.closed? && !order.cancelled? %>
+  <% if items.any? && !order.open? && !order.closed? && !order.cancelled? %>
     <%= link_to t("order.request_bill"), bill_order_path(order),
           class: "w-full",
           data: { component: "button", variant: "primary", size: "lg" } %>

@@ -237,4 +237,17 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", cancel_order_path(order)
     assert_select "form[action=?]", cancel_order_line_item_path(order, item)
   end
+  # The count sits next to the total, and the total has always excluded
+  # cancelled items. Counting them made the summary contradict itself: three
+  # products, the price of two.
+  test "show counts only the items still on the order" do
+    order = orders(:cooking_order)
+    order.line_items.first.cancel!(by: users(:waiter_juan))
+    remaining = order.line_items.not_cancelled.size
+
+    get order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match I18n.t("order.total", count: remaining), response.body
+  end
 end
