@@ -127,6 +127,15 @@ es:
     cancelled: "Cancelado"
 
   # ============================================
+  # Cancellation Reasons
+  # ============================================
+  cancellation_reasons:
+    customer_changed_mind: "El cliente cambio de opinion"
+    kitchen_error: "Error de cocina"
+    out_of_stock: "Producto agotado"
+    duplicate: "Duplicado"
+
+  # ============================================
   # Orders
   # ============================================
   order:
@@ -161,6 +170,10 @@ es:
   # ============================================
   line_item:
     special_notes: "Notas especiales"
+    cancellation_reason: "Motivo"
+    reason_updated: "Motivo actualizado"
+    reason_only_when_cancelled: "Solo se puede registrar un motivo en un producto cancelado"
+    no_reason: "Sin motivo"
     cannot_cancel_paid: "No se puede cancelar un producto de una orden ya pagada"
     cannot_cancel_status: "No se puede cancelar un producto ya %{status}"
     standard_preparation: "Preparacion estandar"

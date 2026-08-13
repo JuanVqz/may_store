@@ -9,6 +9,10 @@ class CreateLineItems < ActiveRecord::Migration[8.1]
       t.integer :total_price_cents, default: 0, null: false
       t.references :ready_by, null: true, foreign_key: { to_table: :users }
       t.references :cancelled_by, null: true, foreign_key: { to_table: :users }
+      # Why the item was cancelled. Nullable rather than defaulted in the database
+      # so "nobody recorded a reason" stays distinguishable from a reason that was
+      # actually chosen; LineItem supplies the default when cancelling.
+      t.string :cancellation_reason
       t.references :delivered_by, null: true, foreign_key: { to_table: :users }
 
       t.timestamps

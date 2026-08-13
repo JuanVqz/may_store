@@ -37,30 +37,25 @@
 
         <div class="border-t border-border pt-3 space-y-3">
           <% @line_items.each_with_index do |item, idx| %>
-            <div class="flex justify-between items-start text-sm <%= "line-through text-muted-foreground" if item.cancelled? %>">
-              <div class="flex-1">
-                <div class="font-medium">#<%= idx + 1 %>&nbsp;&nbsp;<%= item.product.name %></div>
-                <% ingredients, extras = item.line_item_components.partition(&:ingredient?) %>
-                <% ingredients.each do |lic| %>
-                  <div class="text-xs text-muted-foreground ml-6">
-                    <%= lic.component.name %>: <%= lic.portion_label %>
-                  </div>
-                <% end %>
-                <% extras.group_by(&:component_id).each_value do |group| %>
-                  <div class="text-xs text-muted-foreground ml-6">
-                    + <%= group.first.component.name %> x<%= group.size %>
-                  </div>
-                <% end %>
-                <% if item.special_notes.present? %>
-                  <div class="text-xs text-muted-foreground ml-6 italic"><%= item.special_notes %></div>
-                <% end %>
+            <div class="text-sm">
+              <div class="flex justify-between items-start <%= "line-through text-muted-foreground" if item.cancelled? %>">
+                <div class="flex-1">
+                  <div class="font-medium">#<%= idx + 1 %>&nbsp;&nbsp;<%= item.product.name %></div>
+                  <%= render "line_items/receipt_components", item: item %>
+                </div>
+                <div class="text-right whitespace-nowrap">
+                  <% if item.cancelled? %>
+                    <span><%= t("bill.cancelled") %></span>
+                  <% else %>
+                    <%= item.formatted_total_price %>
+                  <% end %>
+                </div>
               </div>
-              <div class="text-right whitespace-nowrap">
-                <% if item.cancelled? %>
-                  <span><%= t("bill.cancelled") %></span>
-                <% else %>
-                  <%= item.formatted_total_price %>
-                <% end %>
+              <%# Outside the struck-through row on purpose: inside it the label was
+                  crossed out and the select sat squeezed against the item text,
+                  where nobody found it. Its own line under the item, undecorated. %>
+              <div class="ml-6 mt-1 no-underline">
+                <%= render "line_items/cancellation_reason", item: item %>
               </div>
             </div>
           <% end %>

@@ -71,8 +71,16 @@ module Order::Stateful
 
     transaction do
       update!(status: :cancelled, cancelled_at: Time.current)
+      # The cascade records the same default LineItem#cancel! would, so items
+      # cancelled this way are not left as the only ones with no reason at all,
+      # which would make "nobody said" and "cancelled with the order" look alike.
       line_items.where(status: [:ordering, :cooking, :ready])
-                .update_all(status: :cancelled)
+                .update_all(status: :cancelled,
+                            cancellation_reason: LineItem::DEFAULT_CANCELLATION_REASON,
+                            updated_at: Time.current)
+      # update_all skips LineItem's callbacks, so the total has to be recomputed
+      # here. Delivered items survive the cascade and still count.
+      recalculate_total!
     end
 
     true

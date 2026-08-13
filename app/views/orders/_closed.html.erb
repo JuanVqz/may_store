@@ -33,7 +33,8 @@
           <li class="flex justify-between gap-4 <%= "line-through text-muted-foreground" if item.cancelled? %>">
             <div class="flex-1">
               <div class="font-medium">#<%= idx + 1 %>&nbsp;&nbsp;<%= item.product.name %></div>
-              <%= render "line_items/components", item: item %>
+              <%= render "line_items/receipt_components", item: item %>
+              <%= render "line_items/cancellation_reason", item: item %>
             </div>
             <div class="whitespace-nowrap">
               <% if item.cancelled? %>

@@ -48,11 +48,16 @@ module LineItem::Stateful
   # The item's own status is checked first so an already-delivered item reports
   # that, rather than blaming the payment for a refusal that would have happened
   # anyway.
-  def cancel!(by: nil)
+  # `reason` defaults rather than being required, because the waiter cancelling
+  # this is standing at a table with a customer waiting. A required choice would
+  # be answered with whatever sits at the top of the list every time, which is
+  # worse than no data: it would look deliberate. One tap keeps working and
+  # records the default; the reason is correctable afterwards.
+  def cancel!(by: nil, reason: LineItem::DEFAULT_CANCELLATION_REASON)
     raise LineItem::Stateful::InvalidTransition, "Cannot cancel #{status} items" if cancelled? || delivered?
     raise LineItem::Stateful::OrderPaid, "Cannot cancel items on an order that has been paid" if order.payment_taken?
 
-    update!(status: :cancelled, cancelled_by: by)
+    update!(status: :cancelled, cancelled_by: by, cancellation_reason: reason)
   end
 
   # What the views ask before offering a cancel button, so the rule lives here with

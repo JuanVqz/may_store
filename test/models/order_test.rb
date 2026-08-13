@@ -201,4 +201,19 @@ class OrderTest < ActiveSupport::TestCase
     assert order.cancel!
     assert order.reload.cancelled?
   end
+
+  # Cancelling a whole order cascades with update_all, which bypasses
+  # LineItem#cancel!. Without this the cascade would be the only path leaving a
+  # cancelled item with no reason, making "nobody said" and "cancelled with the
+  # order" indistinguishable.
+  test "cancelling an order records a reason on the items it cancels" do
+    order = orders(:cooking_order)
+
+    order.cancel!
+
+    order.line_items.reload.each do |item|
+      assert item.cancelled?
+      assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.cancellation_reason
+    end
+  end
 end

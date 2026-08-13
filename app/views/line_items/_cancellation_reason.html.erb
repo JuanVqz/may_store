@@ -1,0 +1,26 @@
+<%# locals: (item:) %>
+
+<%# Shown only once an item is cancelled, and only to correct what cancelling
+    already recorded. Cancelling itself stays one tap: a waiter standing at a
+    table would answer a required dropdown with whatever sits at the top of it
+    every time, which is worse than no data because it would look deliberate. %>
+<%# Items cancelled before the reason column existed have a NULL reason. Without
+    a blank option the select would show the first reason as if someone had
+    chosen it, and since the form submits only on change, re-picking that same
+    option persists nothing: the screen would keep claiming a reason the row does
+    not have. The blank appears only while the reason is NULL, so a recorded
+    reason cannot be erased back into "nobody said". %>
+<% if item.cancelled? %>
+  <%= form_with model: item, url: order_line_item_path(item.order, item), method: :patch,
+        data: { controller: "auto-submit" } do |f| %>
+    <label class="block text-xs text-muted-foreground mb-1" for="<%= dom_id(item, :cancellation_reason) %>">
+      <%= t("line_item.cancellation_reason") %>
+    </label>
+    <%= f.select :cancellation_reason,
+          LineItem.cancellation_reasons.keys.map { |reason| [t("cancellation_reasons.#{reason}"), reason] },
+          { include_blank: (t("line_item.no_reason") if item.cancellation_reason.nil?) },
+          id: dom_id(item, :cancellation_reason),
+          class: "w-full max-w-xs text-xs py-1.5 px-2 rounded-md border border-border bg-background",
+          data: { action: "change->auto-submit#submit" } %>
+  <% end %>
+<% end %>
