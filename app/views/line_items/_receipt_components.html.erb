@@ -1,0 +1,18 @@
+<%# locals: (item:) %>
+
+<%# What the customer chose, and nothing else: extras, ingredients at a portion
+    they asked for, and their notes. The standard recipe is not a choice they
+    made, so printing it back at them is noise. Cancelled items get nothing,
+    since describing food nobody received only makes them hunt for a charge.
+
+    Kept in step with Receipt::Bill through Receipt::Components, which is the one
+    definition of how a component is described. %>
+<% unless item.cancelled? %>
+  <% Receipt::Components.new(item).each_label(modified_only: true) do |label| %>
+    <div class="text-xs text-muted-foreground ml-6"><%= label %></div>
+  <% end %>
+
+  <% if item.special_notes.present? %>
+    <div class="text-xs text-muted-foreground ml-6 italic"><%= item.special_notes %></div>
+  <% end %>
+<% end %>

@@ -48,6 +48,31 @@ class Receipt::BillTest < ActiveSupport::TestCase
     assert_includes text, "+ #{component.name} x1"
   end
 
+  # A plain product used to print its whole recipe as "Normal", six lines of
+  # paper telling the customer nothing was changed.
+  test "leaves out ingredients kept at their standard portion" do
+    item = @order.line_items.first
+    component = components(:steamed_milk)
+    item.line_item_components.create!(component: component, component_type: :ingredient, portion: 1.0, unit_price_cents: 0)
+
+    text = printable(@order.reload)
+
+    assert_not_includes text, "#{component.name}: #{I18n.t("portions.full")}"
+  end
+
+  test "a cancelled item prints as one line, with no description of what nobody got" do
+    item = @order.line_items.first
+    component = components(:steamed_milk)
+    item.line_item_components.create!(component: component, component_type: :extra, portion: 1.0, unit_price_cents: 500)
+    item.update!(special_notes: "sin azucar", status: :cancelled)
+
+    text = printable(@order.reload)
+
+    assert_match(/#{Regexp.escape(item.product.name)}.*CANCELADO/, text)
+    assert_not_includes text, "+ #{component.name}"
+    assert_not_includes text, "sin azucar"
+  end
+
   test "prints special notes" do
     @order.line_items.first.update!(special_notes: "sin azucar")
 

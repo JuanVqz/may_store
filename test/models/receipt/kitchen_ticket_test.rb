@@ -70,6 +70,18 @@ class Receipt::KitchenTicketTest < ActiveSupport::TestCase
     assert_includes printable(@order.reload), ">> ENTREGADO"
   end
 
+  # The bill prints only what the customer changed; the cook needs the recipe,
+  # so the full ingredient list stays on the ticket.
+  test "keeps every ingredient, including the ones left standard" do
+    item = orders(:cooking_order).line_items.first
+    component = components(:steamed_milk)
+    item.line_item_components.create!(component: component, component_type: :ingredient, portion: 1.0, unit_price_cents: 0)
+
+    text = printable(orders(:cooking_order).reload)
+
+    assert_includes text, "#{component.name}: #{I18n.t("portions.full")}"
+  end
+
   test "prints special notes in bold so the cook cannot miss them" do
     @order.line_items.first.update!(special_notes: "sin azucar")
 

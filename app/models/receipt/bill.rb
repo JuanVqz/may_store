@@ -43,18 +43,23 @@ class Receipt::Bill
       label = "##{index + 1} #{item.product.name}"
 
       if item.cancelled?
+        # One line and nothing else: the line is there so the customer sees the
+        # item was voided rather than silently missing, and describing food
+        # nobody received is what makes them hunt the paper for a charge.
         d.row label, I18n.t("bill.cancelled")
-      else
-        d.row label, item.formatted_total_price
+        next
       end
+
+      d.row label, item.formatted_total_price
       details d, item
     end
   end
 
-  # Ingredient portions and extras explain what the customer is paying for, so
-  # they belong on the bill even though they carry no price of their own.
+  # Only what was changed: extras, which are priced, and ingredients at a portion
+  # the customer asked for. The standard recipe is not something they chose, so
+  # printing it back at them is noise on paper they have to read.
   def details(d, item)
-    Receipt::Components.new(item).each_label do |label|
+    Receipt::Components.new(item).each_label(modified_only: true) do |label|
       d.wrapped "    #{label}", indent: "      "
     end
 
