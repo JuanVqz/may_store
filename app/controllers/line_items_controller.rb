@@ -40,7 +40,16 @@ class LineItemsController < ApplicationController
   # Correcting why an item was cancelled. Cancelling records a default so the
   # waiter never has to stop and think, which only pays off if the guess can be
   # put right afterwards; this is that path.
+  # The reason only means anything on a cancelled item, and the route is not
+  # protected by the view hiding the form: a stale or hand-made PATCH would
+  # otherwise stamp "kitchen_error" on an item that was cooked and served, and
+  # any grouping by reason would count it.
   def update
+    unless @line_item.cancelled?
+      return redirect_back fallback_location: order_path(@order),
+                           alert: t("line_item.reason_only_when_cancelled")
+    end
+
     if @line_item.update(line_item_update_params)
       redirect_back fallback_location: order_path(@order), notice: t("line_item.reason_updated")
     else

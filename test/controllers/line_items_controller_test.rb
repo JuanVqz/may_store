@@ -261,6 +261,21 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "kitchen_error", item.reload.cancellation_reason
   end
 
+  # The view hides the form on a live item, which is not a guard on the route: a
+  # stale form would otherwise stamp a cancellation reason on an item that is
+  # still being cooked, and any report grouping by reason would count it.
+  test "update refuses to set a reason on an item that is not cancelled" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+
+    patch order_line_item_url(order, item, subdomain: @store.subdomain),
+          params: { line_item: { cancellation_reason: "kitchen_error" } }
+
+    assert_equal I18n.t("line_item.reason_only_when_cancelled"), flash[:alert]
+    assert_nil item.reload.cancellation_reason
+    assert_equal "cooking", item.status
+  end
+
   test "update rejects a reason outside the list" do
     order = orders(:cooking_order)
     item = order.line_items.first
@@ -300,6 +315,37 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match I18n.t("line_item.cancellation_reason"), response.body
     assert_match I18n.t("cancellation_reasons.kitchen_error"), response.body
+  end
+
+  # A NULL reason is "nobody said". Preselecting the first reason would show a
+  # deliberate answer that nobody gave, and the form only submits on change, so
+  # re-picking it would never write the row the screen already claims.
+  test "the selector shows no reason for an item cancelled without one" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+    item.update_columns(cancellation_reason: nil)
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_select "select##{ActionView::RecordIdentifier.dom_id(item, :cancellation_reason)}" do
+      assert_select "option[selected]", count: 0
+      assert_select "option[value='']", text: I18n.t("line_item.no_reason")
+    end
+  end
+
+  test "the selector offers no blank once a reason is recorded" do
+    order = orders(:cooking_order)
+    item = order.line_items.first
+    item.cancel!(by: users(:waiter_juan))
+
+    get bill_order_url(order, subdomain: @store.subdomain)
+
+    assert_select "select##{ActionView::RecordIdentifier.dom_id(item, :cancellation_reason)}" do
+      assert_select "option[value='']", count: 0
+      assert_select "option[selected]", text: I18n.t("cancellation_reasons.#{LineItem::DEFAULT_CANCELLATION_REASON}")
+    end
   end
 
   test "an item that was not cancelled gets no reason selector" do
