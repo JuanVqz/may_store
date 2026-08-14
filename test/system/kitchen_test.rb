@@ -56,6 +56,9 @@ class KitchenTest < ApplicationSystemTestCase
     order.line_items.each do |item|
       within "#line_item_card_#{item.id}" do
         click_on I18n.t("kitchen.ready")
+      end
+
+      within "#line_item_card_#{item.id}" do
         assert_text I18n.t("kitchen.waiting_for_waiter")
       end
     end
@@ -198,6 +201,11 @@ class KitchenTest < ApplicationSystemTestCase
 
   test "the order header shows a wait time that ticks on its own" do
     order = orders(:cooking_order)
+    # The header counts from the oldest item's created_at, which fixtures stamp
+    # when the suite loads them, not when this test runs. Left alone, the label
+    # reads one minute once the suite has been running for a minute, so pin the
+    # start instead of asserting a number that depends on suite duration.
+    order.line_items.update_all(created_at: Time.current)
 
     visit kitchen_path
 
@@ -229,6 +237,11 @@ class KitchenTest < ApplicationSystemTestCase
 
     within "#line_item_card_#{item.id}" do
       click_on I18n.t("kitchen.ready")
+    end
+
+    # Re-enter the scope: the click re-renders the card, and a scope resolved
+    # before the click can keep pointing at the element it replaced.
+    within "#line_item_card_#{item.id}" do
       assert_text I18n.t("kitchen.waiting_for_waiter")
     end
     assert_equal "ready", item.reload.status
