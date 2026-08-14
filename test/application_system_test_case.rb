@@ -22,6 +22,32 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
       visit path
     end
 
+    # Capybara clicks a button as soon as it exists in the DOM, but a button
+    # whose only behaviour is a Stimulus action does nothing until its
+    # controller has connected, and the click is not replayed afterwards. The
+    # test then waits for an effect that will never happen. Wait for the
+    # controller instance before clicking anything that only Stimulus handles.
+    def wait_for_stimulus(identifier)
+      selector = "[data-controller~='#{identifier}']"
+      assert_selector selector, visible: :all
+
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+      until stimulus_connected?(identifier, selector)
+        if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+          raise Capybara::ExpectationNotMet, "Stimulus controller #{identifier} never connected"
+        end
+        sleep 0.05
+      end
+    end
+
+    def stimulus_connected?(identifier, selector)
+      page.evaluate_script(<<~JS)
+        Boolean(window.Stimulus && window.Stimulus.getControllerForElementAndIdentifier(
+          document.querySelector(#{selector.to_json}), #{identifier.to_json}
+        ))
+      JS
+    end
+
     def sign_in_as(employee_number, store: stores(:cafe_delicias))
       visit_store(store, login_path)
       fill_in "employee_number", with: employee_number

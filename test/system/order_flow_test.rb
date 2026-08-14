@@ -264,6 +264,7 @@ class OrderFlowTest < ApplicationSystemTestCase
     # The customize button carries the product id, which is the most stable
     # hook the markup offers.
     def open_customization_for(product)
+      wait_for_stimulus "order-page"
       find("button[data-product-id='#{product.id}']").click
       assert_selector customization_selector(product)
     end
