@@ -245,4 +245,48 @@ class OrderTest < ActiveSupport::TestCase
       assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.cancellation_reason
     end
   end
+
+  test "settle! takes the money owed and closes the order" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents)
+
+    assert order.reload.closed?
+    assert_equal order.total_cents, order.payments.sum(:amount_cents)
+    assert_equal 0, order.payments.last.change_cents
+  end
+
+  # Only cash has change to give back, so only cash needs the amount tendered.
+  # A card or a transfer is for exactly what is owed.
+  test "settle! fills in the amount tendered for methods that cannot give change" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:mercado_pago))
+
+    assert order.reload.closed?
+    assert_equal order.total_cents, order.payments.last.received_cents
+  end
+
+  test "settle! refuses cash that does not cover the bill and leaves the order open" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    assert_raises ActiveRecord::RecordInvalid do
+      order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents - 100)
+    end
+
+    assert_not order.reload.closed?
+    assert_empty order.payments
+  end
+
+  test "settle! records the change owed on a cash payment" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents + 5000)
+
+    assert_equal 5000, order.payments.last.change_cents
+  end
 end

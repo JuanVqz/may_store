@@ -1,29 +1,10 @@
 class PaymentsController < ApplicationController
+  include OrderScoped
+
   def create
-    @order = Current.store.orders.find(params[:order_id])
+    return redirect_to order_path(@order) if @order.closed? || @order.fully_paid?
 
-    if @order.closed? || @order.fully_paid?
-      redirect_to order_path(@order) and return
-    end
-
-    payment_method = Current.store.payment_methods.find(params[:payment_method_id])
-    received_cents = parse_cents(params[:received])
-
-    Payment.transaction do
-      @order.lock!
-      if received_cents.nil? || received_cents == 0
-        received_cents = @order.remaining_cents unless payment_method.cash?
-      end
-
-      @order.payments.create!(
-        payment_method: payment_method,
-        amount_cents: @order.remaining_cents,
-        received_cents: received_cents,
-        paid_at: Time.current
-      )
-      @order.close!
-    end
-
+    @order.settle!(payment_method: payment_method, received_cents: parse_cents(params[:received]))
     redirect_to order_path(@order), notice: t("order.closed")
   rescue ActiveRecord::RecordInvalid => e
     redirect_to order_bill_path(@order), alert: e.record.errors.full_messages.to_sentence
@@ -31,8 +12,12 @@ class PaymentsController < ApplicationController
 
   private
 
+  def payment_method
+    Current.store.payment_methods.find(params[:payment_method_id])
+  end
+
+  # The cashier types pesos; the column stores cents.
   def parse_cents(value)
-    return nil if value.blank?
-    (value.to_f * 100).round
+    (value.to_f * 100).round if value.present?
   end
 end

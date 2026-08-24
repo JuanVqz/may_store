@@ -50,6 +50,27 @@ module Order::Stateful
     update!(status: :delivered, delivered_at: Time.current) unless unfinished
   end
 
+  # Taking the money and closing the order in one step, under a row lock, so two
+  # registers cannot both read the same remaining balance and each take it.
+  #
+  # `received` is what the customer handed over, and only cash needs it: the
+  # change owed is the difference. On every other method the amount tendered is
+  # the amount owed by definition, so an unstated one is filled in rather than
+  # failing validation in front of the cashier.
+  def settle!(payment_method:, received_cents: nil)
+    with_lock do
+      received_cents = remaining_cents if received_cents.to_i.zero? && !payment_method.cash?
+
+      payments.create!(
+        payment_method: payment_method,
+        amount_cents: remaining_cents,
+        received_cents: received_cents,
+        paid_at: Time.current
+      )
+      close!
+    end
+  end
+
   def close!
     raise ActiveRecord::RecordInvalid, self unless fully_paid?
     update!(status: :closed, closed_at: Time.current)
