@@ -32,21 +32,20 @@ class OrdersController < ApplicationController
                             .order(created_at: :asc)
     end
 
-    if @order.allows_item_addition?
-      @categories = Current.store.categories.active.ordered
-      @category =
-        if params[:category_id]
-          Current.store.categories.find(params[:category_id])
-        else
-          @categories.first
-        end
-      @products = @category&.products&.active&.available&.includes(product_components: :component) || Product.none
-    end
+    load_menu if @order.allows_item_addition?
   end
 
   private
 
   def set_order
     @order = Current.store.orders.find(params[:id])
+  end
+
+  # The menu the waiter picks from, one category at a time. A store with no
+  # categories yet has nothing to show, which is why @category can be nil.
+  def load_menu
+    @categories = Current.store.categories.active.ordered
+    @category = params[:category_id] ? Current.store.categories.find(params[:category_id]) : @categories.first
+    @products = @category ? @category.products.active.available.includes(product_components: :component) : Product.none
   end
 end

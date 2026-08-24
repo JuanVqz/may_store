@@ -31,11 +31,10 @@ class ApplicationController < ActionController::Base
     redirect_to login_path unless Current.user
   end
 
+  # A role is a default screen, not a set of permissions: the kitchen starts on
+  # the queue, everyone else on the floor. Any of them can go anywhere from
+  # there.
   def redirect_by_role(user)
-    case user.role
-    when "waiter"  then redirect_to root_path
-    when "kitchen" then redirect_to kitchen_path
-    when "admin"   then redirect_to root_path
-    end
+    redirect_to user.kitchen? ? kitchen_path : root_path
   end
 end
