@@ -93,6 +93,14 @@ class Order < ApplicationRecord
       ready_count = (rows["ready"] || 0) + (rows["delivered"] || 0)
       delivered_count = rows["delivered"] || 0
     end
-    { ready: ready_count, delivered: delivered_count, total: total_count }
+    # awaiting_delivery is the only one of these a waiter can act on: food is
+    # plated and nobody has carried it out yet. ready_count includes the items
+    # already delivered, so the difference is what is still sitting at the pass.
+    {
+      ready: ready_count,
+      delivered: delivered_count,
+      total: total_count,
+      awaiting_delivery: ready_count - delivered_count
+    }
   end
 end

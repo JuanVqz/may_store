@@ -338,4 +338,24 @@ class OrderTest < ActiveSupport::TestCase
     assert_includes error.record.errors.full_messages.to_sentence,
                     I18n.t("activerecord.errors.models.order.attributes.base.not_fully_paid")
   end
+
+  # What the floor board shows: plated and still sitting at the pass. The ready
+  # count includes the items already carried out, so it answers a different
+  # question.
+  test "readiness_counts reports what is still waiting to be delivered" do
+    order = orders(:cooking_order)
+    line_items(:cooking_cappuccino).mark_ready!
+    line_items(:cooking_americano).mark_ready!
+    line_items(:cooking_americano).mark_delivered!
+
+    counts = order.reload.readiness_counts
+
+    assert_equal 2, counts[:ready]
+    assert_equal 1, counts[:delivered]
+    assert_equal 1, counts[:awaiting_delivery]
+  end
+
+  test "nothing is awaiting delivery while every item is still cooking" do
+    assert_equal 0, orders(:cooking_order).readiness_counts[:awaiting_delivery]
+  end
 end

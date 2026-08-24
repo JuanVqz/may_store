@@ -7,12 +7,12 @@
       <span class="text-xs mt-1 font-medium" style="color: <%= order.status_color %>">
         <%= order.status_label %>
       </span>
-      <% if order.cooking? || order.ready? || order.delivered? %>
-        <% counts = order.readiness_counts %>
-        <% if counts[:total] > 0 %>
-          <span class="text-xs text-muted-foreground"><%= t("tables.items_ready", count: counts[:ready], total: counts[:total]) %></span>
-          <span class="text-xs text-muted-foreground"><%= t("tables.items_delivered", count: counts[:delivered], total: counts[:total]) %></span>
-        <% end %>
+      <%# The board says what each table is doing; this line says what to do
+          about it. How many are cooked and how many were carried out is
+          arithmetic the waiter has to read off the order itself. %>
+      <% awaiting = order.readiness_counts[:awaiting_delivery] %>
+      <% if awaiting > 0 %>
+        <span class="text-xs text-muted-foreground"><%= t("tables.items_awaiting", count: awaiting) %></span>
       <% end %>
     <% end %>
   <% else %>

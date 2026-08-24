@@ -87,8 +87,9 @@ es:
     title: "Para Llevar"
     new_order: "Nueva Orden"
     no_orders: "No hay ordenes para llevar activas"
-    items_ready: "%{count} de %{total} listos"
-    items_delivered: "%{count} de %{total} entregados"
+    items_awaiting:
+      one: "%{count} listo para entregar"
+      other: "%{count} listos para entregar"
 
   # ============================================
   # Tables
@@ -102,8 +103,9 @@ es:
     available: "Disponible"
     legend: "Leyenda de estados"
     no_active_order: "Sin orden activa"
-    items_ready: "%{count} de %{total} listos"
-    items_delivered: "%{count} de %{total} entregados"
+    items_awaiting:
+      one: "%{count} listo para entregar"
+      other: "%{count} listos para entregar"
 
   # ============================================
   # Order Statuses
