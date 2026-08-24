@@ -9,6 +9,7 @@ class Spot < ApplicationRecord
 
   scope :tables, -> { where(spot_type: :dine_in) }
   scope :takeouts, -> { where(spot_type: :takeout) }
+  scope :containing, ->(term) { where("name ILIKE ?", "%#{sanitize_sql_like(term)}%") }
 
   def self.takeout_for(store)
     retries = 3

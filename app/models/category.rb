@@ -17,6 +17,7 @@ class Category < ApplicationRecord
   validates :station, presence: true
 
   scope :ordered, -> { order(:position) }
+  scope :containing, ->(term) { where("name ILIKE ?", "%#{sanitize_sql_like(term)}%") }
 
   def station_label
     I18n.t("stations.#{station}")

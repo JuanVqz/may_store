@@ -3,7 +3,7 @@ class Admin::ComponentsController < Admin::BaseController
 
   def index
     scope = Current.store.components.active.order(:name)
-    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    scope = scope.containing(params[:q]) if params[:q].present?
     @pagy, @components = pagy(scope)
   end
 

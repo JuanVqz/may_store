@@ -8,4 +8,5 @@ class PaymentMethod < ApplicationRecord
   validates :name, presence: true
 
   scope :active, -> { where(active: true) }
+  scope :containing, ->(term) { where("name ILIKE ?", "%#{sanitize_sql_like(term)}%") }
 end

@@ -3,7 +3,7 @@ class Admin::PaymentMethodsController < Admin::BaseController
 
   def index
     scope = Current.store.payment_methods.order(:name)
-    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    scope = scope.containing(params[:q]) if params[:q].present?
     @pagy, @payment_methods = pagy(scope)
   end
 

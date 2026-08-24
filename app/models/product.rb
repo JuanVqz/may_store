@@ -14,4 +14,9 @@ class Product < ApplicationRecord
   validates :base_price_cents, numericality: { greater_than_or_equal_to: 0 }
 
   scope :available, -> { where(available: true) }
+  # The catalogue is browsed by category as often as by product, so a search for
+  # "crepas" finds everything on that section of the menu.
+  scope :containing, ->(term) {
+    joins(:category).where("products.name ILIKE :q OR categories.name ILIKE :q", q: "%#{sanitize_sql_like(term)}%")
+  }
 end

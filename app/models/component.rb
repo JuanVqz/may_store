@@ -12,4 +12,5 @@ class Component < ApplicationRecord
   scope :available, -> { where(available: true) }
   scope :ingredients, -> { where(price_cents: 0) }
   scope :extras, -> { where("price_cents > 0") }
+  scope :containing, ->(term) { where("name ILIKE ?", "%#{sanitize_sql_like(term)}%") }
 end
