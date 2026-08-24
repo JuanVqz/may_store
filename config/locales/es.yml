@@ -162,6 +162,7 @@ es:
     item_added: "Producto agregado a la orden"
     closed: "Orden cerrada exitosamente"
     cannot_cancel_paid: "No se puede cancelar una orden que ya fue pagada"
+    cannot_confirm_status: "No se puede enviar a cocina una orden ya %{status}"
     back_to_tables: "Volver a Mesas"
     table_now_available: "%{name} ahora esta disponible"
 
@@ -444,6 +445,10 @@ es:
               taken: "ya esta en uso en esta tienda"
             password:
               blank: "no puede estar en blanco"
+        order:
+          attributes:
+            base:
+              not_fully_paid: "La orden todavia tiene un saldo pendiente"
         payment:
           attributes:
             received_cents:

@@ -1,6 +1,11 @@
 module Order::Stateful
   extend ActiveSupport::Concern
 
+  # Refusing a state change the order is not in a position to make. Same shape
+  # as LineItem::Stateful::InvalidTransition, so both read alike at the call
+  # site.
+  class InvalidTransition < StandardError; end
+
   included do
     after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
   end
@@ -22,8 +27,12 @@ module Order::Stateful
     STATUS_COLORS[status]
   end
 
+  # Sending the order to the kitchen. Only an order still being taken can be
+  # sent: confirming one that is already cooking used to do nothing at all and
+  # report success, so a stale screen or a double tap told the waiter the
+  # kitchen had it twice.
   def confirm!
-    return unless open?
+    raise InvalidTransition, "Cannot confirm #{status} orders" unless open?
     raise ActiveRecord::RecordInvalid, self if line_items.empty?
 
     transaction do
@@ -71,8 +80,15 @@ module Order::Stateful
     end
   end
 
+  # Raised with a message on the record, not a bare RecordInvalid: the register
+  # prints e.record.errors back to the cashier, and an order with no errors on
+  # it printed an empty alert that said nothing about what went wrong.
   def close!
-    raise ActiveRecord::RecordInvalid, self unless fully_paid?
+    unless fully_paid?
+      errors.add(:base, :not_fully_paid)
+      raise ActiveRecord::RecordInvalid, self
+    end
+
     update!(status: :closed, closed_at: Time.current)
   end
 

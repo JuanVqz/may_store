@@ -305,4 +305,37 @@ class OrderTest < ActiveSupport::TestCase
     assert_not_includes in_progress, closed
     assert_not_includes in_progress, cancelled
   end
+
+  # A double tap, or a screen that has not caught up, used to get "sent to the
+  # kitchen" for an order the kitchen already had.
+  test "confirm refuses an order that is already cooking" do
+    order = orders(:cooking_order)
+
+    assert_raises Order::Stateful::InvalidTransition do
+      order.confirm!
+    end
+
+    assert_equal "cooking", order.reload.status
+  end
+
+  test "confirm refuses a cancelled order" do
+    order = orders(:cooking_order)
+    order.cancel!
+
+    assert_raises Order::Stateful::InvalidTransition do
+      order.confirm!
+    end
+  end
+
+  # The register prints the record's errors back to the cashier, so a refusal
+  # with nothing on it is an empty alert.
+  test "close explains itself when the order still owes money" do
+    order = orders(:cooking_order)
+    order.update_columns(total_cents: 5000)
+
+    error = assert_raises(ActiveRecord::RecordInvalid) { order.close! }
+
+    assert_includes error.record.errors.full_messages.to_sentence,
+                    I18n.t("activerecord.errors.models.order.attributes.base.not_fully_paid")
+  end
 end

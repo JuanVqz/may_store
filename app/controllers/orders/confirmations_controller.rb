@@ -7,7 +7,8 @@ class Orders::ConfirmationsController < ApplicationController
     @order.confirm!
     redirect_to order_path(@order), notice: t("order.confirmed")
   rescue ActiveRecord::RecordInvalid
-    # The only way confirm! refuses: an order with nothing on it.
     redirect_to order_path(@order), alert: t("order.no_items")
+  rescue Order::Stateful::InvalidTransition
+    redirect_to order_path(@order), alert: t("order.cannot_confirm_status", status: @order.status_label.downcase)
   end
 end
