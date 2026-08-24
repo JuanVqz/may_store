@@ -98,4 +98,31 @@ class SpotTest < ActiveSupport::TestCase
     assert_equal older, spot.open_order(user: users(:waiter_juan))
     assert_not_equal newer, spot.open_order(user: users(:waiter_juan))
   end
+
+  # Looking and then creating is two statements. The table's own row is what
+  # concurrent taps queue on, so the second one reads the order the first just
+  # opened instead of opening its own.
+  test "open_order locks the table it is about to open an order on" do
+    assert_not_empty lock_statements { spots(:mesa_2).open_order(user: users(:waiter_juan)) }
+  end
+
+  # Nothing to queue on: takeout orders are supposed to pile up side by side.
+  test "open_order does not lock the takeout counter" do
+    spot = Spot.takeout_for(stores(:cafe_delicias))
+
+    assert_empty lock_statements { spot.open_order(user: users(:waiter_juan)) }
+  end
+
+  private
+    def lock_statements
+      statements = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+        statements << payload[:sql] if payload[:sql].include?("FOR UPDATE")
+      end
+
+      yield
+      statements
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
 end
