@@ -258,4 +258,29 @@ class LineItemTest < ActiveSupport::TestCase
     assert_includes items, line_items(:cooking_cappuccino)
     assert_not_includes items, foreign_item
   end
+
+  # Who did it was already recorded; when it happened was not, and half a record
+  # cannot answer how long a dish sat on the pass.
+  test "each transition records when it happened, not just who did it" do
+    item = line_items(:cooking_cappuccino)
+    user = users(:waiter_juan)
+
+    item.mark_ready!(by: user)
+    assert_not_nil item.reload.ready_at
+
+    item.mark_delivered!(by: user)
+    assert_not_nil item.reload.delivered_at
+
+    cancelled = line_items(:cooking_americano)
+    cancelled.cancel!(by: user)
+    assert_not_nil cancelled.reload.cancelled_at
+  end
+
+  test "an item cancelled along with its order is timestamped too" do
+    order = orders(:cooking_order)
+
+    order.cancel!
+
+    assert order.line_items.reload.all? { |item| item.cancelled_at.present? }
+  end
 end

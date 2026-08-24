@@ -114,6 +114,7 @@ module Order::Stateful
       line_items.where(status: [:ordering, :cooking, :ready])
                 .update_all(status: :cancelled,
                             cancellation_reason: LineItem::DEFAULT_CANCELLATION_REASON,
+                            cancelled_at: Time.current,
                             updated_at: Time.current)
       # update_all skips LineItem's callbacks, so the total has to be recomputed
       # here. Delivered items survive the cascade and still count.
