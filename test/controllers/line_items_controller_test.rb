@@ -96,7 +96,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "ready marks item as ready and tracks actor" do
     item = line_items(:cooking_cappuccino)
-    patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_readiness_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     item.reload
     assert_equal "ready", item.status
     assert_equal @user, item.ready_by
@@ -104,14 +104,14 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "ready redirects back" do
     item = line_items(:cooking_cappuccino)
-    patch ready_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_readiness_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     assert_response :redirect
   end
 
   test "deliver marks item as delivered and tracks actor" do
     item = line_items(:cooking_cappuccino)
     item.mark_ready!
-    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_delivery_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     item.reload
     assert_equal "delivered", item.status
     assert_equal @user, item.delivered_by
@@ -120,7 +120,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   test "deliver redirects back" do
     item = line_items(:cooking_cappuccino)
     item.mark_ready!
-    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_delivery_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     assert_response :redirect
   end
 
@@ -148,7 +148,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "cancel marks item as cancelled and tracks actor" do
     item = line_items(:cooking_cappuccino)
-    patch cancel_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_cancellation_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     item.reload
     assert_equal "cancelled", item.status
     assert_equal @user, item.cancelled_by
@@ -156,14 +156,14 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "ready rejects non-cooking item" do
     item = line_items(:ordering_americano)
-    patch ready_order_line_item_url(@order, item, subdomain: @store.subdomain)
+    post order_line_item_readiness_url(@order, item, subdomain: @store.subdomain)
     assert_redirected_to order_url(@order, subdomain: @store.subdomain)
     assert_equal "ordering", item.reload.status
   end
 
   test "deliver rejects cooking item" do
     item = line_items(:cooking_cappuccino)
-    patch deliver_order_line_item_url(orders(:cooking_order), item, subdomain: @store.subdomain)
+    post order_line_item_delivery_url(orders(:cooking_order), item, subdomain: @store.subdomain)
     assert_redirected_to order_url(orders(:cooking_order), subdomain: @store.subdomain)
     assert_equal "cooking", item.reload.status
   end
@@ -179,7 +179,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
                                   received_cents: order.total_cents, paid_at: Time.current)
     order.close!
 
-    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+    post order_line_item_cancellation_url(order, item, subdomain: @store.subdomain)
 
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
     assert_equal I18n.t("line_item.cannot_cancel_paid"), flash[:alert]
@@ -191,7 +191,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   test "cancel names the status when the item itself cannot be cancelled" do
     item = line_items(:delivered_latte)
 
-    patch cancel_order_line_item_url(orders(:delivered_order), item, subdomain: @store.subdomain)
+    post order_line_item_cancellation_url(orders(:delivered_order), item, subdomain: @store.subdomain)
 
     assert_equal I18n.t("line_item.cannot_cancel_status", status: item.status_label.downcase),
                  flash[:alert]
@@ -205,7 +205,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     item = line_items(:cooking_cappuccino)
     item.update!(status: :ready)
 
-    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+    post order_line_item_cancellation_url(order, item, subdomain: @store.subdomain)
 
     assert item.reload.cancelled?
     assert_not_nil item.cancelled_by
@@ -219,7 +219,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     get order_url(order, subdomain: @store.subdomain)
 
     assert_response :success
-    assert_match cancel_order_line_item_path(order, item), response.body
+    assert_match order_line_item_cancellation_path(order, item), response.body
   end
 
   # Paying before the food goes out is the normal case that leaves items READY on
@@ -237,15 +237,15 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     get order_url(order, subdomain: @store.subdomain)
 
     assert_response :success
-    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
-    assert_select "form[action=?]", deliver_order_line_item_path(order, item)
+    assert_select "form[action=?]", order_line_item_cancellation_path(order, item), count: 0
+    assert_select "form[action=?]", order_line_item_delivery_path(order, item)
   end
 
   test "cancelling records the default reason without asking for one" do
     order = orders(:cooking_order)
     item = order.line_items.first
 
-    patch cancel_order_line_item_url(order, item, subdomain: @store.subdomain)
+    post order_line_item_cancellation_url(order, item, subdomain: @store.subdomain)
 
     assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.reload.cancellation_reason
   end
@@ -310,7 +310,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     item = order.line_items.first
     item.cancel!(by: users(:waiter_juan))
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
 
     assert_response :success
     assert_match I18n.t("line_item.cancellation_reason"), response.body
@@ -326,7 +326,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     item.cancel!(by: users(:waiter_juan))
     item.update_columns(cancellation_reason: nil)
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
 
     assert_response :success
     assert_select "select##{ActionView::RecordIdentifier.dom_id(item, :cancellation_reason)}" do
@@ -340,7 +340,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
     item = order.line_items.first
     item.cancel!(by: users(:waiter_juan))
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
 
     assert_select "select##{ActionView::RecordIdentifier.dom_id(item, :cancellation_reason)}" do
       assert_select "option[value='']", count: 0
@@ -351,7 +351,7 @@ class LineItemsControllerTest < ActionDispatch::IntegrationTest
   test "an item that was not cancelled gets no reason selector" do
     order = orders(:cooking_order)
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
 
     assert_response :success
     assert_no_match I18n.t("line_item.cancellation_reason"), response.body

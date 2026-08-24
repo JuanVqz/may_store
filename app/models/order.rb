@@ -10,6 +10,9 @@ class Order < ApplicationRecord
   has_many :payments, dependent: :destroy
 
   scope :today, -> { where(created_at: Time.current.beginning_of_day..Time.current.end_of_day) }
+  # Still on the floor: someone is waiting on it, or it is waiting to be paid.
+  # What the table and takeout screens are made of.
+  scope :in_progress, -> { where.not(status: [:closed, :cancelled]) }
 
   enum :status, {
     open: "open",
@@ -30,17 +33,21 @@ class Order < ApplicationRecord
     open? || cooking? || ready? || delivered?
   end
 
-  def add_item!(product:, special_notes: nil)
-    update!(status: :cooking) if ready? || delivered?
+  # Adding to an order that is already cooking sends the new item straight to
+  # the kitchen; adding to one still being taken keeps it with the rest of the
+  # draft until the whole order is confirmed. An order that had been served
+  # goes back to cooking, because something on it is being made again.
+  def add_item!(product:, special_notes: nil, portions: {}, extras: {})
+    transaction do
+      update!(status: :cooking) if ready? || delivered?
 
-    item = line_items.create!(
-      product: product,
-      status: :cooking,
-      base_price_cents: product.base_price_cents,
-      special_notes: special_notes
-    )
-    item.calculate_total!
-    item
+      line_items.create!(
+        product: product,
+        status: open? ? :ordering : :cooking,
+        base_price_cents: product.base_price_cents,
+        special_notes: special_notes
+      ).customize!(portions: portions, extras: extras)
+    end
   end
 
   def total_paid_cents
@@ -86,6 +93,14 @@ class Order < ApplicationRecord
       ready_count = (rows["ready"] || 0) + (rows["delivered"] || 0)
       delivered_count = rows["delivered"] || 0
     end
-    { ready: ready_count, delivered: delivered_count, total: total_count }
+    # awaiting_delivery is the only one of these a waiter can act on: food is
+    # plated and nobody has carried it out yet. ready_count includes the items
+    # already delivered, so the difference is what is still sitting at the pass.
+    {
+      ready: ready_count,
+      delivered: delivered_count,
+      total: total_count,
+      awaiting_delivery: ready_count - delivered_count
+    }
   end
 end

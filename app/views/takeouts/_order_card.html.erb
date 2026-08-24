@@ -5,12 +5,9 @@
     <span class="font-bold text-sm whitespace-nowrap"><%= order.code %></span>
     <div class="flex-1 min-w-0">
       <span class="text-xs text-muted-foreground">hace <%= time_ago_in_words(order.created_at) %></span>
-      <% if order.cooking? || order.ready? || order.delivered? %>
-        <% counts = order.readiness_counts %>
-        <% if counts[:total] > 0 %>
-          <div class="text-xs text-muted-foreground"><%= t("takeouts.items_ready", count: counts[:ready], total: counts[:total]) %></div>
-          <div class="text-xs text-muted-foreground"><%= t("takeouts.items_delivered", count: counts[:delivered], total: counts[:total]) %></div>
-        <% end %>
+      <% awaiting = order.readiness_counts[:awaiting_delivery] %>
+      <% if awaiting > 0 %>
+        <div class="text-xs text-muted-foreground"><%= t("takeouts.items_awaiting", count: awaiting) %></div>
       <% end %>
     </div>
     <div class="flex flex-col items-end gap-1 shrink-0">

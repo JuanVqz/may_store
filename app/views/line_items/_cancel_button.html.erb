@@ -6,8 +6,7 @@
     view, and a missed one leaves a button that can only ever produce an alert. %>
 <% if item.cancellable? %>
   <%= button_to t("kitchen.cancel"),
-        cancel_order_line_item_path(item.order, item),
-        method: :patch,
+        order_line_item_cancellation_path(item.order, item),
         data: { component: "button", variant: "destructive", size: size,
                 turbo_confirm: t("kitchen.cancel_confirm") } %>
 <% end %>

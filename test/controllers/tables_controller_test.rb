@@ -26,4 +26,24 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     get tables_url(subdomain: @store.subdomain)
     assert_redirected_to login_url
   end
+
+  # The card carries one line of instruction: something is plated for this
+  # table. The counts it used to print (how many are cooked, how many were
+  # carried out) are on the order itself.
+  test "index tells a table there is food waiting to be taken over" do
+    line_items(:cooking_cappuccino).mark_ready!
+
+    get tables_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match I18n.t("tables.items_awaiting", count: 1), response.body
+    assert_no_match(/entregados/, response.body)
+  end
+
+  test "index says nothing about delivery while the kitchen still has it all" do
+    get tables_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_no_match(/listo para entregar/, response.body)
+  end
 end

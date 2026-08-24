@@ -13,7 +13,7 @@ class CancellationReasonTest < ApplicationSystemTestCase
   # off if the guess can be corrected, and correcting it is one choice with no
   # save button.
   test "choosing a reason saves it without a save button" do
-    visit_store stores(:cafe_delicias), bill_order_path(@order)
+    visit_store stores(:cafe_delicias), order_bill_path(@order)
 
     select I18n.t("cancellation_reasons.kitchen_error"), from: dom_id(@item, :cancellation_reason)
 
@@ -22,7 +22,7 @@ class CancellationReasonTest < ApplicationSystemTestCase
   end
 
   test "the default reason is the one shown before anyone corrects it" do
-    visit_store stores(:cafe_delicias), bill_order_path(@order)
+    visit_store stores(:cafe_delicias), order_bill_path(@order)
 
     assert_equal LineItem::DEFAULT_CANCELLATION_REASON,
                  find("##{dom_id(@item, :cancellation_reason)}").value

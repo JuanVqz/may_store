@@ -37,4 +37,19 @@ class TakeoutsControllerTest < ActionDispatch::IntegrationTest
     get takeouts_url(subdomain: @store.subdomain)
     assert_redirected_to login_url
   end
+
+  test "index tells a takeout order there is food waiting to be handed over" do
+    order = Spot.takeout_for(@store).orders.create!(
+      store: @store, user: users(:waiter_juan), status: :open, opened_at: Time.current
+    )
+    item = order.add_item!(product: products(:cappuccino))
+    order.confirm!
+    item.reload.mark_ready!
+
+    get takeouts_url(subdomain: @store.subdomain)
+
+    assert_response :success
+    assert_match I18n.t("takeouts.items_awaiting", count: 1), response.body
+    assert_no_match(/entregados/, response.body)
+  end
 end

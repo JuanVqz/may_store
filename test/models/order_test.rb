@@ -94,6 +94,35 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal "cooking", order.reload.status
   end
 
+  # The status the new item starts in is what decides whether the kitchen sees
+  # it now or when the order is confirmed.
+  test "add_item on an order still being taken leaves the item in the draft" do
+    order = orders(:open_order)
+
+    item = order.add_item!(product: @product)
+
+    assert item.ordering?
+    assert order.reload.open?
+  end
+
+  test "add_item on a cooking order sends the item straight to the kitchen" do
+    order = orders(:cooking_order)
+
+    item = order.add_item!(product: @product)
+
+    assert item.cooking?
+  end
+
+  test "add_item prices the extras it was given" do
+    order = orders(:open_order)
+    chocolate = components(:extra_chocolate)
+
+    item = order.add_item!(product: products(:cappuccino), extras: { chocolate.id.to_s => "1" })
+
+    assert_equal products(:cappuccino).base_price_cents + chocolate.price_cents, item.total_price_cents
+    assert_equal order.line_items.not_cancelled.sum(:total_price_cents), order.reload.total_cents
+  end
+
   test "payment tracking" do
     order = orders(:cooking_order)
     order.update_columns(total_cents: 8000)
@@ -215,5 +244,118 @@ class OrderTest < ActiveSupport::TestCase
       assert item.cancelled?
       assert_equal LineItem::DEFAULT_CANCELLATION_REASON, item.cancellation_reason
     end
+  end
+
+  test "settle! takes the money owed and closes the order" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents)
+
+    assert order.reload.closed?
+    assert_equal order.total_cents, order.payments.sum(:amount_cents)
+    assert_equal 0, order.payments.last.change_cents
+  end
+
+  # Only cash has change to give back, so only cash needs the amount tendered.
+  # A card or a transfer is for exactly what is owed.
+  test "settle! fills in the amount tendered for methods that cannot give change" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:mercado_pago))
+
+    assert order.reload.closed?
+    assert_equal order.total_cents, order.payments.last.received_cents
+  end
+
+  test "settle! refuses cash that does not cover the bill and leaves the order open" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    assert_raises ActiveRecord::RecordInvalid do
+      order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents - 100)
+    end
+
+    assert_not order.reload.closed?
+    assert_empty order.payments
+  end
+
+  test "settle! records the change owed on a cash payment" do
+    order = orders(:delivered_order)
+    order.payments.destroy_all
+
+    order.settle!(payment_method: payment_methods(:efectivo), received_cents: order.total_cents + 5000)
+
+    assert_equal 5000, order.payments.last.change_cents
+  end
+
+  # The table and takeout screens hang off this scope: an order that is closed
+  # or cancelled has left the floor and its table is free again.
+  test "in_progress leaves out the orders that are finished with" do
+    open_order = orders(:open_order)
+    closed = orders(:delivered_order)
+    closed.update_columns(status: "closed", closed_at: Time.current)
+    cancelled = orders(:cooking_order)
+    cancelled.update_columns(status: "cancelled", cancelled_at: Time.current)
+
+    in_progress = Order.in_progress
+
+    assert_includes in_progress, open_order
+    assert_not_includes in_progress, closed
+    assert_not_includes in_progress, cancelled
+  end
+
+  # A double tap, or a screen that has not caught up, used to get "sent to the
+  # kitchen" for an order the kitchen already had.
+  test "confirm refuses an order that is already cooking" do
+    order = orders(:cooking_order)
+
+    assert_raises Order::Stateful::InvalidTransition do
+      order.confirm!
+    end
+
+    assert_equal "cooking", order.reload.status
+  end
+
+  test "confirm refuses a cancelled order" do
+    order = orders(:cooking_order)
+    order.cancel!
+
+    assert_raises Order::Stateful::InvalidTransition do
+      order.confirm!
+    end
+  end
+
+  # The register prints the record's errors back to the cashier, so a refusal
+  # with nothing on it is an empty alert.
+  test "close explains itself when the order still owes money" do
+    order = orders(:cooking_order)
+    order.update_columns(total_cents: 5000)
+
+    error = assert_raises(ActiveRecord::RecordInvalid) { order.close! }
+
+    assert_includes error.record.errors.full_messages.to_sentence,
+                    I18n.t("activerecord.errors.models.order.attributes.base.not_fully_paid")
+  end
+
+  # What the floor board shows: plated and still sitting at the pass. The ready
+  # count includes the items already carried out, so it answers a different
+  # question.
+  test "readiness_counts reports what is still waiting to be delivered" do
+    order = orders(:cooking_order)
+    line_items(:cooking_cappuccino).mark_ready!
+    line_items(:cooking_americano).mark_ready!
+    line_items(:cooking_americano).mark_delivered!
+
+    counts = order.reload.readiness_counts
+
+    assert_equal 2, counts[:ready]
+    assert_equal 1, counts[:delivered]
+    assert_equal 1, counts[:awaiting_delivery]
+  end
+
+  test "nothing is awaiting delivery while every item is still cooking" do
+    assert_equal 0, orders(:cooking_order).readiness_counts[:awaiting_delivery]
   end
 end

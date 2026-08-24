@@ -32,12 +32,12 @@ module LineItem::Stateful
 
   def mark_ready!(by: nil)
     raise LineItem::Stateful::InvalidTransition, "Can only mark cooking items as ready" unless cooking?
-    update!(status: :ready, ready_by: by)
+    update!(status: :ready, ready_by: by, ready_at: Time.current)
   end
 
   def mark_delivered!(by: nil)
     raise LineItem::Stateful::InvalidTransition, "Can only deliver ready items" unless ready?
-    update!(status: :delivered, delivered_by: by)
+    update!(status: :delivered, delivered_by: by, delivered_at: Time.current)
   end
 
   # Cancelling an item on a paid order would recalculate the order's total
@@ -57,7 +57,7 @@ module LineItem::Stateful
     raise LineItem::Stateful::InvalidTransition, "Cannot cancel #{status} items" if cancelled? || delivered?
     raise LineItem::Stateful::OrderPaid, "Cannot cancel items on an order that has been paid" if order.payment_taken?
 
-    update!(status: :cancelled, cancelled_by: by, cancellation_reason: reason)
+    update!(status: :cancelled, cancelled_by: by, cancelled_at: Time.current, cancellation_reason: reason)
   end
 
   # What the views ask before offering a cancel button, so the rule lives here with

@@ -4,13 +4,13 @@
 # setup wants: the bar roll prints only bar items, the kitchen roll only kitchen
 # items. Without it the whole order prints on one ticket.
 class KitchenTicketsController < ApplicationController
+  include OrderScoped
   include EscPosStreaming
 
   def show
-    order = Current.store.orders.find(params[:order_id])
-    ticket = Receipt::KitchenTicket.new(order, station: station)
+    ticket = Receipt::KitchenTicket.new(@order, station: station)
 
-    send_escpos ticket.to_escpos, filename: ["ticket", order.code, station].compact.join("-")
+    send_escpos ticket.to_escpos, filename: ["ticket", @order.code, station].compact.join("-")
   end
 
   private

@@ -1,6 +1,11 @@
 module Order::Stateful
   extend ActiveSupport::Concern
 
+  # Refusing a state change the order is not in a position to make. Same shape
+  # as LineItem::Stateful::InvalidTransition, so both read alike at the call
+  # site.
+  class InvalidTransition < StandardError; end
+
   included do
     after_update_commit :broadcast_refreshes, if: :saved_change_to_status?
   end
@@ -22,8 +27,12 @@ module Order::Stateful
     STATUS_COLORS[status]
   end
 
+  # Sending the order to the kitchen. Only an order still being taken can be
+  # sent: confirming one that is already cooking used to do nothing at all and
+  # report success, so a stale screen or a double tap told the waiter the
+  # kitchen had it twice.
   def confirm!
-    return unless open?
+    raise InvalidTransition, "Cannot confirm #{status} orders" unless open?
     raise ActiveRecord::RecordInvalid, self if line_items.empty?
 
     transaction do
@@ -50,8 +59,36 @@ module Order::Stateful
     update!(status: :delivered, delivered_at: Time.current) unless unfinished
   end
 
+  # Taking the money and closing the order in one step, under a row lock, so two
+  # registers cannot both read the same remaining balance and each take it.
+  #
+  # `received` is what the customer handed over, and only cash needs it: the
+  # change owed is the difference. On every other method the amount tendered is
+  # the amount owed by definition, so an unstated one is filled in rather than
+  # failing validation in front of the cashier.
+  def settle!(payment_method:, received_cents: nil)
+    with_lock do
+      received_cents = remaining_cents if received_cents.to_i.zero? && !payment_method.cash?
+
+      payments.create!(
+        payment_method: payment_method,
+        amount_cents: remaining_cents,
+        received_cents: received_cents,
+        paid_at: Time.current
+      )
+      close!
+    end
+  end
+
+  # Raised with a message on the record, not a bare RecordInvalid: the register
+  # prints e.record.errors back to the cashier, and an order with no errors on
+  # it printed an empty alert that said nothing about what went wrong.
   def close!
-    raise ActiveRecord::RecordInvalid, self unless fully_paid?
+    unless fully_paid?
+      errors.add(:base, :not_fully_paid)
+      raise ActiveRecord::RecordInvalid, self
+    end
+
     update!(status: :closed, closed_at: Time.current)
   end
 
@@ -77,6 +114,7 @@ module Order::Stateful
       line_items.where(status: [:ordering, :cooking, :ready])
                 .update_all(status: :cancelled,
                             cancellation_reason: LineItem::DEFAULT_CANCELLATION_REASON,
+                            cancelled_at: Time.current,
                             updated_at: Time.current)
       # update_all skips LineItem's callbacks, so the total has to be recomputed
       # here. Delivered items survive the cascade and still count.

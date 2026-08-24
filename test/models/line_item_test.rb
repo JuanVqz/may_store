@@ -232,4 +232,55 @@ class LineItemTest < ActiveSupport::TestCase
 
     assert_equal I18n.t("cancellation_reasons.out_of_stock"), item.cancellation_reason_label
   end
+
+  # The kitchen screen is this scope. An item still on a draft order has not
+  # been sent yet, and a delivered or cancelled one is off the pass.
+  test "on_the_pass holds only the items the kitchen still owes" do
+    on_the_pass = LineItem.on_the_pass
+
+    assert_includes on_the_pass, line_items(:cooking_cappuccino)
+    assert_not_includes on_the_pass, line_items(:ordering_americano)
+    assert_not_includes on_the_pass, line_items(:delivered_latte)
+  end
+
+  test "in_store keeps another store's items off the queue" do
+    other_store = stores(:mi_cafe)
+    category = other_store.categories.create!(name: "Bebidas", station: :bar, position: 1)
+    product = other_store.products.create!(category: category, name: "Cafe", base_price_cents: 1000, available: true)
+    order = other_store.orders.create!(
+      spot: other_store.spots.create!(name: "Mesa 1", spot_type: :dine_in, position: 1, active: true),
+      user: users(:other_store_waiter), status: :cooking, opened_at: Time.current
+    )
+    foreign_item = order.line_items.create!(product: product, status: :cooking, base_price_cents: 1000)
+
+    items = LineItem.in_store(stores(:cafe_delicias)).on_the_pass
+
+    assert_includes items, line_items(:cooking_cappuccino)
+    assert_not_includes items, foreign_item
+  end
+
+  # Who did it was already recorded; when it happened was not, and half a record
+  # cannot answer how long a dish sat on the pass.
+  test "each transition records when it happened, not just who did it" do
+    item = line_items(:cooking_cappuccino)
+    user = users(:waiter_juan)
+
+    item.mark_ready!(by: user)
+    assert_not_nil item.reload.ready_at
+
+    item.mark_delivered!(by: user)
+    assert_not_nil item.reload.delivered_at
+
+    cancelled = line_items(:cooking_americano)
+    cancelled.cancel!(by: user)
+    assert_not_nil cancelled.reload.cancelled_at
+  end
+
+  test "an item cancelled along with its order is timestamped too" do
+    order = orders(:cooking_order)
+
+    order.cancel!
+
+    assert order.line_items.reload.all? { |item| item.cancelled_at.present? }
+  end
 end

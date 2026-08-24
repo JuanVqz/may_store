@@ -3,9 +3,7 @@ class Admin::SpotsController < Admin::BaseController
 
   def index
     scope = Current.store.spots.order(:spot_type, :name)
-    if params[:q].present?
-      scope = scope.where("name ILIKE ?", "%#{params[:q]}%")
-    end
+    scope = scope.containing(params[:q]) if params[:q].present?
     @pagy, @spots = pagy(scope)
   end
 

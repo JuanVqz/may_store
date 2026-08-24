@@ -3,10 +3,7 @@ class Admin::ProductsController < Admin::BaseController
 
   def index
     scope = Current.store.products.active.joins(:category).includes(:category).order(:name)
-    if params[:q].present?
-      q = "%#{params[:q]}%"
-      scope = scope.where("products.name ILIKE ? OR categories.name ILIKE ?", q, q)
-    end
+    scope = scope.containing(params[:q]) if params[:q].present?
     @pagy, @products = pagy(scope)
   end
 

@@ -1,10 +1,8 @@
 class KitchenController < ApplicationController
   def index
-    @line_items = LineItem
-      .joins(:order)
-      .where(orders: { store_id: Current.store.id })
-      .where(status: [:cooking, :ready])
-      .includes(order: [:spot, :user], line_item_components: :component, product: :category)
-      .order(created_at: :asc, id: :asc)
+    @line_items = LineItem.in_store(Current.store)
+                          .on_the_pass
+                          .includes(order: [:spot, :user], line_item_components: :component, product: :category)
+                          .order(created_at: :asc, id: :asc)
   end
 end

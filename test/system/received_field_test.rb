@@ -5,7 +5,7 @@ class ReceivedFieldTest < ApplicationSystemTestCase
     @order = orders(:delivered_order)
     @order.payments.destroy_all
     sign_in_waiter
-    visit_store stores(:cafe_delicias), bill_order_path(@order)
+    visit_store stores(:cafe_delicias), order_bill_path(@order)
   end
 
   # The field is autofocused and pre-filled with 0.00, so typing 5 to mean five

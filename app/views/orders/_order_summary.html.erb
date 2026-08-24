@@ -13,11 +13,11 @@
   </div>
 
   <% if order.open? && items.any? %>
-    <%= button_to t("order.confirm"), confirm_order_path(order), method: :patch, class: "w-full", data: { component: "button", variant: "primary", size: "lg" } %>
+    <%= button_to t("order.confirm"), order_confirmation_path(order), class: "w-full", data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
 
   <% if items.any? && !order.open? && !order.closed? && !order.cancelled? %>
-    <%= link_to t("order.request_bill"), bill_order_path(order),
+    <%= link_to t("order.request_bill"), order_bill_path(order),
           class: "w-full",
           data: { component: "button", variant: "primary", size: "lg" } %>
   <% end %>
@@ -26,8 +26,7 @@
       in the window where a payment exists but close! has not run yet. %>
   <% unless order.payment_taken? || order.cancelled? %>
     <%= button_to t("order.cancel_order"),
-          cancel_order_path(order),
-          method: :patch,
+          order_cancellation_path(order),
           class: "w-full",
           data: { component: "button", variant: "destructive", turbo_confirm: t("order.cancel_confirm") } %>
   <% end %>

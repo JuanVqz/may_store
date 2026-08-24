@@ -235,7 +235,7 @@ class AdminCatalogTest < ApplicationSystemTestCase
     order.payments.destroy_all
     order.update!(total_cents: 4500)
 
-    visit bill_order_path(order)
+    visit order_bill_path(order)
 
     assert_text "Vales"
   end

@@ -87,8 +87,9 @@ es:
     title: "Para Llevar"
     new_order: "Nueva Orden"
     no_orders: "No hay ordenes para llevar activas"
-    items_ready: "%{count} de %{total} listos"
-    items_delivered: "%{count} de %{total} entregados"
+    items_awaiting:
+      one: "%{count} listo para entregar"
+      other: "%{count} listos para entregar"
 
   # ============================================
   # Tables
@@ -102,8 +103,9 @@ es:
     available: "Disponible"
     legend: "Leyenda de estados"
     no_active_order: "Sin orden activa"
-    items_ready: "%{count} de %{total} listos"
-    items_delivered: "%{count} de %{total} entregados"
+    items_awaiting:
+      one: "%{count} listo para entregar"
+      other: "%{count} listos para entregar"
 
   # ============================================
   # Order Statuses
@@ -162,6 +164,7 @@ es:
     item_added: "Producto agregado a la orden"
     closed: "Orden cerrada exitosamente"
     cannot_cancel_paid: "No se puede cancelar una orden que ya fue pagada"
+    cannot_confirm_status: "No se puede enviar a cocina una orden ya %{status}"
     back_to_tables: "Volver a Mesas"
     table_now_available: "%{name} ahora esta disponible"
 
@@ -444,6 +447,10 @@ es:
               taken: "ya esta en uso en esta tienda"
             password:
               blank: "no puede estar en blanco"
+        order:
+          attributes:
+            base:
+              not_fully_paid: "La orden todavia tiene un saldo pendiente"
         payment:
           attributes:
             received_cents:

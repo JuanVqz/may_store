@@ -5,7 +5,7 @@ class PaymentMethodSelectionTest < ApplicationSystemTestCase
     @order = orders(:delivered_order)
     @order.payments.destroy_all
     sign_in_waiter
-    visit_store stores(:cafe_delicias), bill_order_path(@order)
+    visit_store stores(:cafe_delicias), order_bill_path(@order)
   end
 
   # Styled with group-has rather than peer-checked, because ReActionView's

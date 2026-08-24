@@ -56,7 +56,7 @@ class KitchenControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match item.product.name.upcase, response.body
-    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
-    assert_select "form[action=?]", ready_order_line_item_path(order, item)
+    assert_select "form[action=?]", order_line_item_cancellation_path(order, item), count: 0
+    assert_select "form[action=?]", order_line_item_readiness_path(order, item)
   end
 end
