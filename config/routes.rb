@@ -14,10 +14,10 @@ Rails.application.routes.draw do
   end
 
   resources :orders, only: [:index, :show] do
-    member do
-      patch :confirm
-      patch :cancel
-      get :bill
+    scope module: :orders do
+      resource :confirmation, only: [:create]
+      resource :cancellation, only: [:create]
+      resource :bill, only: [:show]
     end
 
     # ESC/POS byte streams, fetched by the print Stimulus controller and
@@ -29,10 +29,10 @@ Rails.application.routes.draw do
     resources :payments, only: [:create]
 
     resources :line_items, only: [:new, :create, :update, :destroy] do
-      member do
-        patch :ready
-        patch :deliver
-        patch :cancel
+      scope module: :line_items do
+        resource :readiness, only: [:create]
+        resource :delivery, only: [:create]
+        resource :cancellation, only: [:create]
       end
     end
   end

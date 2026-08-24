@@ -28,14 +28,12 @@
     <div class="flex items-center justify-between gap-8 w-full">
       <% if item.cooking? %>
         <%= button_to t("kitchen.ready"),
-              ready_order_line_item_path(item.order, item),
-              method: :patch,
+              order_line_item_readiness_path(item.order, item),
               data: { component: "button", variant: "primary", size: "lg" } %>
         <%= render "line_items/cancel_button", item: item, size: "lg" %>
       <% elsif item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
-              deliver_order_line_item_path(item.order, item),
-              method: :patch,
+              order_line_item_delivery_path(item.order, item),
               data: { component: "button", variant: "primary", size: "lg" } %>
         <%= render "line_items/cancel_button", item: item, size: "lg" %>
       <% end %>

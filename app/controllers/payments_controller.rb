@@ -26,7 +26,7 @@ class PaymentsController < ApplicationController
 
     redirect_to order_path(@order), notice: t("order.closed")
   rescue ActiveRecord::RecordInvalid => e
-    redirect_to bill_order_path(@order), alert: e.record.errors.full_messages.to_sentence
+    redirect_to order_bill_path(@order), alert: e.record.errors.full_messages.to_sentence
   end
 
   private

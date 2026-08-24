@@ -9,7 +9,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "the bill itemizes the order and shows the total" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     assert_text I18n.t("bill.title")
     assert_text @order.code
@@ -20,7 +20,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "the bill lists every active payment method" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     assert_text payment_methods(:efectivo).name
     assert_text payment_methods(:mercado_pago).name
@@ -30,14 +30,14 @@ class BillingTest < ApplicationSystemTestCase
   test "an inactive payment method is not offered" do
     payment_methods(:transferencia).update!(active: false)
 
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     assert_text payment_methods(:efectivo).name
     assert_no_text payment_methods(:transferencia).name
   end
 
   test "cash payment computes the change" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     choose_payment_method payment_methods(:efectivo)
     fill_in "received", with: "100"
@@ -46,7 +46,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "paying in cash closes the order" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     choose_payment_method payment_methods(:efectivo)
     fill_in "received", with: "50"
@@ -58,7 +58,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "cash received below the total is rejected" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     choose_payment_method payment_methods(:efectivo)
     fill_in "received", with: "10"
@@ -71,7 +71,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "a non cash method pre-fills the received amount with the total" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     choose_payment_method payment_methods(:mercado_pago)
 
@@ -81,7 +81,7 @@ class BillingTest < ApplicationSystemTestCase
   end
 
   test "paying by transfer closes the order" do
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     choose_payment_method payment_methods(:transferencia)
     click_on I18n.t("bill.confirm_payment")
@@ -94,7 +94,7 @@ class BillingTest < ApplicationSystemTestCase
     order = orders(:cooking_order)
     line_items(:cooking_americano).cancel!(by: users(:waiter_juan))
 
-    visit bill_order_path(order)
+    visit order_bill_path(order)
 
     assert_text I18n.t("bill.cancelled")
   end
@@ -108,7 +108,7 @@ class BillingTest < ApplicationSystemTestCase
       paid_at: Time.current
     )
 
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     assert_current_path order_path(@order)
   end
@@ -116,7 +116,7 @@ class BillingTest < ApplicationSystemTestCase
   test "a closed order is terminal and cannot be billed again" do
     @order.update!(status: :closed, closed_at: Time.current)
 
-    visit bill_order_path(@order)
+    visit order_bill_path(@order)
 
     assert_current_path order_path(@order)
     assert_text I18n.t("order.closed_title")
@@ -130,7 +130,7 @@ class BillingTest < ApplicationSystemTestCase
     visit order_path(order)
     click_on I18n.t("order.request_bill")
 
-    assert_current_path bill_order_path(order)
+    assert_current_path order_bill_path(order)
   end
 
   private

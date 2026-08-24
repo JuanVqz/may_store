@@ -63,7 +63,7 @@ linter:
     a11y-no-autofocus-attribute:
       enabled: true
       exclude:
-        - "app/views/orders/bill.html.erb"
+        - "app/views/orders/bills/show.html.erb"
 
     # Every partial declares its contract, so a caller that forgets a local
     # fails loudly instead of rendering nil into the page.

@@ -27,8 +27,7 @@
       <% end %>
       <% if item.cooking? %>
         <%= button_to t("kitchen.ready"),
-              ready_order_line_item_path(order, item),
-              method: :patch,
+              order_line_item_readiness_path(order, item),
               data: { component: "button", variant: "primary", size: "sm" } %>
         <%= render "line_items/cancel_button", item: item, size: "sm" %>
       <% end %>
@@ -39,8 +38,7 @@
           stay uncancellable, since the food is on the table. %>
       <% if item.ready? %>
         <%= button_to t("line_item.mark_delivered"),
-              deliver_order_line_item_path(order, item),
-              method: :patch,
+              order_line_item_delivery_path(order, item),
               data: { component: "button", variant: "primary", size: "sm" } %>
         <%= render "line_items/cancel_button", item: item, size: "sm" %>
       <% end %>

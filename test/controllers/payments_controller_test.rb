@@ -45,7 +45,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
       post order_payments_url(order, subdomain: @store.subdomain),
            params: { payment_method_id: payment_methods(:efectivo).id, received: "20.00" }
     end
-    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
+    assert_redirected_to order_bill_url(order, subdomain: @store.subdomain)
   end
 
   test "create with blank received for cash payment fails validation" do
@@ -57,7 +57,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
       post order_payments_url(order, subdomain: @store.subdomain),
            params: { payment_method_id: payment_methods(:efectivo).id, received: "" }
     end
-    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
+    assert_redirected_to order_bill_url(order, subdomain: @store.subdomain)
   end
 
   test "create with 0 received for cash payment fails validation" do
@@ -69,7 +69,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
       post order_payments_url(order, subdomain: @store.subdomain),
            params: { payment_method_id: payment_methods(:efectivo).id, received: "0" }
     end
-    assert_redirected_to bill_order_url(order, subdomain: @store.subdomain)
+    assert_redirected_to order_bill_url(order, subdomain: @store.subdomain)
   end
 
   test "create auto-fills received_cents for non-cash payment when blank" do

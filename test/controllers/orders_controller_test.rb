@@ -20,7 +20,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   test "bill shows bill page with items and payment methods" do
     order = orders(:delivered_order)
     order.payments.destroy_all
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
     assert_response :success
     assert_match "Cuenta", response.body
     assert_match "Efectivo", response.body
@@ -42,7 +42,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
 
     assert_response :success
     assert_match "Extra Strawberries", response.body
@@ -52,7 +52,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   test "bill shows cancelled items as cancelado" do
     order = orders(:cooking_order)
     line_items(:cooking_cappuccino).cancel!
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
     assert_response :success
     assert_match "CANCELADO", response.body
   end
@@ -62,7 +62,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     order.update_columns(total_cents: 4500)
     assert order.reload.fully_paid?
 
-    get bill_order_url(order, subdomain: @store.subdomain)
+    get order_bill_url(order, subdomain: @store.subdomain)
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
 
@@ -117,21 +117,21 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     spot = spots(:mesa_1)
     post spot_orders_url(spot, subdomain: @store.subdomain)
     order = @store.orders.order(created_at: :desc).first
-    patch confirm_order_url(order, subdomain: @store.subdomain)
+    post order_confirmation_url(order, subdomain: @store.subdomain)
     assert_equal "open", order.reload.status
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
 
   test "confirm transitions order to cooking" do
     order = orders(:open_order)
-    patch confirm_order_url(order, subdomain: @store.subdomain)
+    post order_confirmation_url(order, subdomain: @store.subdomain)
     assert_equal "cooking", order.reload.status
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
   end
 
   test "cancel transitions order to cancelled" do
     order = orders(:cooking_order)
-    patch cancel_order_url(order, subdomain: @store.subdomain)
+    post order_cancellation_url(order, subdomain: @store.subdomain)
     assert_equal "cancelled", order.reload.status
     assert_redirected_to tables_url(subdomain: @store.subdomain)
   end
@@ -192,7 +192,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
                            received_cents: order.total_cents, paid_at: Time.current)
     order.close!
 
-    patch cancel_order_url(order, subdomain: @store.subdomain)
+    post order_cancellation_url(order, subdomain: @store.subdomain)
 
     assert_redirected_to order_url(order, subdomain: @store.subdomain)
     assert_equal I18n.t("order.cannot_cancel_paid"), flash[:alert]
@@ -205,7 +205,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
                            amount_cents: order.total_cents,
                            received_cents: order.total_cents, paid_at: Time.current)
 
-    patch cancel_order_url(order, subdomain: @store.subdomain)
+    post order_cancellation_url(order, subdomain: @store.subdomain)
 
     assert_equal I18n.t("order.cannot_cancel_paid"), flash[:alert]
     assert_not order.reload.cancelled?
@@ -223,8 +223,8 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     get order_url(order, subdomain: @store.subdomain)
 
     assert_response :success
-    assert_select "form[action=?]", cancel_order_path(order), count: 0
-    assert_select "form[action=?]", cancel_order_line_item_path(order, item), count: 0
+    assert_select "form[action=?]", order_cancellation_path(order), count: 0
+    assert_select "form[action=?]", order_line_item_cancellation_path(order, item), count: 0
   end
 
   test "show offers both cancel buttons while the order is unpaid" do
@@ -234,8 +234,8 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     get order_url(order, subdomain: @store.subdomain)
 
     assert_response :success
-    assert_select "form[action=?]", cancel_order_path(order)
-    assert_select "form[action=?]", cancel_order_line_item_path(order, item)
+    assert_select "form[action=?]", order_cancellation_path(order)
+    assert_select "form[action=?]", order_line_item_cancellation_path(order, item)
   end
   # The count sits next to the total, and the total has always excluded
   # cancelled items. Counting them made the summary contradict itself: three
