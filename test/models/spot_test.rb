@@ -50,4 +50,52 @@ class SpotTest < ActiveSupport::TestCase
       assert_equal existing, spot
     end
   end
+
+  test "open_order joins the order already on a table" do
+    spot = spots(:mesa_1)
+    existing = spot.orders.in_progress.first
+
+    assert_equal existing, spot.open_order(user: users(:waiter_juan))
+  end
+
+  test "open_order opens one on a table with nothing on it" do
+    spot = spots(:mesa_2)
+
+    order = spot.open_order(user: users(:waiter_juan))
+
+    assert order.open?
+    assert_equal spot, order.spot
+    assert_equal users(:waiter_juan), order.user
+  end
+
+  # Several takeout orders wait side by side, so there is no "the" order on that
+  # spot to join.
+  test "open_order always starts a new takeout order" do
+    spot = Spot.takeout_for(stores(:cafe_delicias))
+    first = spot.open_order(user: users(:waiter_juan))
+
+    assert_not_equal first, spot.open_order(user: users(:waiter_juan))
+  end
+
+  test "a closed order no longer holds its table" do
+    spot = spots(:mesa_2)
+    order = spot.open_order(user: users(:waiter_juan))
+    order.update!(status: :closed, closed_at: Time.current)
+
+    assert_not_equal order, spot.open_order(user: users(:waiter_juan))
+  end
+
+  # Tables that already carry two live orders exist, because until now every tap
+  # opened one. Joining the older of them puts the waiter back on the bill the
+  # guests have been running.
+  test "open_order joins the oldest live order on a table" do
+    spot = spots(:mesa_2)
+    older = spot.open_order(user: users(:waiter_juan))
+    newer = spot.orders.create!(store: spot.store, user: users(:waiter_juan),
+                                status: :open, opened_at: Time.current)
+    older.update_columns(created_at: 20.minutes.ago)
+
+    assert_equal older, spot.open_order(user: users(:waiter_juan))
+    assert_not_equal newer, spot.open_order(user: users(:waiter_juan))
+  end
 end

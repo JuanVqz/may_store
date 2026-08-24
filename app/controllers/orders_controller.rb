@@ -6,14 +6,9 @@ class OrdersController < ApplicationController
   end
 
   def create
-    @spot = Current.store.spots.find(params[:spot_id])
-    @order = Current.store.orders.create!(
-      spot: @spot,
-      user: Current.user,
-      status: :open,
-      opened_at: Time.current
-    )
-    redirect_to order_path(@order)
+    spot = Current.store.spots.find(params[:spot_id])
+
+    redirect_to order_path(spot.open_order(user: Current.user))
   end
 
   def show

@@ -7,8 +7,10 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     post login_url(subdomain: @store.subdomain), params: { employee_number: "EMP-001", password: "password123" }
   end
 
-  test "create creates order and redirects to order show" do
-    spot = spots(:mesa_1)
+  # mesa_2 is the fixture kept free of orders, so this is a table with nothing
+  # on it: tapping it has to open something new.
+  test "create opens an order on a free table and redirects to it" do
+    spot = spots(:mesa_2)
     assert_difference "Order.count", 1 do
       post spot_orders_url(spot, subdomain: @store.subdomain)
     end
@@ -114,7 +116,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "confirm with no items redirects with alert" do
-    spot = spots(:mesa_1)
+    spot = spots(:mesa_2)
     post spot_orders_url(spot, subdomain: @store.subdomain)
     order = @store.orders.order(created_at: :desc).first
     post order_confirmation_url(order, subdomain: @store.subdomain)
@@ -249,5 +251,44 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match I18n.t("order.total", count: remaining), response.body
+  end
+
+  # Two taps on the same table used to open two orders. The board keys orders by
+  # spot, so only one of them was reachable from it; the other stayed open and
+  # could be collected on its own from the day's list.
+  test "tapping a table twice joins the order already on it" do
+    spot = spots(:mesa_2)
+
+    post spot_orders_url(spot, subdomain: @store.subdomain)
+    first = @store.orders.order(created_at: :desc).first
+
+    assert_no_difference "Order.count" do
+      post spot_orders_url(spot, subdomain: @store.subdomain)
+    end
+
+    assert_redirected_to order_url(first, subdomain: @store.subdomain)
+  end
+
+  # Takeout is the other way round: orders wait side by side, so every tap on
+  # "nueva orden" has to start one.
+  test "each tap on takeout starts its own order" do
+    spot = Spot.takeout_for(@store)
+
+    assert_difference "Order.count", 2 do
+      2.times { post spot_orders_url(spot, subdomain: @store.subdomain) }
+    end
+  end
+
+  # A table that was paid for and closed is free again, so the next guests get
+  # their own order rather than joining a bill that is already settled.
+  test "a closed order does not hold the table" do
+    spot = spots(:mesa_2)
+    post spot_orders_url(spot, subdomain: @store.subdomain)
+    previous = @store.orders.order(created_at: :desc).first
+    previous.update!(status: :closed, closed_at: Time.current)
+
+    assert_difference "Order.count", 1 do
+      post spot_orders_url(spot, subdomain: @store.subdomain)
+    end
   end
 end
