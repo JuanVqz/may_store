@@ -1,6 +1,7 @@
 class LineItem < ApplicationRecord
   include PriceCents
   include LineItem::Stateful
+  include LineItem::Customizable
 
   belongs_to :order
   belongs_to :product

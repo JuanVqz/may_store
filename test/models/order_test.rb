@@ -94,6 +94,35 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal "cooking", order.reload.status
   end
 
+  # The status the new item starts in is what decides whether the kitchen sees
+  # it now or when the order is confirmed.
+  test "add_item on an order still being taken leaves the item in the draft" do
+    order = orders(:open_order)
+
+    item = order.add_item!(product: @product)
+
+    assert item.ordering?
+    assert order.reload.open?
+  end
+
+  test "add_item on a cooking order sends the item straight to the kitchen" do
+    order = orders(:cooking_order)
+
+    item = order.add_item!(product: @product)
+
+    assert item.cooking?
+  end
+
+  test "add_item prices the extras it was given" do
+    order = orders(:open_order)
+    chocolate = components(:extra_chocolate)
+
+    item = order.add_item!(product: products(:cappuccino), extras: { chocolate.id.to_s => "1" })
+
+    assert_equal products(:cappuccino).base_price_cents + chocolate.price_cents, item.total_price_cents
+    assert_equal order.line_items.not_cancelled.sum(:total_price_cents), order.reload.total_cents
+  end
+
   test "payment tracking" do
     order = orders(:cooking_order)
     order.update_columns(total_cents: 8000)

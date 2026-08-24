@@ -30,17 +30,21 @@ class Order < ApplicationRecord
     open? || cooking? || ready? || delivered?
   end
 
-  def add_item!(product:, special_notes: nil)
-    update!(status: :cooking) if ready? || delivered?
+  # Adding to an order that is already cooking sends the new item straight to
+  # the kitchen; adding to one still being taken keeps it with the rest of the
+  # draft until the whole order is confirmed. An order that had been served
+  # goes back to cooking, because something on it is being made again.
+  def add_item!(product:, special_notes: nil, portions: {}, extras: {})
+    transaction do
+      update!(status: :cooking) if ready? || delivered?
 
-    item = line_items.create!(
-      product: product,
-      status: :cooking,
-      base_price_cents: product.base_price_cents,
-      special_notes: special_notes
-    )
-    item.calculate_total!
-    item
+      line_items.create!(
+        product: product,
+        status: open? ? :ordering : :cooking,
+        base_price_cents: product.base_price_cents,
+        special_notes: special_notes
+      ).customize!(portions: portions, extras: extras)
+    end
   end
 
   def total_paid_cents
