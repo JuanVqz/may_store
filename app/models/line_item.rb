@@ -47,6 +47,10 @@ class LineItem < ApplicationRecord
   # items or money has to agree on this, or the screen shows three products and
   # the price of two.
   scope :not_cancelled, -> { where.not(status: :cancelled) }
+  # What the kitchen screen is made of: being cooked, or cooked and waiting to
+  # be picked up. An item still on a draft order has not been sent yet.
+  scope :on_the_pass, -> { where(status: [:cooking, :ready]) }
+  scope :in_store, ->(store) { joins(:order).where(orders: { store_id: store.id }) }
 
   after_save :recalculate_order_total, if: :affects_order_total?
   after_destroy :recalculate_order_total

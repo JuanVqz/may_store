@@ -289,4 +289,20 @@ class OrderTest < ActiveSupport::TestCase
 
     assert_equal 5000, order.payments.last.change_cents
   end
+
+  # The table and takeout screens hang off this scope: an order that is closed
+  # or cancelled has left the floor and its table is free again.
+  test "in_progress leaves out the orders that are finished with" do
+    open_order = orders(:open_order)
+    closed = orders(:delivered_order)
+    closed.update_columns(status: "closed", closed_at: Time.current)
+    cancelled = orders(:cooking_order)
+    cancelled.update_columns(status: "cancelled", cancelled_at: Time.current)
+
+    in_progress = Order.in_progress
+
+    assert_includes in_progress, open_order
+    assert_not_includes in_progress, closed
+    assert_not_includes in_progress, cancelled
+  end
 end

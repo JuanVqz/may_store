@@ -10,6 +10,9 @@ class Order < ApplicationRecord
   has_many :payments, dependent: :destroy
 
   scope :today, -> { where(created_at: Time.current.beginning_of_day..Time.current.end_of_day) }
+  # Still on the floor: someone is waiting on it, or it is waiting to be paid.
+  # What the table and takeout screens are made of.
+  scope :in_progress, -> { where.not(status: [:closed, :cancelled]) }
 
   enum :status, {
     open: "open",

@@ -7,6 +7,7 @@ class Spot < ApplicationRecord
   validates :name, presence: true, uniqueness: { scope: :store_id }
   validates :spot_type, presence: true
 
+  scope :active, -> { where(active: true) }
   scope :tables, -> { where(spot_type: :dine_in) }
   scope :takeouts, -> { where(spot_type: :takeout) }
   scope :containing, ->(term) { where("name ILIKE ?", "%#{sanitize_sql_like(term)}%") }
