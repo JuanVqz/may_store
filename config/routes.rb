@@ -30,7 +30,7 @@ Rails.application.routes.draw do
 
     resources :line_items, only: [:new, :create, :update, :destroy] do
       scope module: :line_items do
-        resource :readiness, only: [:create]
+        resource :readiness, only: [:create], controller: "readiness"
         resource :delivery, only: [:create]
         resource :cancellation, only: [:create]
       end

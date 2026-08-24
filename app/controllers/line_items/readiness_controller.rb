@@ -1,5 +1,5 @@
 # The kitchen saying an item is cooked.
-class LineItems::ReadinessesController < ApplicationController
+class LineItems::ReadinessController < ApplicationController
   include LineItemScoped
 
   def create
