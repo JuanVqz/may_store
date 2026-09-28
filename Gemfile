@@ -6,11 +6,11 @@ gem "bootsnap", require: false
 gem "importmap-rails"
 gem "kamal", require: false
 gem "maquina-components"
-gem "pagy", "~> 43.5"
+gem "pagy", "~> 43.6"
 gem "pg", "~> 1.1"
 gem "propshaft"
 gem "puma", ">= 5.0"
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.4"
 gem "solid_cache"
 gem "solid_queue"
 gem "stimulus-rails"
@@ -23,7 +23,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 group :development, :test do
   gem "brakeman", require: false
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-  gem "reactionview", "~> 0.3.0"
+  gem "reactionview", "~> 0.6.0"
   gem "rubocop-rails-omakase", require: false
 end
 
